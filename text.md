@@ -12,10 +12,10 @@ Jocurile de masă au existat de când e lumea. Încă din antichitate, pentru di
 au inventat diverse jocuri de masă și mai ales de strategie, în doi jucători, la multe observându-se chiar un șablon:
 o tablă pe care se desfășoară jocul și doi oponenți, fiecare cu un set de piese de o anumită culoare,
 de obicei alb și negru. Există prea multe jocuri de acest fel și prea multe variații ale acestora pentru a
-fi scrise toate într-un singur capitol. Însă printre cele mai cunoscute se enumeră șah, dame, moară și go.
+fi scrise toate într-un singur capitol. Însă, printre cele mai cunoscute se enumeră: șah, dame, moară și go.
 Toate aceste jocuri au în comun aspectul important că se joacă în ture, odată un jucător, iar apoi celălalt și tot
 așa. Datorită acestui model simplu - adică doi jucători care joacă pe rând pe o tablă - este destul de ușor
-de a computeriza astfel de jocuri. O să discut despre acest lucru într-o altă secțiune din acest capitol.
+de a computeriza astfel de jocuri. Voi discuta despre acest aspect într-o altă secțiune din acest capitol.
 
 ### Jocul de strategie dame
 
@@ -48,7 +48,7 @@ Pentru a computeriza varianta americană a jocului dame, este esențial să se c
 
 Implementarea regulilor jocului dame într-un program software, într-un joc video este simplă. Însă tematica
 acestei lucrări este crearea unui adversar cu care să jucăm dame. În esență, trebuie instrucționat calculatorul
-regulile acestui joc și ce trebuie să facă ca să câștige. În continuare, o să prezint trei diferite abordări
+cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În continuare, voi prezenta trei diferite abordări
 pentru crearea unui oponent la calculator.
 
 O primă abordare și una naivă ar fi ca, dintre toate mișcările posibile la un moment dat, să se aleagă
@@ -103,5 +103,5 @@ pentru a computa toate posibilele mișcări pe care le pot face ambii jucători 
 
 ## Bibliografie
 
-[1] <https://en.wikipedia.org/wiki/Checkers>
+[1] <https://en.wikipedia.org/wiki/Checkers>  
 [2] <https://en.wikipedia.org/wiki/AlphaZero>

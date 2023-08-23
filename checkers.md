@@ -11,6 +11,5 @@
 - GUI applications for testing and comparing the AI
 - data and statistics for monitoring the AI evolution across different versions
 - unit testing
-- (maybe) bindings to other languages
-- (maybe) support for Android with proof that it's working on it
-
+- (maybe) bindings to other languages like Python
+- (maybe) support for Android and proof that it's working on it
