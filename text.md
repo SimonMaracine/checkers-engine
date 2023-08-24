@@ -22,7 +22,7 @@ de a computeriza astfel de jocuri. Voi discuta despre acest aspect într-o altă
 În particular, ce ne interesează pe noi este jocul dame (engl. "checkers"). Este un joc abstract, de strategie,
 de masă, în doi jucători. Jocul dame are foarte multe variante, în diferite țări și culturi, însă aici,
 când spun "dame", mă refer mai exact la varianta americană a jocului (engl. "american ckeckers" sau "english checkers").
-Pentru a computeriza varianta americană a jocului dame, este esențial să se cunoască regulile exacte ale jocului [1]:
+Pentru a computeriza varianta americană a jocului dame, este esențial să se cunoască regulile exacte ale jocului: [1]
 
 - Tabla este constituită din opt rânduri și opt coloane, adică șaizeci și patru de pătrățele
   în carouri, ca și la tabla de șah.
@@ -47,9 +47,12 @@ Pentru a computeriza varianta americană a jocului dame, este esențial să se c
 Există câțiva termeni din câmpul lexical al astfel de jocuri în general, care trebuie bine definiți:
 
 - Tură și semitură (engl. "turn" și "ply"): O tură sau o tură completă reprezintă o mișcare a jucătorului
-  negru și o mișcare a jucătorului alb. O semitură reprezintă o mișcare a unui jucător.
-- Mișcare (engl. "move"): Reprezintă acțiunea sau acținuile necesare făcute de u jucător pentru a-și termina
-  semitura.
+  negru urmată de o mișcare a jucătorului alb. O semitură reprezintă o mișcare a unui jucător.
+- Mișcare (engl. "move"): Reprezintă acțiunea sau acțiunile necesare, efectuate de un jucător, pentru a-și
+  termina semitura.
+- Poziție (engl. "position"): Reprezintă starea momentană a unui joc dintre semiture. Toate elementele
+  care pot face diferența dintre o poziție de alta, împreună reprezintă o poziție a jocului. Aici include
+  și jucătorul la rând.
 - Remiză (engl. "draw"): Este situația în care jocul se termină fără niciun câștigător.
 
 ### Computerizarea jocului dame
@@ -60,7 +63,7 @@ cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În contin
 pentru crearea unui oponent la calculator.
 
 O primă abordare și una naivă ar fi să se analizeze tabla cu toate piesele și, printr-o anumită logică,
-să se aleagă o anumită mișcare. Cu alte cuvinte, să se scrie un oarecare algoritm. Problema acetei abordări
+să se aleagă o anumită mișcare. Cu alte cuvinte, să se scrie un oarecare algoritm. Problema acestei abordări
 este că e foarte dificil de implementat, nu garantează că ia în considerare toții factorii care pot determina
 câștigul sau pierderea, și nu poate să vadă în ansamblu în ce direcție o ia jocul, să "vadă" în viitor.
 
@@ -76,14 +79,36 @@ cu 155 de câștiguri, 6 pierderi și 839 de remize. [2]
 
 A treia abordare, cea pe care o voi implementa și eu, este folosirea puterii de procesare a calculatorului,
 pentru a calcula toate posibilele mișcări din partea ambilor jucători până la un punct anume din joc și
-toate posibilele rezultate, iar apoi alegerea mișcării celei mai favorabile pentru jucătorul calculator. Acest
-algoritm poartă denumirea de minimax.
+toate posibilele rezultate, iar apoi alegerea mișcării celei mai favorabile pentru jucătorul calculator.
+Acest algoritm poartă denumirea de minimax.
 
 ### Algoritmul minimax
 
-...
+"Minimax este o regulă de decizie utilizată în teoria jocurilor, statistică și filosofie și care constă
+în minimizarea pierderii maxime posibile. Alternativ, abordarea poate fi și cea a maximizării câștigului
+minim." [3]
 
-### Implementații existente de minimax pentru jocul dame
+Minimax este, de asemenea, un algoritm și este deseori folosit în inteligență artificială pentru jocuri
+de tip "turn-based", de doi jucători, cu mișcări alternative, potrivindu-se astfel perfect pentru jocul dame.
+Se mai poate privi și ca un algoritm de căutare, fiindcă ideea de bază al acestui algoritm este să "caute" cea mai avantajoasă
+mișcare pentru o anumită poziție a unui joc, pentru un anumit jucător. Minimax este un algoritm generic
+și trebuie adaptat pentru un anumit joc, de aceea nu există "algoritmul minimax de șah" sau "algoritmul minimax de dame".
+Iar în realitate, deseori sunt implementate extensii peste modelul de bază al algoritmului. Sunt comune
+extensii precum (engl.) alpha-beta pruning, sau tabele de transpoziție (engl. "transposition table"),
+sau adaptări ale algoritmului pe mai multe fire de execuție. Datorită multitudinilor de moduri în care
+poate fi implementat algoritmul minimax, voi explica în alt capitol, în detaliu algoritmul adaptat pentru jocul dame.
+În continuare, însă, voi explica algoritmul minimax de bază pe un model simplu, arătând mai bine ideea algoritmului.
+
+Fiecărei poziții a unui joc îi este asociată o valoare sau un scor. Valoarea aceasta este calculată folosind
+o funcție de evaluare a poziției (engl. "static evaluation function") și reprezintă cât de bine sau rău
+este pentru un jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
+cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mișcările
+legale, va efectua mișcarea care va duce la poziția cu scorul cel mai mare. La fel, jucătorul negru
+va alege mișcarea cea mai nefavorabilă pentru alb, adică cu scorul cel mai mic.
+
+<!-- TODO game tree explanation, pseudocode -->
+
+### Implementări existente de minimax pentru jocul dame
 
 ...
 
@@ -112,4 +137,5 @@ algoritm poartă denumirea de minimax.
 ## Bibliografie
 
 [1] <https://en.wikipedia.org/wiki/Checkers>  
-[2] <https://en.wikipedia.org/wiki/AlphaZero>
+[2] <https://en.wikipedia.org/wiki/AlphaZero>  
+[3] <https://ro.wikipedia.org/wiki/Minimax>

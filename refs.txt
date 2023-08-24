@@ -1,5 +1,6 @@
 https://en.wikipedia.org/wiki/Checkers
 https://en.wikipedia.org/wiki/AlphaZero
+https://ro.wikipedia.org/wiki/Minimax
 
 https://en.wikipedia.org/wiki/Board_game
 https://medium.com/@giacaglia/deep-learning-processors-4dbda91a9845
