@@ -101,12 +101,46 @@ poate fi implementat algoritmul minimax, voi explica în alt capitol, în detali
 
 Fiecărei poziții a unui joc îi este asociată o valoare sau un scor. Valoarea aceasta este calculată folosind
 o funcție de evaluare a poziției (engl. "static evaluation function") și reprezintă cât de bine sau rău
-este pentru un jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
+este pentru un anume jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
 cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mișcările
 legale, va efectua mișcarea care va duce la poziția cu scorul cel mai mare. La fel, jucătorul negru
-va alege mișcarea cea mai nefavorabilă pentru alb, adică cu scorul cel mai mic.
+va alege mișcarea cea mai nefavorabilă pentru alb, adică cu scorul cel mai mic. Algoritmul se poate
+vizualiza sub forma unui arbore, numit arborele jocului.
 
-<!-- TODO game tree explanation, pseudocode -->
+<!-- more and better explanation needed -->
+<!-- better image and pseudocode -->
+În imaginea de mai jos [4] se află arborele unui joc în care fiecare jucător are maxim două posibile mișcări
+la dispoziție în fiecare tură. Nodurile cerc reprezintă pozițiile în care la rând este jucătorul care
+maximizează scorul, iar nodurile pătrat reprezintă pozițiile jucătorului care minimizează scorul.
+De regulă, arborele este limitat în înălțime, datorită numărului imens de poziții ce trebuie calculate.
+Astfel, nodurile terminale dintr-un astfel de arbore, fie că sunt nodurile finale ale jocului sau nu,
+reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcții euristice. În imagine,
+odată ce se cunosc valorile a două noduri copil, algoritmul atribuie nodului părinte maximul sau minimul,
+care depinde de jucător. Spre exemplu, primele două noduri terminale din stânga au valorile 10,
+respectiv +inf. Jucătorul minimizant va alege valoarea minimă, adică 10. La finalul algoritmului,
+primului nod, poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
+favorabil, scorul maxim pentru pe care îl poate obține jucătorul maximizant, presupunând că ambii
+jucători joacă perfect.
+
+![Arbore algoritm](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Minimax.svg/600px-Minimax.svg.png)
+
+Pseudocodul algoritmului minimax arată cam așa: [4]
+
+```text
+function minimax(node, depth, maximizingPlayer) is
+    if depth = 0 or node is a terminal node then
+        return the heuristic value of node
+    if maximizingPlayer then
+        value := −∞
+        for each child of node do
+            value := max(value, minimax(child, depth − 1, FALSE))
+        return value
+    else (* minimizing player *)
+        value := +∞
+        for each child of node do
+            value := min(value, minimax(child, depth − 1, TRUE))
+        return value
+```
 
 ### Implementări existente de minimax pentru jocul dame
 
@@ -138,4 +172,5 @@ va alege mișcarea cea mai nefavorabilă pentru alb, adică cu scorul cel mai mi
 
 [1] <https://en.wikipedia.org/wiki/Checkers>  
 [2] <https://en.wikipedia.org/wiki/AlphaZero>  
-[3] <https://ro.wikipedia.org/wiki/Minimax>
+[3] <https://ro.wikipedia.org/wiki/Minimax>  
+[4] <https://en.wikipedia.org/wiki/Minimax>
