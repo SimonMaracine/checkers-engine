@@ -5,3 +5,25 @@ https://en.wikipedia.org/wiki/Minimax
 
 https://en.wikipedia.org/wiki/Board_game
 https://medium.com/@giacaglia/deep-learning-processors-4dbda91a9845
+
+https://github.com/techwithtim/Python-Checkers-AI/
+https://github.com/Hsankesara/Draughts-AI
+https://github.com/everestwitman/Pygame-Checkers/
+https://github.com/dimitrijekaranfilovic/checkers
+https://github.com/aykutkardas/checkers.place
+https://github.com/DevonMcGrath/Java-Checkers
+https://github.com/bcorfman/raven-checkers
+https://github.com/VarunRaval48/checkers-AI
+https://github.com/SamRagusa/Checkers-Reinforcement-Learning
+https://github.com/nedeljkovignjevic/checkers-game
+https://github.com/niemet0502/checkers-game-js
+https://github.com/portnov/qcheckers
+https://github.com/stroibot/Checkers
+https://github.com/ivanmrsulja/checkers-bot
+https://github.com/mbroncano/swift-checkers
+https://github.com/Qazalbash/Checkers-with-AI
+https://github.com/falcondai/gym-checkers
+https://github.com/RyanStonebraker/Snowball
+https://github.com/Mchristos/checkers
+https://github.com/AzyCrw4282/Concurrent-Checkers-Game
+https://github.com/MaksTsymbal/Python-Checkers

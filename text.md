@@ -1,4 +1,4 @@
-# Bibliotecă de inteligență artificială pentru jocul dame
+# Bibliotecă despre inteligență artificială pentru jocul dame
 
 ## Introducere
 
@@ -117,8 +117,8 @@ Astfel, nodurile terminale dintr-un astfel de arbore, fie că sunt nodurile fina
 reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcții euristice. În imagine,
 odată ce se cunosc valorile a două noduri copil, algoritmul atribuie nodului părinte maximul sau minimul,
 care depinde de jucător. Spre exemplu, primele două noduri terminale din stânga au valorile 10,
-respectiv +inf. Jucătorul minimizant va alege valoarea minimă, adică 10. La finalul algoritmului,
-primului nod, poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
+respectiv +inf. Jucătorul minimizant va alege, valoarea minimă, adică 10. La finalul algoritmului,
+primului nod, adică poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
 favorabil, scorul maxim pentru pe care îl poate obține jucătorul maximizant, presupunând că ambii
 jucători joacă perfect.
 
@@ -144,7 +144,24 @@ function minimax(node, depth, maximizingPlayer) is
 
 ### Implementări existente de minimax pentru jocul dame
 
-...
+<!-- write some more in this chapter -->
+Căutând în zilele de astăzi pe internet (în anul 2023), se observă că mulți au scris programe care,
+pe lângă jocul dame, implementează și un oarecare AI, majoritatea folosind algoritmul minimax.
+Foarte puțini au încercat să-și creeze propriul algoritm pentru AI și la fel de puțini au folosit
+tehnici de machine learning.
+
+De asemenea, de observat este că aproape toți au implementat algoritmul minimax pentru jocul dame
+în limbaje de programare destul de nepotrivite precum Python, JavaScript și Java. Spun că acestea
+sunt nepotrivite, fiindcă nu sunt limbaje de programare performante în viteză de execuție. Pentru a
+scrie un adversar performant pentru jocul dame, două lucruri sunt esențiale: funcția de evaluare
+statică trebuie să fie bună, iar adâncimea de căutare trebuie să fie cât mai mare. Însă, mărirea
+adâncimii crește exponențial timpul de căutare, ceea ce este o problemă. De aceea, este foarte
+important ca algoritmul să fie rapid în execuție și eficient în memorie.
+
+Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și mă voi focaliza pe alte
+obiective, nu doar pe o implementare superficială. În capitolul următor voi vorbi despre ideile pe
+care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele pe care vreau să
+le ating.
 
 ### Implementarea și ideile mele
 

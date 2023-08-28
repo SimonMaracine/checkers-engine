@@ -13,3 +13,4 @@
 - unit testing
 - (maybe) bindings to other languages like Python
 - (maybe) support for Android and proof that it's working on it
+- PDN format notation
