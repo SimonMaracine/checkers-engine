@@ -145,10 +145,9 @@ function minimax(node, depth, maximizingPlayer) is
 ### Implementări existente de minimax pentru jocul dame
 
 <!-- write some more in this chapter -->
-Căutând în zilele de astăzi pe internet (în anul 2023), se observă că mulți au scris programe care,
-pe lângă jocul dame, implementează și un oarecare AI, majoritatea folosind algoritmul minimax.
-Foarte puțini au încercat să-și creeze propriul algoritm pentru AI și la fel de puțini au folosit
-tehnici de machine learning.
+În prezent, pe internet, se observă că mulți au scris programe care, pe lângă jocul dame,
+implementează și un oarecare AI, majoritatea folosind algoritmul minimax. Foarte puțini au încercat
+să-și creeze propriul algoritm pentru AI și la fel de puțini au folosit tehnici de machine learning.
 
 De asemenea, de observat este că aproape toți au implementat algoritmul minimax pentru jocul dame
 în limbaje de programare destul de nepotrivite precum Python, JavaScript și Java. Spun că acestea
@@ -158,18 +157,50 @@ statică trebuie să fie bună, iar adâncimea de căutare trebuie să fie cât 
 adâncimii crește exponențial timpul de căutare, ceea ce este o problemă. De aceea, este foarte
 important ca algoritmul să fie rapid în execuție și eficient în memorie.
 
-Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și mă voi focaliza pe alte
-obiective, nu doar pe o implementare superficială. În capitolul următor voi vorbi despre ideile pe
-care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele pe care vreau să
-le ating.
+Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și mă voi focaliza pe câteva
+obiective, și nu doar pe o implementare superficială. În secțiunea următoare voi vorbi despre ideile pe
+care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele la care vreau să ajung.
 
 ### Implementarea și ideile mele
 
 <!-- here I present what I want to do and hopefully accomplish -->
 <!-- I create the AI as a separate, usable library in C++, I use alpha-beta pruning, multithreading and much more -->
-<!-- I create testing and developing tools for the AI, I improve the AI by comparing with himself -->
+<!-- I create testing and developing tools for the AI, I improve the AI by comparing it with himself -->
 <!-- unit testing -->
-...
+În această lucrare, în loc să dezvolt AI-ul legat de vreo anumită aplicație de interfață grafică pe
+Linux, vreau să îl creez sub formă de bibliotecă statică sau dinamică în limbajul C++. Avantajul
+acestei abordări este că oricine dorește să scrie un joc de dame, fie pe desktop, fie pe telefon mobil
+sau orice altă platformă, poate cu ușurință să integreze acest AI în aplicația lor.
+
+Un alt avantaj este că în acest fel este simplu să creez aplicații de interfață grafică auxiliare
+cu scopul de a testa AI-ul în toate felurile și de al compara cu alte versiuni de ale sale.
+Voi creea AI-ul sub formă de bibliotecă dinamică, încărcată la rulare de către aplicația de testare.
+Astfel, păstrând bibiotecile dinamice compilate, voi putea testa rapid orice versiune a adversarului
+calculator. Similar, pentru a testa AI-ul cu o versiune precedentă de a sa, voi încărca respectivele
+fișiere de pe disk.
+
+Pentru a dezvolta AI-ul și pentru a-l face mai rapid și mai bun, am nevoie să cunosc dacă o anumită
+modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îmbunătăți constant AI-ul,
+îl voi compara mereu cu ultima versiune stocată. Dacă schimbarea este bună, atunci o păstrez.
+De asemenea, voi ține evidența versiunilor stocate pentru a vizualiza evoluția AI-ului.
+
+Voi implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
+tăia multe calcule inutile în căutarea celei mai favorabile mișcări. Voi implementa și un tabel de
+transpunere, pentru a lua în considerare și situații similare precedente. AI-ul va fi configurabil.
+Mulți parametri vor putea fi ajustați, ceea ce va face posibilă schimbarea abilității AI-ului și
+chiar a comportamentului său.
+
+O problemă dificilă care trebuie rezolvată este că algoritmul, odată pornit, nu mai poate fi oprit
+până nu își termină căutarea. Similar, dacă pe durata unui joc de dame, AI-ul este configurat să
+caute mereu la aceeași adâncime, atunci câteodată îi va ține prea mult timp să caute, iar altădată
+nu își va utiliza mai mult din timpul la dispoziție pentru a căuta o mișcare mai bună. Cu alte cuvinte,
+trebuie creat algoritmul în așa fel încât oricând este oprit, să aibă un rezultat bun. Desigur, dacă
+este oprit prea devreme, atunci nu poate returna un rezultat decent. Însă voi folosi acest lucru
+pentru a constrânge algoritmul și în adâncime, dar și în timp.
+
+Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face posibilă executarea
+proceselor cu adevărat în paralel. Pentru o performanță mai bună, în cele din urmă mă voi folosi de
+mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
 
 ## Proiectarea și dezvoltarea bibliotecii
 
