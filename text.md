@@ -21,7 +21,7 @@ de a computeriza astfel de jocuri. Voi discuta despre acest aspect într-o altă
 
 În particular, ce ne interesează pe noi este jocul dame (engl. "checkers"). Este un joc abstract, de strategie,
 de masă, în doi jucători. Jocul dame are foarte multe variante, în diferite țări și culturi, însă aici,
-când spun "dame", mă refer mai exact la varianta americană a jocului (engl. "american ckeckers" sau "english checkers").
+când spun "dame", mă refer mai exact la varianta americană a jocului (engl. "american checkers" sau "english checkers").
 Pentru a computeriza varianta americană a jocului dame, este esențial să se cunoască regulile exacte ale jocului: [1]
 
 - Tabla este constituită din opt rânduri și opt coloane, adică șaizeci și patru de pătrățele
@@ -32,7 +32,7 @@ Pentru a computeriza varianta americană a jocului dame, este esențial să se c
 - Pe rând, jucătorii vor muta piesele pe diagonală, doar în față, pe orice pătrățel liber. Dacă pe un
   pătrățel adiacent din față se află o piesă a oponentului, iar imediat după aceasta este un pătrățel liber,
   jucătorul poate muta piesa acestuia peste piesa adversarului, capturând în același timp (eliminând din joc)
-  piesa adersarului. În acest mod, mai multe piese de ale oponentului pot fi capturate într-o singură
+  piesa respectivă. În acest mod, mai multe piese de ale oponentului pot fi capturate într-o singură
   tură, cu condiția ca mutările piesei și capturile să fie succesive. Jucătorul negru începe primul.
 - Dacă o piesă ajunge până la ultimul rând, pe partea opusă a tablei, atunci ea devine "rege" până
   la sfârșitul jocului sau până e capturată și are abilitatea în plus de a se deplasa și de a captura
@@ -44,7 +44,7 @@ Pentru a computeriza varianta americană a jocului dame, este esențial să se c
 
 ![Poziție inițială](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/CheckersStandard.jpg/250px-CheckersStandard.jpg)
 
-Există câțiva termeni din câmpul lexical al astfel de jocuri în general, care trebuie bine definiți:
+Există câțiva termeni din câmpul lexical al astfel de jocuri, care trebuie bine definiți:
 
 - Tură și semitură (engl. "turn" și "ply"): O tură sau o tură completă reprezintă o mișcare a jucătorului
   negru urmată de o mișcare a jucătorului alb. O semitură reprezintă o mișcare a unui jucător.
@@ -57,7 +57,7 @@ Există câțiva termeni din câmpul lexical al astfel de jocuri în general, ca
 
 ### Computerizarea jocului dame
 
-Implementarea regulilor jocului dame într-un program software, într-un joc video este simplă. Însă tematica
+Implementarea regulilor jocului dame într-un program software sau într-un joc video este simplă. Însă tematica
 acestei lucrări este crearea unui adversar cu care se poate juca dame. În esență, trebuie instrucționat calculatorul
 cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În continuare, voi prezenta trei diferite abordări
 pentru crearea unui oponent la calculator.
@@ -73,14 +73,15 @@ să își descopere proprii lui algoritmi sau propriile lui tactici de a juca da
 pe larg, în engleză, machine learning. Calculatoarele de astăzi au ajuns suficient de puternice pentru
 a procesa enormele operații matematice necesare pentru machine learning. Pentru aceasta se folosesc de obicei
 procesoarele grafice (GPU), fiindcă algoritmii de machine learning sunt, în mare parte, algoritmi numerici
-și pot fi paralelizați foarte ușor. Recent, în ultimii ani, jucătorul digital de șah AlphaZero a reușit
-să-l învingă pe cel mai bun jucător digital la vremea aceea, Stockfish, într-un meci de 1000 de runde,
-cu 155 de câștiguri, 6 pierderi și 839 de remize. [2]
+și pot fi paralelizați foarte ușor. Recent, în ultimii ani, jucătorul digital de șah AlphaZero, care
+este bazat pe machine learning, a reușit să-l învingă pe cel mai bun jucător digital la vremea aceea,
+Stockfish (care nu este bazat pe machine learning), într-un meci de 1000 de runde, cu 155 de câștiguri,
+6 pierderi și 839 de remize. [2]
 
 A treia abordare, cea pe care o voi implementa și eu, este folosirea puterii de procesare a calculatorului,
 pentru a calcula toate posibilele mișcări din partea ambilor jucători până la un punct anume din joc și
 toate posibilele rezultate, iar apoi alegerea mișcării celei mai favorabile pentru jucătorul calculator.
-Acest algoritm poartă denumirea de minimax.
+Un astfel de algoritm poartă denumirea de minimax.
 
 ### Algoritmul minimax
 
@@ -103,9 +104,10 @@ Fiecărei poziții a unui joc îi este asociată o valoare sau un scor. Valoarea
 o funcție de evaluare a poziției (engl. "static evaluation function") și reprezintă cât de bine sau rău
 este pentru un anume jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
 cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mișcările
-legale, va efectua mișcarea care va duce la poziția cu scorul cel mai mare. La fel, jucătorul negru
-va alege mișcarea cea mai nefavorabilă pentru alb, adică cu scorul cel mai mic. Algoritmul se poate
-vizualiza sub forma unui arbore, numit arborele jocului.
+legale, va efectua mișcarea care maximizează șansele de a ajunge la poziția cea mai avantajoasă, cu
+scorul cel mai mare. La fel, jucătorul negru va alege mișcarea cea mai nefavorabilă pentru alb, care
+maximizează șansele de a ajunge la poziția cu scorul cel mai mic. Algoritmul se poate vizualiza sub
+forma unui arbore, numit arborele jocului.
 
 <!-- more and better explanation needed -->
 <!-- better image and pseudocode -->
@@ -119,7 +121,7 @@ odată ce se cunosc valorile a două noduri copil, algoritmul atribuie nodului p
 care depinde de jucător. Spre exemplu, primele două noduri terminale din stânga au valorile 10,
 respectiv +inf. Jucătorul minimizant va alege, valoarea minimă, adică 10. La finalul algoritmului,
 primului nod, adică poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
-favorabil, scorul maxim pentru pe care îl poate obține jucătorul maximizant, presupunând că ambii
+favorabil, scorul maxim pe care îl poate obține jucătorul maximizant, presupunând că ambii
 jucători joacă perfect.
 
 ![Arbore algoritm](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Minimax.svg/600px-Minimax.svg.png)
@@ -158,7 +160,7 @@ adâncimii crește exponențial timpul de căutare, ceea ce este o problemă. De
 important ca algoritmul să fie rapid în execuție și eficient în memorie.
 
 Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și mă voi focaliza pe câteva
-obiective, și nu doar pe o implementare superficială. În secțiunea următoare voi vorbi despre ideile pe
+obiective, nu doar pe o implementare superficială. În secțiunea următoare voi vorbi despre ideile pe
 care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele la care vreau să ajung.
 
 ### Implementarea și ideile mele
@@ -174,33 +176,36 @@ sau orice altă platformă, poate cu ușurință să integreze acest AI în apli
 
 Un alt avantaj este că în acest fel este simplu să creez aplicații de interfață grafică auxiliare
 cu scopul de a testa AI-ul în toate felurile și de al compara cu alte versiuni de ale sale.
-Voi creea AI-ul sub formă de bibliotecă dinamică, încărcată la rulare de către aplicația de testare.
+Voi creea AI-ul sub formă de bibliotecă dinamică, care va fi încărcată la rulare de către aplicația de testare.
 Astfel, păstrând bibiotecile dinamice compilate, voi putea testa rapid orice versiune a adversarului
 calculator. Similar, pentru a testa AI-ul cu o versiune precedentă de a sa, voi încărca respectivele
-fișiere de pe disk.
+fișiere bibliotecă de pe disk.
 
 Pentru a dezvolta AI-ul și pentru a-l face mai rapid și mai bun, am nevoie să cunosc dacă o anumită
 modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îmbunătăți constant AI-ul,
 îl voi compara mereu cu ultima versiune stocată. Dacă schimbarea este bună, atunci o păstrez.
-De asemenea, voi ține evidența versiunilor stocate pentru a vizualiza evoluția AI-ului.
+De asemenea, voi ține evidența versiunilor stocate pentru a vizualiza mai târziu evoluția AI-ului.
 
 Voi implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
 tăia multe calcule inutile în căutarea celei mai favorabile mișcări. Voi implementa și un tabel de
 transpunere, pentru a lua în considerare și situații similare precedente. AI-ul va fi configurabil.
 Mulți parametri vor putea fi ajustați, ceea ce va face posibilă schimbarea abilității AI-ului și
-chiar a comportamentului său.
+chiar a comportamentului acestuia.
 
 O problemă dificilă care trebuie rezolvată este că algoritmul, odată pornit, nu mai poate fi oprit
-până nu își termină căutarea. Similar, dacă pe durata unui joc de dame, AI-ul este configurat să
+până nu își termină căutarea, iar dacă totuși este oprit prematur, înainte de a calcula toate pozițiile,
+nu putem avea garantat rezultatul cel mai bun. Similar, dacă pe durata unui joc de dame, AI-ul este configurat să
 caute mereu la aceeași adâncime, atunci câteodată îi va ține prea mult timp să caute, iar altădată
 nu își va utiliza mai mult din timpul la dispoziție pentru a căuta o mișcare mai bună. Cu alte cuvinte,
-trebuie creat algoritmul în așa fel încât oricând este oprit, să aibă un rezultat bun. Desigur, dacă
-este oprit prea devreme, atunci nu poate returna un rezultat decent. Însă voi folosi acest lucru
-pentru a constrânge algoritmul și în adâncime, dar și în timp.
+trebuie creat algoritmul în așa fel încât oricând este oprit, să returneze un rezultat bun, și să își
+folosească cât mai mult din timpul pus la dispoziție, căutând cât mai adânc. Voi scrie algoritmul
+constrâns și în adâncime, dar și în timp.
 
 Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face posibilă executarea
-proceselor cu adevărat în paralel. Pentru o performanță mai bună, în cele din urmă mă voi folosi de
-mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
+proceselor și a firelor de execuție cu adevărat în paralel. Pentru o performanță mai bună, în cele
+din urmă mă voi folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
+
+<!-- Buy and read "Computer Systems: A Programmer's Perspective" -->
 
 ## Proiectarea și dezvoltarea bibliotecii
 
