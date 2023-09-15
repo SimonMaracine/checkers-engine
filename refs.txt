@@ -1,11 +1,14 @@
+references
 https://en.wikipedia.org/wiki/Checkers
 https://en.wikipedia.org/wiki/AlphaZero
 https://ro.wikipedia.org/wiki/Minimax
 https://en.wikipedia.org/wiki/Minimax
 
+to read more
 https://en.wikipedia.org/wiki/Board_game
 https://medium.com/@giacaglia/deep-learning-processors-4dbda91a9845
 
+current implementations (actually there are around 150 on GitHub)
 https://github.com/techwithtim/Python-Checkers-AI/
 https://github.com/Hsankesara/Draughts-AI
 https://github.com/everestwitman/Pygame-Checkers/

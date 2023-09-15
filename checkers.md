@@ -8,6 +8,7 @@
   - multithreaded
   - time and depth constrained
   - configurable
+  - (maybe with SIMD)
 - GUI applications for testing and comparing the AI
 - data and statistics for monitoring the AI evolution across different versions
 - unit testing

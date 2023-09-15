@@ -1,5 +1,7 @@
 # Bibliotecă despre inteligență artificială pentru jocul dame
 
+<!-- Bibliotecă *cu* inteligență artificială pentru jocul dame -->
+
 ## Introducere
 
 ...
