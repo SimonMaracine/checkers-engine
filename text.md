@@ -18,6 +18,7 @@ fi scrise toate într-un singur capitol. Însă, printre cele mai cunoscute se e
 Toate aceste jocuri au în comun aspectul important că se joacă în ture, odată un jucător, iar apoi celălalt și tot
 așa. Datorită acestui model simplu - adică doi jucători care joacă pe rând pe o tablă - este destul de ușor
 de a computeriza astfel de jocuri. Voi discuta despre acest aspect într-o altă secțiune din acest capitol.
+<!-- FIXME talk in first person, plural -->
 
 ### Jocul de strategie dame
 
@@ -125,6 +126,7 @@ respectiv +inf. Jucătorul minimizant va alege, valoarea minimă, adică 10. La 
 primului nod, adică poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
 favorabil, scorul maxim pe care îl poate obține jucătorul maximizant, presupunând că ambii
 jucători joacă perfect.
+<!-- FIXME what is score -->
 
 ![Arbore algoritm](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Minimax.svg/600px-Minimax.svg.png)
 
@@ -148,6 +150,7 @@ function minimax(node, depth, maximizingPlayer) is
 
 ### Implementări existente de minimax pentru jocul dame
 
+<!-- FIXME show research; 20 most popular -->
 <!-- write some more in this chapter -->
 În prezent, pe internet, se observă că mulți au scris programe care, pe lângă jocul dame,
 implementează și un oarecare AI, majoritatea folosind algoritmul minimax. Foarte puțini au încercat
@@ -165,6 +168,7 @@ Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și 
 obiective, nu doar pe o implementare superficială. În secțiunea următoare voi vorbi despre ideile pe
 care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele la care vreau să ajung.
 
+<!-- FIXME change -->
 ### Implementarea și ideile mele
 
 <!-- here I present what I want to do and hopefully accomplish -->
