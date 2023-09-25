@@ -17,15 +17,16 @@ de obicei alb și negru. Există prea multe jocuri de acest fel și prea multe v
 fi scrise toate într-un singur capitol. Însă, printre cele mai cunoscute se enumeră: șah, dame, moară și go.
 Toate aceste jocuri au în comun aspectul important că se joacă în ture, odată un jucător, iar apoi celălalt și tot
 așa. Datorită acestui model simplu - adică doi jucători care joacă pe rând pe o tablă - este destul de ușor
-de a computeriza astfel de jocuri. Voi discuta despre acest aspect într-o altă secțiune din acest capitol.
-<!-- FIXME talk in first person, plural -->
+de a computeriza astfel de jocuri. Vom discuta despre acest aspect într-o altă secțiune din acest capitol.
 
 ### Jocul de strategie dame
 
 În particular, ce ne interesează pe noi este jocul dame (engl. "checkers"). Este un joc abstract, de strategie,
 de masă, în doi jucători. Jocul dame are foarte multe variante, în diferite țări și culturi, însă aici,
 când spun "dame", mă refer mai exact la varianta americană a jocului (engl. "american checkers" sau "english checkers").
-Pentru a computeriza varianta americană a jocului dame, este esențial să se cunoască regulile exacte ale jocului: [1]
+Pentru a computeriza varianta americană a jocului dame, este esențial să cunoaștem regulile exacte ale jocului: [1]
+
+<!-- draw by threefold repetition, proposed draws, resignments -->
 
 - Tabla este constituită din opt rânduri și opt coloane, adică șaizeci și patru de pătrățele
   în carouri, ca și la tabla de șah.
@@ -42,8 +43,6 @@ Pentru a computeriza varianta americană a jocului dame, este esențial să se c
   și în spate.
 - Jocul se sfârșește atunci când fie un jucător nu mai are piese pe tablă, fie nu mai poate face nicio
   mișcare legală. În acest caz jucătorul respectiv pierde.
-
-<!-- draw by threefold repetition, proposed draws, resignments -->
 
 ![Poziție inițială](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/CheckersStandard.jpg/250px-CheckersStandard.jpg)
 
@@ -62,26 +61,28 @@ Există câțiva termeni din câmpul lexical al astfel de jocuri, care trebuie b
 
 Implementarea regulilor jocului dame într-un program software sau într-un joc video este simplă. Însă tematica
 acestei lucrări este crearea unui adversar cu care se poate juca dame. În esență, trebuie instrucționat calculatorul
-cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În continuare, voi prezenta trei diferite abordări
+cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În continuare, vom prezenta trei diferite abordări
 pentru crearea unui oponent la calculator.
 
 O primă abordare și una naivă ar fi să se analizeze tabla cu toate piesele și, printr-o anumită logică,
 să se aleagă o anumită mișcare. Cu alte cuvinte, să se scrie un oarecare algoritm. Problema acestei abordări
-este că e foarte dificil de implementat, nu garantează că ia în considerare toții factorii care pot determina
-câștigul sau pierderea, și nu poate să vadă în ansamblu în ce direcție o ia jocul, să "vadă" în viitor.
+este că e foarte dificil astfel de implementat un oponent bun, nu garantează că ia în considerare toții
+factorii care pot determina câștigul sau pierderea, și nu poate să vadă în ansamblu în ce direcție
+o ia jocul, să "vadă" în viitor.
 
-<!-- more, more research for machine learning -->
+<!-- more, more research for deep learning and references -->
 O altă abordare, una relativ recentă și complet opusă primei abordări, este să fie lăsat calculatorul
-să își descopere proprii lui algoritmi sau propriile lui tactici de a juca dame. Acest proces se numește,
-pe larg, în engleză, machine learning. Calculatoarele de astăzi au ajuns suficient de puternice pentru
-a procesa enormele operații matematice necesare pentru machine learning. Pentru aceasta se folosesc de obicei
-procesoarele grafice (GPU), fiindcă algoritmii de machine learning sunt, în mare parte, algoritmi numerici
-și pot fi paralelizați foarte ușor. Recent, în ultimii ani, jucătorul digital de șah AlphaZero, care
-este bazat pe machine learning, a reușit să-l învingă pe cel mai bun jucător digital la vremea aceea,
+să își descopere proprii lui algoritmi sau propriile lui tactici de a juca dame. Acest proces se numește
+în engleză, pe larg, machine learning sau, mai exact, deep learning. Calculatoarele de astăzi
+au ajuns suficient de puternice pentru a procesa enormele operații matematice necesare pentru
+machine learning. Pentru aceasta se folosesc de obicei procesoarele grafice (GPU), fiindcă algoritmii
+de machine learning sunt, în mare parte, algoritmi numerici și pot fi paralelizați foarte ușor.
+Recent, în ultimii ani, jucătorul digital de șah AlphaZero, care este bazat pe machine learning,
+a reușit să-l învingă pe cel mai bun jucător digital la vremea aceea,
 Stockfish (care nu este bazat pe machine learning), într-un meci de 1000 de runde, cu 155 de câștiguri,
 6 pierderi și 839 de remize. [2]
 
-A treia abordare, cea pe care o voi implementa și eu, este folosirea puterii de procesare a calculatorului,
+A treia abordare, cea pe care o vom implementa și noi, este folosirea puterii de procesare a calculatorului,
 pentru a calcula toate posibilele mișcări din partea ambilor jucători până la un punct anume din joc și
 toate posibilele rezultate, iar apoi alegerea mișcării celei mai favorabile pentru jucătorul calculator.
 Un astfel de algoritm poartă denumirea de minimax.
@@ -100,17 +101,19 @@ mișcare pentru o anumită poziție a unui joc, pentru un anumit jucător. Minim
 Iar în realitate, deseori sunt implementate extensii peste modelul de bază al algoritmului. Sunt comune
 extensii precum (engl.) alpha-beta pruning, sau tabele de transpoziție (engl. "transposition table"),
 sau adaptări ale algoritmului pe mai multe fire de execuție. Datorită multitudinilor de moduri în care
-poate fi implementat algoritmul minimax, voi explica în alt capitol, în detaliu algoritmul adaptat pentru jocul dame.
-În continuare, însă, voi explica algoritmul minimax de bază pe un model simplu, arătând mai bine ideea algoritmului.
+poate fi implementat algoritmul minimax, vom explica în alt capitol, în detaliu algoritmul adaptat pentru jocul dame.
+În continuare, însă, vom explica algoritmul minimax de bază pe un model simplu, arătând mai bine ideea algoritmului.
 
 Fiecărei poziții a unui joc îi este asociată o valoare sau un scor. Valoarea aceasta este calculată folosind
 o funcție de evaluare a poziției (engl. "static evaluation function") și reprezintă cât de bine sau rău
-este pentru un anume jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
+ar fi pentru un anume jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
 cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mișcările
 legale, va efectua mișcarea care maximizează șansele de a ajunge la poziția cea mai avantajoasă, cu
 scorul cel mai mare. La fel, jucătorul negru va alege mișcarea cea mai nefavorabilă pentru alb, care
-maximizează șansele de a ajunge la poziția cu scorul cel mai mic. Algoritmul se poate vizualiza sub
-forma unui arbore, numit arborele jocului.
+maximizează șansele de a ajunge la poziția cu scorul cel mai mic. Deci un scor cu valoarea 0 înseamnă
+că niciun jucător nu este în avantaj, un scor pozitiv înseamnă că jucătorul alb este în avantaj, iar
+un scor negativ semnifică avatanj pentru negru. Algoritmul se poate vizualiza sub forma unui arbore,
+numit arborele jocului.
 
 <!-- more and better explanation needed -->
 <!-- better image and pseudocode -->
@@ -119,20 +122,19 @@ la dispoziție în fiecare tură. Nodurile cerc reprezintă pozițiile în care 
 maximizează scorul, iar nodurile pătrat reprezintă pozițiile jucătorului care minimizează scorul.
 De regulă, arborele este limitat în înălțime, datorită numărului imens de poziții ce trebuie calculate.
 Astfel, nodurile terminale dintr-un astfel de arbore, fie că sunt nodurile finale ale jocului sau nu,
-reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcții euristice. În imagine,
+reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcției euristice de evaluare. În imagine,
 odată ce se cunosc valorile a două noduri copil, algoritmul atribuie nodului părinte maximul sau minimul,
 care depinde de jucător. Spre exemplu, primele două noduri terminale din stânga au valorile 10,
-respectiv +inf. Jucătorul minimizant va alege, valoarea minimă, adică 10. La finalul algoritmului,
-primului nod, adică poziția de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
+respectiv +inf. Jucătorul minimizant va alege valoarea minimă, adică 10. La finalul algoritmului,
+primului nod, adică poziției de pornire, îi este atribuită o valoare (-7) care reprezintă scorul cel mai
 favorabil, scorul maxim pe care îl poate obține jucătorul maximizant, presupunând că ambii
 jucători joacă perfect.
-<!-- FIXME what is score -->
 
 ![Arbore algoritm](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Minimax.svg/600px-Minimax.svg.png)
 
 Pseudocodul algoritmului minimax arată cam așa: [4]
 
-```text
+```javascript
 function minimax(node, depth, maximizingPlayer) is
     if depth = 0 or node is a terminal node then
         return the heuristic value of node
@@ -148,6 +150,9 @@ function minimax(node, depth, maximizingPlayer) is
         return value
 ```
 
+În capitolele următoare, pentru concizie și simplitate, vom numi adversarul calculator, (engl.) "AI",
+adică inteligență artificială.
+
 ### Implementări existente de minimax pentru jocul dame
 
 <!-- FIXME show research; 20 most popular -->
@@ -160,40 +165,39 @@ De asemenea, de observat este că aproape toți au implementat algoritmul minima
 în limbaje de programare destul de nepotrivite precum Python, JavaScript și Java. Spun că acestea
 sunt nepotrivite, fiindcă nu sunt limbaje de programare performante în viteză de execuție. Pentru a
 scrie un adversar performant pentru jocul dame, două lucruri sunt esențiale: funcția de evaluare
-statică trebuie să fie bună, iar adâncimea de căutare trebuie să fie cât mai mare. Însă, mărirea
+statică trebuie să fie bună, iar adâncimea de căutare trebuie să fie mare. Însă, mărirea
 adâncimii crește exponențial timpul de căutare, ceea ce este o problemă. De aceea, este foarte
 important ca algoritmul să fie rapid în execuție și eficient în memorie.
 
-Eu voi alege o altă abordare pentru scrirea adversarului pentru jocul dame și mă voi focaliza pe câteva
-obiective, nu doar pe o implementare superficială. În secțiunea următoare voi vorbi despre ideile pe
-care vreau să le aplic, lucrurile pe care vreau să le implementez și țintele la care vreau să ajung.
+Noi vom alege o altă abordare pentru scrirea adversarului pentru jocul dame și ne vom focaliza pe câteva
+obiective, nu doar pe o implementare superficială. În secțiunea următoare vom vorbi despre ideile pe
+care vrem să le aplicăm, lucrurile pe care vrem să le implementăm și țintele la care vrem să ajungem.
 
-<!-- FIXME change -->
-### Implementarea și ideile mele
+### Implementarea algoritmului minimax în această lucrare
 
 <!-- here I present what I want to do and hopefully accomplish -->
 <!-- I create the AI as a separate, usable library in C++, I use alpha-beta pruning, multithreading and much more -->
 <!-- I create testing and developing tools for the AI, I improve the AI by comparing it with himself -->
 <!-- unit testing -->
-În această lucrare, în loc să dezvolt AI-ul legat de vreo anumită aplicație de interfață grafică pe
-Linux, vreau să îl creez sub formă de bibliotecă statică sau dinamică în limbajul C++. Avantajul
+În această lucrare, în loc să dezvoltăm AI-ul legat de vreo anumită aplicație de interfață grafică pe
+Linux, vrem să îl creăm sub formă de bibliotecă statică sau dinamică în limbajul C++. Avantajul
 acestei abordări este că oricine dorește să scrie un joc de dame, fie pe desktop, fie pe telefon mobil
 sau orice altă platformă, poate cu ușurință să integreze acest AI în aplicația lor.
 
-Un alt avantaj este că în acest fel este simplu să creez aplicații de interfață grafică auxiliare
+Un alt avantaj este că în acest fel e simplu să creăm aplicații de interfață grafică auxiliare
 cu scopul de a testa AI-ul în toate felurile și de al compara cu alte versiuni de ale sale.
-Voi creea AI-ul sub formă de bibliotecă dinamică, care va fi încărcată la rulare de către aplicația de testare.
-Astfel, păstrând bibiotecile dinamice compilate, voi putea testa rapid orice versiune a adversarului
-calculator. Similar, pentru a testa AI-ul cu o versiune precedentă de a sa, voi încărca respectivele
+Vom creea AI-ul sub formă de bibliotecă dinamică, care va fi încărcată la rulare de către aplicația de testare.
+Astfel, păstrând bibiotecile dinamice compilate, vom putea testa rapid orice versiune a adversarului
+calculator. Similar, pentru a testa AI-ul cu o versiune precedentă de a sa, vom încărca respectivele
 fișiere bibliotecă de pe disk.
 
-Pentru a dezvolta AI-ul și pentru a-l face mai rapid și mai bun, am nevoie să cunosc dacă o anumită
+Pentru a dezvolta AI-ul și pentru a-l face mai rapid și mai bun, avem nevoie să cunoștem dacă o anumită
 modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îmbunătăți constant AI-ul,
-îl voi compara mereu cu ultima versiune stocată. Dacă schimbarea este bună, atunci o păstrez.
-De asemenea, voi ține evidența versiunilor stocate pentru a vizualiza mai târziu evoluția AI-ului.
+îl vom compara mereu cu ultima versiune stocată. Dacă schimbarea este bună, atunci o păstrăm.
+De asemenea, vom ține evidența versiunilor stocate pentru a vizualiza mai târziu evoluția AI-ului.
 
-Voi implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
-tăia multe calcule inutile în căutarea celei mai favorabile mișcări. Voi implementa și un tabel de
+Vom implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
+tăia multe calcule inutile în căutarea celei mai favorabile mișcări. Vom implementa și un tabel de
 transpunere, pentru a lua în considerare și situații similare precedente. AI-ul va fi configurabil.
 Mulți parametri vor putea fi ajustați, ceea ce va face posibilă schimbarea abilității AI-ului și
 chiar a comportamentului acestuia.
@@ -204,14 +208,14 @@ nu putem avea garantat rezultatul cel mai bun. Similar, dacă pe durata unui joc
 caute mereu la aceeași adâncime, atunci câteodată îi va ține prea mult timp să caute, iar altădată
 nu își va utiliza mai mult din timpul la dispoziție pentru a căuta o mișcare mai bună. Cu alte cuvinte,
 trebuie creat algoritmul în așa fel încât oricând este oprit, să returneze un rezultat bun, și să își
-folosească cât mai mult din timpul pus la dispoziție, căutând cât mai adânc. Voi scrie algoritmul
+folosească cât mai mult din timpul pus la dispoziție, căutând cât mai adânc. Vom scrie algoritmul
 constrâns și în adâncime, dar și în timp.
 
 Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face posibilă executarea
 proceselor și a firelor de execuție cu adevărat în paralel. Pentru o performanță mai bună, în cele
-din urmă mă voi folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
+din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
 
-<!-- Buy and read "Computer Systems: A Programmer's Perspective" -->
+<!-- TODO buy and read "Computer Systems: A Programmer's Perspective" -->
 
 ## Proiectarea și dezvoltarea bibliotecii
 
