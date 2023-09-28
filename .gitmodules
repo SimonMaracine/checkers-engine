@@ -1,3 +1,4 @@
-[submodule "gui/extern/fltk"]
-	path = gui/extern/fltk
-	url = https://github.com/fltk/fltk
+[submodule "gui/extern/wxWidgets"]
+	path = gui/extern/wxWidgets
+	url = https://github.com/wxWidgets/wxWidgets/
+	branch = 3.2

@@ -1,16 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(wxBUILD_SHARED OFF)
 
-set(FLTK_BUILD_TEST OFF)
-set(FLTK_BUILD_EXAMPLES OFF)
-set(FLTK_BUILD_FLTK_OPTIONS OFF)
-set(OPTION_BUILD_HTML_DOCUMENTATION OFF)
-set(OPTION_BUILD_PDF_DOCUMENTATION OFF)
+add_subdirectory(extern/wxWidgets)
 
-set(OPTION_USE_SVG OFF)
-set(OPTION_PRINT_SUPPORT OFF)
-
-add_subdirectory(extern/fltk)
-
+add_subdirectory(common)
+add_subdirectory(player)
 add_subdirectory(tester)
