@@ -1,10 +1,12 @@
 #include <wx/wx.h>
 
 #include "main_window.hpp"
+#include "board.hpp"
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
     EVT_MENU(wxID_ABOUT, MainWindow::on_about)
+    EVT_SIZE(MainWindow::on_window_resize)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow()
@@ -37,7 +39,7 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-
+    board = new Board(this, 20, 20, GetSize().GetHeight() - 120);
 }
 
 void MainWindow::on_exit(wxCommandEvent& event) {
@@ -50,4 +52,10 @@ void MainWindow::on_about(wxCommandEvent& event) {
         "About",
         wxOK | wxICON_INFORMATION
     );
+}
+
+void MainWindow::on_window_resize(wxSizeEvent& event) {
+    std::cout << event.GetSize().GetX() << ", " << event.GetSize().GetY() << '\n';
+
+    board->set_size(event.GetSize().GetHeight() - 120);
 }

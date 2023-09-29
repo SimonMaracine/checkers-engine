@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.20)
 add_executable(player
     "src/application.cpp"
     "src/application.hpp"
+    "src/board.cpp"
+    "src/board.hpp"
     "src/main_window.cpp"
     "src/main_window.hpp"
 )
