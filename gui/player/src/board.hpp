@@ -3,6 +3,7 @@
 #include <forward_list>
 #include <list>
 #include <functional>
+#include <optional>
 
 #include <wx/wx.h>
 
@@ -28,14 +29,20 @@ public:
         bool king = false;
     };
 
-    using OnPieceMove = std::function<bool(Square, Square, const Piece&, const std::list<Square>&)>;
+    enum class Direction {
+        NorthEast,
+        NorthWest,
+        SouthEast,
+        SouthWest
+    };
+
+    using OnPieceMove = std::function<bool(const Piece&, Square, const std::list<Square>&)>;
 
     Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move);
 
     void set_position(int x, int y);
     void set_size(int size);
 
-    void remove_piece();
     void reset();
 private:
     void on_paint(wxPaintEvent& event);
@@ -44,6 +51,9 @@ private:
     void on_mouse_right_down(wxMouseEvent& event);
 
     Square get_square(wxPoint position);
+    void select_piece(Square square);
+    bool can_go(const Piece& piece, Square square);
+    std::optional<Square> offset(Square square, Direction direction);
     void draw(wxDC& dc);
 
     int size = 0;

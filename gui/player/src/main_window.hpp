@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 #include <wx/wx.h>
 
 #include "board.hpp"
@@ -15,6 +17,8 @@ private:
     void on_exit(wxCommandEvent& event);
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);
+
+    bool on_piece_move(const Board::Piece& piece, Board::Square target, const std::list<Board::Square>& targets);
 
     Board* board = nullptr;
 

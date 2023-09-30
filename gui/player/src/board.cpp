@@ -1,7 +1,9 @@
 #include <forward_list>
 #include <list>
 #include <functional>
+#include <optional>
 #include <algorithm>
+#include <cstddef>
 
 #include <wx/wx.h>
 
@@ -29,10 +31,6 @@ void Board::set_size(int size) {
     this->size = std::clamp(size, 200, 2000);
 }
 
-void Board::remove_piece() {
-
-}
-
 void Board::reset() {
     pieces.clear();
 
@@ -42,7 +40,7 @@ void Board::reset() {
                 Piece piece;
                 piece.square.file = file;
                 piece.square.rank = rank;
-                piece.color = Piece::Black;
+                piece.color = Piece::White;
 
                 pieces.push_front(piece);
             }
@@ -55,7 +53,7 @@ void Board::reset() {
                 Piece piece;
                 piece.square.file = file;
                 piece.square.rank = rank;
-                piece.color = Piece::White;
+                piece.color = Piece::Black;
 
                 pieces.push_front(piece);
             }
@@ -77,23 +75,21 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
 
     const auto square = get_square(event.GetPosition());
 
-    for (Piece& piece : pieces) {
-        if (piece.square == square) {
-            if (selected_piece != nullptr && piece.square == selected_piece->square) {
-                selected_piece = nullptr;
-            } else {
-                selected_piece = &piece;
-            }
+    select_piece(square);
 
-            return;
-        }
-    }
-
-    if (selected_piece == nullptr || !on_piece_move) {
+    if (selected_piece == nullptr) {
         return;
     }
 
-    if (on_piece_move(selected_piece->square, square, *selected_piece, selected_squares)) {
+    if (!can_go(*selected_piece, square)) {
+        return;
+    }
+
+    if (!on_piece_move) {
+        return;
+    }
+
+    if (on_piece_move(*selected_piece, square, selected_squares)) {
         selected_piece->square = square;
 
         selected_piece = nullptr;
@@ -129,6 +125,94 @@ Board::Square Board::get_square(wxPoint position) {
     square.rank = position.y / SQUARE_SIZE;
 
     return square;
+}
+
+void Board::select_piece(Square square) {
+    for (Piece& piece : pieces) {
+        if (piece.square == square) {
+            if (selected_piece != nullptr && piece.square == selected_piece->square) {
+                selected_piece = nullptr;
+            } else {
+                selected_piece = &piece;
+            }
+
+            return;
+        }
+    }
+}
+
+bool Board::can_go(const Piece& piece, Square square) {
+    Direction directions[4] {};
+
+    if (piece.king) {
+        std::size_t index = 0;
+
+        directions[index++] = Direction::NorthEast;
+        directions[index++] = Direction::NorthWest;
+        directions[index++] = Direction::SouthEast;
+        directions[index++] = Direction::SouthWest;
+
+        for (std::size_t i = 0; i < index; i++) {
+            if (*offset(piece.square, directions[i]) == square) {
+                return true;
+            }
+        }
+    } else {
+        std::size_t index = 0;
+
+        switch (piece.color) {
+            case Piece::White:
+                directions[index++] = Direction::SouthEast;
+                directions[index++] = Direction::SouthWest;
+                break;
+            case Piece::Black:
+                directions[index++] = Direction::NorthEast;
+                directions[index++] = Direction::NorthWest;
+                break;
+        }
+
+        for (std::size_t i = 0; i < index; i++) {
+            if (*offset(piece.square, directions[i]) == square) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+std::optional<Board::Square> Board::offset(Square square, Direction direction) {
+    int file;
+    int rank;
+
+    switch (direction) {
+        case Direction::NorthEast:
+            file = square.file + 1;
+            rank = square.rank - 1;
+            break;
+        case Direction::NorthWest:
+            file = square.file - 1;
+            rank = square.rank - 1;
+            break;
+        case Direction::SouthEast:
+            file = square.file + 1;
+            rank = square.rank + 1;
+            break;
+        case Direction::SouthWest:
+            file = square.file - 1;
+            rank = square.rank + 1;
+            break;
+    }
+
+    if (file < 0 || file > 7 || rank < 0 || rank > 7) {
+        return std::nullopt;
+    }
+
+    Square result;
+    result.file = file;
+    result.rank = rank;
+
+    return std::make_optional(result);
 }
 
 void Board::draw(wxDC& dc) {

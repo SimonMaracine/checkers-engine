@@ -1,3 +1,6 @@
+#include <list>
+#include <iostream>
+
 #include <wx/wx.h>
 
 #include "main_window.hpp"
@@ -39,7 +42,11 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-    board = new Board(this, 20, 20, GetSize().GetHeight() - 120, nullptr);
+    board = new Board(this, 20, 20, GetSize().GetHeight() - 120,
+        [this](const Board::Piece& piece, Board::Square target, const std::list<Board::Square>& targets) {
+            return on_piece_move(piece, target, targets);
+        }
+    );
 }
 
 void MainWindow::on_exit(wxCommandEvent& event) {
@@ -56,4 +63,10 @@ void MainWindow::on_about(wxCommandEvent& event) {
 
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     board->set_size(event.GetSize().GetHeight() - 120);
+}
+
+bool MainWindow::on_piece_move(const Board::Piece& piece, Board::Square target, const std::list<Board::Square>& targets) {
+    std::cout << piece.square.file << ", " << piece.square.rank << " -> " << target.file << ", " << target.rank << '\n';
+
+    return true;
 }
