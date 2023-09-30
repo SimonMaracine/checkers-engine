@@ -1,4 +1,6 @@
-#include <iostream>
+#include <forward_list>
+#include <list>
+#include <functional>
 #include <algorithm>
 
 #include <wx/wx.h>
@@ -8,12 +10,12 @@
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_PAINT(Board::on_paint)
     EVT_MOTION(Board::on_mouse_move)
-    EVT_LEFT_DOWN(Board::on_mouse_down)
-    EVT_LEFT_UP(Board::on_mouse_up)
+    EVT_LEFT_DOWN(Board::on_mouse_left_down)
+    EVT_RIGHT_DOWN(Board::on_mouse_right_down)
 wxEND_EVENT_TABLE()
 
-Board::Board(wxFrame* parent, int x, int y, int size)
-    : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), size(size) {
+Board::Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move)
+    : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), size(size), on_piece_move(on_piece_move) {
     reset();
 }
 
@@ -38,11 +40,11 @@ void Board::reset() {
         for (int rank = 0; rank < 3; rank++) {
             if ((file + rank) % 2 == 1) {
                 Piece piece;
-                piece.file = file;
-                piece.rank = rank;
+                piece.square.file = file;
+                piece.square.rank = rank;
                 piece.color = Piece::Black;
 
-                pieces.push_back(piece);
+                pieces.push_front(piece);
             }
         }
     }
@@ -51,11 +53,11 @@ void Board::reset() {
         for (int rank = 5; rank < 8; rank++) {
             if ((file + rank) % 2 == 1) {
                 Piece piece;
-                piece.file = file;
-                piece.rank = rank;
+                piece.square.file = file;
+                piece.square.rank = rank;
                 piece.color = Piece::White;
 
-                pieces.push_back(piece);
+                pieces.push_front(piece);
             }
         }
     }
@@ -67,20 +69,71 @@ void Board::on_paint(wxPaintEvent& event) {
 }
 
 void Board::on_mouse_move(wxMouseEvent& event) {
-
+    Refresh();
 }
 
-void Board::on_mouse_down(wxMouseEvent& event) {
-    std::cout << "Mouse down\n";
+void Board::on_mouse_left_down(wxMouseEvent& event) {
+    Refresh();
+
+    const auto square = get_square(event.GetPosition());
+
+    for (Piece& piece : pieces) {
+        if (piece.square == square) {
+            if (selected_piece != nullptr && piece.square == selected_piece->square) {
+                selected_piece = nullptr;
+            } else {
+                selected_piece = &piece;
+            }
+
+            return;
+        }
+    }
+
+    if (selected_piece == nullptr || !on_piece_move) {
+        return;
+    }
+
+    if (on_piece_move(selected_piece->square, square, *selected_piece, selected_squares)) {
+        selected_piece->square = square;
+
+        selected_piece = nullptr;
+        selected_squares.clear();
+    }
 }
 
-void Board::on_mouse_up(wxMouseEvent& event) {
+void Board::on_mouse_right_down(wxMouseEvent& event) {
+    Refresh();
 
+    const auto square = get_square(event.GetPosition());
+
+    if (selected_piece == nullptr) {
+        return;
+    }
+
+    for (Square selected_square : selected_squares) {
+        if (selected_square == square) {
+            selected_squares.remove(square);
+
+            return;
+        }
+    }
+
+    selected_squares.push_back(square);
+}
+
+Board::Square Board::get_square(wxPoint position) {
+    const int SQUARE_SIZE = size / 8;
+
+    Square square;
+    square.file = position.x / SQUARE_SIZE;
+    square.rank = position.y / SQUARE_SIZE;
+
+    return square;
 }
 
 void Board::draw(wxDC& dc) {
     const auto SQUARE_WHITE = wxColour(200, 200, 200);
-    const auto SQUARE_BLACK = wxColour(60, 40, 20);
+    const auto SQUARE_BLACK = wxColour(80, 60, 40);
     const int SQUARE_SIZE = size / 8;
 
     for (int x = 0; x < 8; x++) {
@@ -103,18 +156,32 @@ void Board::draw(wxDC& dc) {
     const int OFFSET = SQUARE_SIZE / 2;
 
     for (const Piece& piece : pieces) {
+        wxColour brush_color;
+        wxColour pen_color;
+
         switch (piece.color) {
             case Piece::White:
-                dc.SetBrush(wxBrush(PIECE_WHITE));
-                dc.SetPen(wxPen(PIECE_WHITE));
+                brush_color = PIECE_WHITE;
+                pen_color = PIECE_WHITE;
                 break;
             case Piece::Black:
-                dc.SetBrush(wxBrush(PIECE_BLACK));
-                dc.SetPen(wxPen(PIECE_BLACK));
+                brush_color = PIECE_BLACK;
+                pen_color = PIECE_BLACK;
                 break;
         }
 
-        const auto position = wxPoint(SQUARE_SIZE * piece.file + OFFSET, SQUARE_SIZE * piece.rank + OFFSET);
+        if (selected_piece != nullptr) {
+            if (selected_piece->square == piece.square) {
+                pen_color = wxColour(255, 255, 0);
+            }
+        }
+
+        dc.SetBrush(wxBrush(brush_color));
+        dc.SetPen(wxPen(pen_color));
+
+        const auto position = wxPoint(
+            SQUARE_SIZE * piece.square.file + OFFSET, SQUARE_SIZE * piece.square.rank + OFFSET
+        );
 
         dc.DrawCircle(position, PIECE_SIZE);
 
@@ -125,5 +192,11 @@ void Board::draw(wxDC& dc) {
             dc.SetPen(wxPen(color));
             dc.DrawCircle(position, PIECE_SIZE / 3);
         }
+    }
+
+    for (Square square : selected_squares) {
+        dc.SetBrush(wxBrush(wxColour(255, 255, 0)));
+        dc.SetPen(wxPen());
+        dc.DrawRectangle(wxPoint(SQUARE_SIZE * square.file, SQUARE_SIZE * square.rank), wxSize(SQUARE_SIZE, SQUARE_SIZE));
     }
 }

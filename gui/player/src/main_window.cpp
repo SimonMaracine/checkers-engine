@@ -39,7 +39,7 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-    board = new Board(this, 20, 20, GetSize().GetHeight() - 120);
+    board = new Board(this, 20, 20, GetSize().GetHeight() - 120, nullptr);
 }
 
 void MainWindow::on_exit(wxCommandEvent& event) {
@@ -55,7 +55,5 @@ void MainWindow::on_about(wxCommandEvent& event) {
 }
 
 void MainWindow::on_window_resize(wxSizeEvent& event) {
-    std::cout << event.GetSize().GetX() << ", " << event.GetSize().GetY() << '\n';
-
     board->set_size(event.GetSize().GetHeight() - 120);
 }
