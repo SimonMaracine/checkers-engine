@@ -1,4 +1,3 @@
-#include <list>
 #include <iostream>
 
 #include <wx/wx.h>
@@ -6,7 +5,10 @@
 #include "main_window.hpp"
 #include "board.hpp"
 
+static constexpr int RESET_BOARD = 10;
+
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
+    EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
     EVT_MENU(wxID_ABOUT, MainWindow::on_about)
     EVT_SIZE(MainWindow::on_window_resize)
@@ -29,6 +31,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setup_menubar() {
     wxMenu* men_file = new wxMenu;
+    men_file->Append(RESET_BOARD, "Reset Board");
     men_file->Append(wxID_EXIT, "Exit");
 
     wxMenu* men_help = new wxMenu;
@@ -43,14 +46,18 @@ void MainWindow::setup_menubar() {
 
 void MainWindow::setup_widgets() {
     board = new Board(this, 20, 20, GetSize().GetHeight() - 120,
-        [this](const Board::Piece& piece, Board::Square target, const std::list<Board::Square>& targets) {
-            return on_piece_move(piece, target, targets);
+        [this](Board::Move move) {
+            return on_piece_move(move);
         }
     );
 }
 
 void MainWindow::on_exit(wxCommandEvent& event) {
     wxExit();
+}
+
+void MainWindow::on_reset_board(wxCommandEvent& event) {
+    board->reset();
 }
 
 void MainWindow::on_about(wxCommandEvent& event) {
@@ -65,8 +72,8 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
     board->set_size(event.GetSize().GetHeight() - 120);
 }
 
-bool MainWindow::on_piece_move(const Board::Piece& piece, Board::Square target, const std::list<Board::Square>& targets) {
-    std::cout << piece.square.file << ", " << piece.square.rank << " -> " << target.file << ", " << target.rank << '\n';
+bool MainWindow::on_piece_move(Board::Move move) {
+    std::cout << move.source_index << " -> " << move.destination_index << '\n';
 
     return true;
 }

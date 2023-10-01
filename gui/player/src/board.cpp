@@ -1,7 +1,8 @@
-#include <forward_list>
-#include <list>
+#include <array>
 #include <functional>
 #include <optional>
+#include <utility>
+#include <vector>
 #include <algorithm>
 #include <cstddef>
 
@@ -17,7 +18,7 @@ wxBEGIN_EVENT_TABLE(Board, wxWindow)
 wxEND_EVENT_TABLE()
 
 Board::Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move)
-    : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), size(size), on_piece_move(on_piece_move) {
+    : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
     reset();
 }
 
@@ -28,37 +29,31 @@ void Board::set_position(int x, int y) {
 void Board::set_size(int size) {
     SetSize(size, size);
 
-    this->size = std::clamp(size, 200, 2000);
+    board_size = std::clamp(size, 200, 2000);
 }
 
 void Board::reset() {
-    pieces.clear();
+    std::fill(std::begin(board), std::end(board), Square::None);
+    selected_piece_index = NULL_INDEX;
+    turn = Player::Black;
 
-    for (int file = 0; file < 8; file++) {
-        for (int rank = 0; rank < 3; rank++) {
-            if ((file + rank) % 2 == 1) {
-                Piece piece;
-                piece.square.file = file;
-                piece.square.rank = rank;
-                piece.color = Piece::White;
+    for (std::size_t i = 0; i < 24; i++) {
+        const auto [file, rank] = get_square(i);
 
-                pieces.push_front(piece);
-            }
+        if ((file + rank) % 2 == 1) {
+            board[i] = Square::White;
         }
     }
 
-    for (int file = 0; file < 8; file++) {
-        for (int rank = 5; rank < 8; rank++) {
-            if ((file + rank) % 2 == 1) {
-                Piece piece;
-                piece.square.file = file;
-                piece.square.rank = rank;
-                piece.color = Piece::Black;
+    for (std::size_t i = 40; i < 64; i++) {
+        const auto [file, rank] = get_square(i);
 
-                pieces.push_front(piece);
-            }
+        if ((file + rank) % 2 == 1) {
+            board[i] = Square::Black;
         }
     }
+
+    Refresh();
 }
 
 void Board::on_paint(wxPaintEvent& event) {
@@ -73,27 +68,33 @@ void Board::on_mouse_move(wxMouseEvent& event) {
 void Board::on_mouse_left_down(wxMouseEvent& event) {
     Refresh();
 
-    const auto square = get_square(event.GetPosition());
+    const int square_index = get_square(event.GetPosition());
 
-    select_piece(square);
-
-    if (selected_piece == nullptr) {
+    if (select_piece(square_index)) {
         return;
     }
 
-    if (!can_go(*selected_piece, square)) {
+    if (selected_piece_index == NULL_INDEX) {
         return;
     }
+
+    const auto moves = generate_moves();  // TODO don't generate every time
 
     if (!on_piece_move) {
         return;
     }
 
-    if (on_piece_move(*selected_piece, square, selected_squares)) {
-        selected_piece->square = square;
+    for (Move move : moves) {
+        if (move.source_index != selected_piece_index || move.destination_index != square_index) {
+            continue;
+        }
 
-        selected_piece = nullptr;
-        selected_squares.clear();
+        if (on_piece_move(move)) {
+            std::swap(board[move.source_index], board[move.destination_index]);
+
+            selected_piece_index = NULL_INDEX;
+            change_turn();
+        }
     }
 }
 
@@ -102,123 +103,156 @@ void Board::on_mouse_right_down(wxMouseEvent& event) {
 
     const auto square = get_square(event.GetPosition());
 
-    if (selected_piece == nullptr) {
-        return;
-    }
-
-    for (Square selected_square : selected_squares) {
-        if (selected_square == square) {
-            selected_squares.remove(square);
-
-            return;
-        }
-    }
-
-    selected_squares.push_back(square);
+    // TODO
 }
 
-Board::Square Board::get_square(wxPoint position) {
-    const int SQUARE_SIZE = size / 8;
+int Board::get_square(wxPoint position) {
+    const int SQUARE_SIZE = board_size / 8;
 
-    Square square;
-    square.file = position.x / SQUARE_SIZE;
-    square.rank = position.y / SQUARE_SIZE;
+    const int file = position.x / SQUARE_SIZE;
+    const int rank = position.y / SQUARE_SIZE;
 
-    return square;
+    return rank * 8 + file;
 }
 
-void Board::select_piece(Square square) {
-    for (Piece& piece : pieces) {
-        if (piece.square == square) {
-            if (selected_piece != nullptr && piece.square == selected_piece->square) {
-                selected_piece = nullptr;
-            } else {
-                selected_piece = &piece;
-            }
+std::pair<int, int> Board::get_square(int square_index) {
+    const int file = square_index % 8;
+    const int rank = square_index / 8;
 
-            return;
-        }
-    }
+    return std::make_pair(file, rank);
 }
 
-bool Board::can_go(const Piece& piece, Square square) {
-    Direction directions[4] {};
-
-    if (piece.king) {
-        std::size_t index = 0;
-
-        directions[index++] = Direction::NorthEast;
-        directions[index++] = Direction::NorthWest;
-        directions[index++] = Direction::SouthEast;
-        directions[index++] = Direction::SouthWest;
-
-        for (std::size_t i = 0; i < index; i++) {
-            if (*offset(piece.square, directions[i]) == square) {
-                return true;
-            }
-        }
-    } else {
-        std::size_t index = 0;
-
-        switch (piece.color) {
-            case Piece::White:
-                directions[index++] = Direction::SouthEast;
-                directions[index++] = Direction::SouthWest;
-                break;
-            case Piece::Black:
-                directions[index++] = Direction::NorthEast;
-                directions[index++] = Direction::NorthWest;
-                break;
+bool Board::select_piece(int square_index) {
+    for (std::size_t i = 0; i < 64; i++) {
+        if (i != square_index) {
+            continue;
         }
 
-        for (std::size_t i = 0; i < index; i++) {
-            if (*offset(piece.square, directions[i]) == square) {
-                return true;
-            }
+        if (selected_piece_index == square_index) {
+            selected_piece_index = NULL_INDEX;
+            return false;
+        }
+
+        if (board[square_index] != Square::None) {
+            selected_piece_index = square_index;
+            return true;
         }
     }
 
     return false;
 }
 
-std::optional<Board::Square> Board::offset(Square square, Direction direction) {
-    int file;
-    int rank;
+std::vector<Board::Move> Board::generate_moves() {
+    std::vector<Move> moves;
+
+    for (std::size_t i = 0; i < 64; i++) {
+        const bool king = static_cast<unsigned int>(board[i]) & (1u << 2);
+
+        if (turn == Player::Black) {
+            switch (board[i]) {
+                case Square::Black:
+                case Square::BlackKing:
+                    generate_piece_moves(moves, i, Player::Black, king);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            switch (board[i]) {
+                case Square::White:
+                case Square::WhiteKing:
+                    generate_piece_moves(moves, i, Player::White, king);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    return moves;
+}
+
+void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) {
+    Direction directions[4] {};
+    std::size_t index = 0;
+
+    if (king) {
+        directions[index++] = Direction::NorthEast;
+        directions[index++] = Direction::NorthWest;
+        directions[index++] = Direction::SouthEast;
+        directions[index++] = Direction::SouthWest;
+    } else {
+        switch (player) {
+            case Player::Black:
+                directions[index++] = Direction::NorthEast;
+                directions[index++] = Direction::NorthWest;
+                break;
+            case Player::White:
+                directions[index++] = Direction::SouthEast;
+                directions[index++] = Direction::SouthWest;
+                break;
+        }
+    }
+
+    // Check the squares above or below in diagonal
+    for (std::size_t i = 0; i < index; i++) {
+        const int target_index = offset(square_index, directions[i]);
+
+        if (target_index == NULL_INDEX) {
+            continue;
+        }
+
+        if (board[target_index] != Square::None) {
+            continue;
+        }
+
+        Move move;
+        move.source_index = square_index;
+        move.destination_index = target_index;
+
+        moves.push_back(move);
+    }
+
+    // TODO check jumps recursively
+}
+
+int Board::offset(int square_index, Direction direction) {
+    int result_index = square_index;
 
     switch (direction) {
         case Direction::NorthEast:
-            file = square.file + 1;
-            rank = square.rank - 1;
+            result_index -= 7;
             break;
         case Direction::NorthWest:
-            file = square.file - 1;
-            rank = square.rank - 1;
+            result_index -= 9;
             break;
         case Direction::SouthEast:
-            file = square.file + 1;
-            rank = square.rank + 1;
+            result_index += 9;
             break;
         case Direction::SouthWest:
-            file = square.file - 1;
-            rank = square.rank + 1;
+            result_index += 7;
             break;
     }
 
-    if (file < 0 || file > 7 || rank < 0 || rank > 7) {
-        return std::nullopt;
+    if (result_index < 0 || result_index > 63) {
+        return NULL_INDEX;
     }
 
-    Square result;
-    result.file = file;
-    result.rank = rank;
+    return result_index;
+}
 
-    return std::make_optional(result);
+void Board::change_turn() {
+    if (turn == Player::Black) {
+        turn = Player::White;
+    } else {
+        turn = Player::Black;
+    }
 }
 
 void Board::draw(wxDC& dc) {
     const auto SQUARE_WHITE = wxColour(200, 200, 200);
     const auto SQUARE_BLACK = wxColour(80, 60, 40);
-    const int SQUARE_SIZE = size / 8;
+    const int SQUARE_SIZE = board_size / 8;
 
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
@@ -239,37 +273,48 @@ void Board::draw(wxDC& dc) {
     const int PIECE_SIZE = static_cast<int>(static_cast<float>(SQUARE_SIZE) / 2.5f);
     const int OFFSET = SQUARE_SIZE / 2;
 
-    for (const Piece& piece : pieces) {
+    for (std::size_t i = 0; i < 64; i++) {
         wxColour brush_color;
         wxColour pen_color;
 
-        switch (piece.color) {
-            case Piece::White:
+        bool king = false;
+
+        switch (board[i]) {
+            case Square::None:
+                continue;
+            case Square::White:
                 brush_color = PIECE_WHITE;
                 pen_color = PIECE_WHITE;
                 break;
-            case Piece::Black:
+            case Square::Black:
                 brush_color = PIECE_BLACK;
                 pen_color = PIECE_BLACK;
                 break;
+            case Square::WhiteKing:
+                brush_color = PIECE_WHITE;
+                pen_color = PIECE_WHITE;
+                king = true;
+                break;
+            case Square::BlackKing:
+                brush_color = PIECE_BLACK;
+                pen_color = PIECE_BLACK;
+                king = true;
+                break;
         }
 
-        if (selected_piece != nullptr) {
-            if (selected_piece->square == piece.square) {
-                pen_color = wxColour(255, 255, 0);
-            }
+        if (selected_piece_index == i) {
+            pen_color = wxColour(255, 255, 0);
         }
 
         dc.SetBrush(wxBrush(brush_color));
         dc.SetPen(wxPen(pen_color));
 
-        const auto position = wxPoint(
-            SQUARE_SIZE * piece.square.file + OFFSET, SQUARE_SIZE * piece.square.rank + OFFSET
-        );
+        const auto [file, rank] = get_square(i);
+        const auto position = wxPoint(SQUARE_SIZE * file + OFFSET, SQUARE_SIZE * rank + OFFSET);
 
         dc.DrawCircle(position, PIECE_SIZE);
 
-        if (piece.king) {
+        if (king) {
             const auto color = wxColour(140, 140, 10);
 
             dc.SetBrush(wxBrush(color));
@@ -278,9 +323,9 @@ void Board::draw(wxDC& dc) {
         }
     }
 
-    for (Square square : selected_squares) {
-        dc.SetBrush(wxBrush(wxColour(255, 255, 0)));
-        dc.SetPen(wxPen());
-        dc.DrawRectangle(wxPoint(SQUARE_SIZE * square.file, SQUARE_SIZE * square.rank), wxSize(SQUARE_SIZE, SQUARE_SIZE));
-    }
+    // for (Square square : selected_squares) {
+    //     dc.SetBrush(wxBrush(wxColour(255, 255, 0)));
+    //     dc.SetPen(wxPen());
+    //     dc.DrawRectangle(wxPoint(SQUARE_SIZE * square.file, SQUARE_SIZE * square.rank), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+    // }
 }
