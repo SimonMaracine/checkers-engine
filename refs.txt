@@ -1,8 +1,12 @@
 references
 https://en.wikipedia.org/wiki/Checkers
+https://www.wcdf.net/rules/rules_of_checkers_english.pdf
 https://en.wikipedia.org/wiki/AlphaZero
 https://ro.wikipedia.org/wiki/Minimax
 https://en.wikipedia.org/wiki/Minimax
+
+future references
+https://boardgames.stackexchange.com/questions/18949/checkers-draughts-capture-all-pieces-in-1-move
 
 to read more
 https://en.wikipedia.org/wiki/Board_game

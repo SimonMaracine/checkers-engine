@@ -21,36 +21,45 @@ de a computeriza astfel de jocuri. Vom discuta despre acest aspect într-o altă
 
 ### Jocul de strategie dame
 
-În particular, ce ne interesează pe noi este jocul dame (engl. "checkers"). Este un joc abstract, de strategie,
+În particular, ce ne interesează pe noi este jocul dame (engl. "checkers"). [1] Este un joc abstract, de strategie,
 de masă, în doi jucători. Jocul dame are foarte multe variante, în diferite țări și culturi, însă aici,
 când spun "dame", mă refer mai exact la varianta americană a jocului (engl. "american checkers" sau "english checkers").
-Pentru a computeriza varianta americană a jocului dame, este esențial să cunoaștem regulile exacte ale jocului: [1]
+Pentru a computeriza varianta americană a jocului dame, este esențial să cunoaștem regulile exacte ale jocului,
+cel puțin cele care ne interesează pe noi: [2]
 
-<!-- draw by threefold repetition, proposed draws, resignments -->
-
-- Tabla este constituită din opt rânduri și opt coloane, adică șaizeci și patru de pătrățele
-  în carouri, ca și la tabla de șah.
+- Tabla este constituită din opt rânduri și opt coloane, adică șaizeci și patru de pătrățele în carouri.
 - Un jucător deține piesele albe sau roșii, iar celălalt deține piesele negre.
 - La început, piesele fiecărui jucător sunt așezate pe tablă, pe pătrățelele negre, în părți opuse,
   ca în figura de mai jos.
-- Pe rând, jucătorii vor muta piesele pe diagonală, doar în față, pe orice pătrățel liber. Dacă pe un
-  pătrățel adiacent din față se află o piesă a oponentului, iar imediat după aceasta este un pătrățel liber,
-  jucătorul poate muta piesa acestuia peste piesa adversarului, capturând în același timp (eliminând din joc)
-  piesa respectivă. În acest mod, mai multe piese de ale oponentului pot fi capturate într-o singură
-  tură, cu condiția ca mutările piesei și capturile să fie succesive. Jucătorul negru începe primul.
-- Dacă o piesă ajunge până la ultimul rând, pe partea opusă a tablei, atunci ea devine "rege" până
-  la sfârșitul jocului sau până e capturată și are abilitatea în plus de a se deplasa și de a captura
-  și în spate.
-- Jocul se sfârșește atunci când fie un jucător nu mai are piese pe tablă, fie nu mai poate face nicio
-  mișcare legală. În acest caz jucătorul respectiv pierde.
+- Pe rând, jucătorii își vor efectua mutările. Jucătorul negru începe primul.
+- Există două mari categorii de mutări: o mutare normală și o mutare de captură. O piesă se poate
+  mișca doar în față, pe diagonală, pe un pătrățel liber. Dacă pe un pătrățel adiacent din față se
+  află o piesă a oponentului, iar imediat după aceasta este un pătrățel liber, jucătorul trebuie să mute
+  piesa acestuia peste piesa adversarului, capturând în același timp (eliminând din joc)
+  piesa respectivă. Astfel, dacă  un jucător are posibilitatea de a captura o piesă a adversarului,
+  atunci are obligația să o facă. Dacă imediat după o captură, în aceeași tură, jucătorul la
+  rând mai poate captura o piesă a adversarului, sărind peste aceasta, este obligat să o facă. Dacă
+  un jucător are posibilitatea de a captura piese din sărituri diferite, atunci poate alege care captură
+  să o facă. O piesă poate fi sărită o singura dată.
+- Dacă o piesă ajunge până la ultimul rând, pe partea opusă a tablei, atunci ea devine "rege" și are
+  abilitatea în plus de a se deplasa și de a captura în spate. Ea devine rege doar la finalul turei sale.
+- Jocul se sfârșește atunci când un jucător nu mai poate face nicio mutare legală, fie că piesele
+  sale sunt blocate, fie că nu mai are piese. În acest caz jucătorul respectiv pierde.
+- Jocul se mai poate sfârși și prin remiză atunci când o poziție se repetă pentru a treia oară, sau
+  atunci când optzeci de semiture trec fără ca vreun jucător să mute o piesă non-rege sau să captureze
+  o piesă a adversarului.
 
 ![Poziție inițială](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/CheckersStandard.jpg/250px-CheckersStandard.jpg)
 
+Am omis foarte multe reguli care pe noi nu ne interesează, fiindcă ele țin de desfășurarea jocurilor
+în competiții. Spre exemplu, nu vom implementa jocul dame cu cronometru sau nu vom implementa remize
+propuse.
+
 Există câțiva termeni din câmpul lexical al astfel de jocuri, care trebuie bine definiți:
 
-- Tură și semitură (engl. "turn" și "ply"): O tură sau o tură completă reprezintă o mișcare a jucătorului
-  negru urmată de o mișcare a jucătorului alb. O semitură reprezintă o mișcare a unui jucător.
-- Mișcare (engl. "move"): Reprezintă acțiunea sau acțiunile necesare, efectuate de un jucător, pentru a-și
+- Tură și semitură (engl. "turn" și "ply"): O tură sau o tură completă reprezintă o mutare a jucătorului
+  negru urmată de o mutare a jucătorului alb. O semitură reprezintă o mutare a unui jucător.
+- Mutare (engl. "move"): Reprezintă acțiunea sau acțiunile necesare, efectuate de un jucător, pentru a-și
   termina semitura.
 - Poziție (engl. "position"): Reprezintă starea momentană a unui joc dintre semiture. Toate elementele
   care pot face diferența dintre o poziție de alta, împreună reprezintă o poziție a jocului. Aici include
@@ -65,7 +74,7 @@ cu regulile acestui joc și cu ce trebuie să facă ca să câștige. În contin
 pentru crearea unui oponent la calculator.
 
 O primă abordare și una naivă ar fi să se analizeze tabla cu toate piesele și, printr-o anumită logică,
-să se aleagă o anumită mișcare. Cu alte cuvinte, să se scrie un oarecare algoritm. Problema acestei abordări
+să se aleagă o anumită mutare. Cu alte cuvinte, să se scrie un oarecare algoritm. Problema acestei abordări
 este că e foarte dificil astfel de implementat un oponent bun, nu garantează că ia în considerare toții
 factorii care pot determina câștigul sau pierderea, și nu poate să vadă în ansamblu în ce direcție
 o ia jocul, să "vadă" în viitor.
@@ -80,10 +89,10 @@ de machine learning sunt, în mare parte, algoritmi numerici și pot fi paraleli
 Recent, în ultimii ani, jucătorul digital de șah AlphaZero, care este bazat pe machine learning,
 a reușit să-l învingă pe cel mai bun jucător digital la vremea aceea,
 Stockfish (care nu este bazat pe machine learning), într-un meci de 1000 de runde, cu 155 de câștiguri,
-6 pierderi și 839 de remize. [2]
+6 pierderi și 839 de remize. [3]
 
 A treia abordare, cea pe care o vom implementa și noi, este folosirea puterii de procesare a calculatorului,
-pentru a calcula toate posibilele mișcări din partea ambilor jucători până la un punct anume din joc și
+pentru a calcula toate posibilele mutări din partea ambilor jucători până la un punct anume din joc și
 toate posibilele rezultate, iar apoi alegerea mișcării celei mai favorabile pentru jucătorul calculator.
 Un astfel de algoritm poartă denumirea de minimax.
 
@@ -91,12 +100,12 @@ Un astfel de algoritm poartă denumirea de minimax.
 
 "Minimax este o regulă de decizie utilizată în teoria jocurilor, statistică și filosofie și care constă
 în minimizarea pierderii maxime posibile. Alternativ, abordarea poate fi și cea a maximizării câștigului
-minim." [3]
+minim." [4]
 
 Minimax este, de asemenea, un algoritm și este deseori folosit în inteligență artificială pentru jocuri
-de tip "turn-based", de doi jucători, cu mișcări alternative, potrivindu-se astfel perfect pentru jocul dame.
+de tip "turn-based", de doi jucători, cu mutări alternative, potrivindu-se astfel perfect pentru jocul dame.
 Se mai poate privi și ca un algoritm de căutare, fiindcă ideea de bază al acestui algoritm este să "caute" cea mai avantajoasă
-mișcare pentru o anumită poziție a unui joc, pentru un anumit jucător. Minimax este un algoritm generic
+mutare pentru o anumită poziție a unui joc, pentru un anumit jucător. Minimax este un algoritm generic
 și trebuie adaptat pentru un anumit joc, de aceea nu există "algoritmul minimax de șah" sau "algoritmul minimax de dame".
 Iar în realitate, deseori sunt implementate extensii peste modelul de bază al algoritmului. Sunt comune
 extensii precum (engl.) alpha-beta pruning, sau tabele de transpoziție (engl. "transposition table"),
@@ -107,9 +116,9 @@ poate fi implementat algoritmul minimax, vom explica în alt capitol, în detali
 Fiecărei poziții a unui joc îi este asociată o valoare sau un scor. Valoarea aceasta este calculată folosind
 o funcție de evaluare a poziției (engl. "static evaluation function") și reprezintă cât de bine sau rău
 ar fi pentru un anume jucător, dacă s-ar afla în poziția respectivă. Se presupune că jucătorul alb vrea un scor
-cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mișcările
-legale, va efectua mișcarea care maximizează șansele de a ajunge la poziția cea mai avantajoasă, cu
-scorul cel mai mare. La fel, jucătorul negru va alege mișcarea cea mai nefavorabilă pentru alb, care
+cât mai mare, iar jucătorul negru vrea un scor cât mai mic. Astfel, jucătorul alb, dintre toate mutările
+legale, va efectua mutarea care maximizează șansele de a ajunge la poziția cea mai avantajoasă, cu
+scorul cel mai mare. La fel, jucătorul negru va alege mutarea cea mai nefavorabilă pentru alb, care
 maximizează șansele de a ajunge la poziția cu scorul cel mai mic. Deci un scor cu valoarea 0 înseamnă
 că niciun jucător nu este în avantaj, un scor pozitiv înseamnă că jucătorul alb este în avantaj, iar
 un scor negativ semnifică avatanj pentru negru. Algoritmul se poate vizualiza sub forma unui arbore,
@@ -117,7 +126,7 @@ numit arborele jocului.
 
 <!-- more and better explanation needed -->
 <!-- better image and pseudocode -->
-În imaginea de mai jos [4] se află arborele unui joc în care fiecare jucător are maxim două posibile mișcări
+În imaginea de mai jos [4] se află arborele unui joc în care fiecare jucător are maxim două posibile mutări
 la dispoziție în fiecare tură. Nodurile cerc reprezintă pozițiile în care la rând este jucătorul care
 maximizează scorul, iar nodurile pătrat reprezintă pozițiile jucătorului care minimizează scorul.
 De regulă, arborele este limitat în înălțime, datorită numărului imens de poziții ce trebuie calculate.
@@ -132,7 +141,7 @@ jucători joacă perfect.
 
 ![Arbore algoritm](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Minimax.svg/600px-Minimax.svg.png)
 
-Pseudocodul algoritmului minimax arată cam așa: [4]
+Pseudocodul algoritmului minimax arată cam așa: [5]
 
 ```javascript
 function minimax(node, depth, maximizingPlayer) is
@@ -197,7 +206,7 @@ modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îm
 De asemenea, vom ține evidența versiunilor stocate pentru a vizualiza mai târziu evoluția AI-ului.
 
 Vom implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
-tăia multe calcule inutile în căutarea celei mai favorabile mișcări. Vom implementa și un tabel de
+tăia multe calcule inutile în căutarea celei mai favorabile mutări. Vom implementa și un tabel de
 transpunere, pentru a lua în considerare și situații similare precedente. AI-ul va fi configurabil.
 Mulți parametri vor putea fi ajustați, ceea ce va face posibilă schimbarea abilității AI-ului și
 chiar a comportamentului acestuia.
@@ -206,14 +215,14 @@ O problemă dificilă care trebuie rezolvată este că algoritmul, odată pornit
 până nu își termină căutarea, iar dacă totuși este oprit prematur, înainte de a calcula toate pozițiile,
 nu putem avea garantat rezultatul cel mai bun. Similar, dacă pe durata unui joc de dame, AI-ul este configurat să
 caute mereu la aceeași adâncime, atunci câteodată îi va ține prea mult timp să caute, iar altădată
-nu își va utiliza mai mult din timpul la dispoziție pentru a căuta o mișcare mai bună. Cu alte cuvinte,
+nu își va utiliza mai mult din timpul la dispoziție pentru a căuta o mutare mai bună. Cu alte cuvinte,
 trebuie creat algoritmul în așa fel încât oricând este oprit, să returneze un rezultat bun, și să își
 folosească cât mai mult din timpul pus la dispoziție, căutând cât mai adânc. Vom scrie algoritmul
 constrâns și în adâncime, dar și în timp.
 
 Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face posibilă executarea
 proceselor și a firelor de execuție cu adevărat în paralel. Pentru o performanță mai bună, în cele
-din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mișcare.
+din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mutare.
 
 <!-- TODO buy and read "Computer Systems: A Programmer's Perspective" -->
 
@@ -234,6 +243,7 @@ din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai 
 ## Bibliografie
 
 [1] <https://en.wikipedia.org/wiki/Checkers>  
-[2] <https://en.wikipedia.org/wiki/AlphaZero>  
-[3] <https://ro.wikipedia.org/wiki/Minimax>  
-[4] <https://en.wikipedia.org/wiki/Minimax>
+[2] <https://www.wcdf.net/rules/rules_of_checkers_english.pdf>  
+[3] <https://en.wikipedia.org/wiki/AlphaZero>  
+[4] <https://ro.wikipedia.org/wiki/Minimax>  
+[5] <https://en.wikipedia.org/wiki/Minimax>

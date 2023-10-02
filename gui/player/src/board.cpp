@@ -196,7 +196,7 @@ void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Pla
 
     // Check the squares above or below in diagonal
     for (std::size_t i = 0; i < index; i++) {
-        const int target_index = offset(square_index, directions[i]);
+        const int target_index = offset(square_index, directions[i], Short);
 
         if (target_index == NULL_INDEX) {
             continue;
@@ -214,23 +214,80 @@ void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Pla
     }
 
     // TODO check jumps recursively
+
+    check_piece_jumps(moves, square_index, player, king);
 }
 
-int Board::offset(int square_index, Direction direction) {
+void Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king) {
+    Direction directions[4] {};
+    std::size_t index = 0;
+
+    if (king) {
+        directions[index++] = Direction::NorthEast;
+        directions[index++] = Direction::NorthWest;
+        directions[index++] = Direction::SouthEast;
+        directions[index++] = Direction::SouthWest;
+    } else {
+        switch (player) {
+            case Player::Black:
+                directions[index++] = Direction::NorthEast;
+                directions[index++] = Direction::NorthWest;
+                break;
+            case Player::White:
+                directions[index++] = Direction::SouthEast;
+                directions[index++] = Direction::SouthWest;
+                break;
+        }
+    }
+
+    // We want an enemy piece
+    unsigned int piece_mask;
+
+    switch (player) {
+        case Player::Black:
+            piece_mask = 0b0001u;
+            break;
+        case Player::White:
+            piece_mask = 0b0010u;
+            break;
+    }
+
+    for (std::size_t i = 0; i < index; i++) {
+        const int enemy_index = offset(square_index, directions[i], Short);
+        const int target_index = offset(square_index, directions[i], Long);
+
+        if (enemy_index == NULL_INDEX || target_index == NULL_INDEX) {
+            continue;
+        }
+
+        const bool is_enemy_piece = static_cast<unsigned int>(board[enemy_index]) & piece_mask;
+
+        if (!is_enemy_piece || board[target_index] != Square::None) {
+            continue;
+        }
+
+
+
+    }
+}
+
+int Board::offset(int square_index, Direction direction, Diagonal diagonal) {
+    static constexpr int OFFSET[2] = { 1, 2 };
+
     int result_index = square_index;
 
     switch (direction) {
         case Direction::NorthEast:
-            result_index -= 7;
+            result_index -= 7 * OFFSET[diagonal];
             break;
         case Direction::NorthWest:
-            result_index -= 9;
+            result_index -= 9 * OFFSET[diagonal];
             break;
         case Direction::SouthEast:
-            result_index += 9;
+            result_index += 9 * OFFSET[diagonal];
             break;
         case Direction::SouthWest:
-            result_index += 7;
+            result_index += 7 * OFFSET[diagonal];
             break;
     }
 

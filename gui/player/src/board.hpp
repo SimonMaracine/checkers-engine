@@ -38,12 +38,17 @@ private:
         SouthWest
     };
 
+    enum Diagonal {
+        Short = 0,
+        Long = 1
+    };
+
     enum class Square : unsigned int {
-        None = 0b0000,
-        White = 0b0001,
-        Black = 0b0010,
-        WhiteKing = 0b0101,
-        BlackKing = 0b0110
+        None      = 0b0000u,  // I don't usually do this :P
+        White     = 0b0001u,
+        WhiteKing = 0b0101u,
+        Black     = 0b0010u,
+        BlackKing = 0b0110u
     };
 
     void on_paint(wxPaintEvent& event);
@@ -56,7 +61,8 @@ private:
     bool select_piece(int square_index);
     std::vector<Move> generate_moves();
     void generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king);
-    int offset(int square_index, Direction direction);
+    void check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king);
+    int offset(int square_index, Direction direction, Diagonal diagonal);
     void change_turn();
 
     void draw(wxDC& dc);
