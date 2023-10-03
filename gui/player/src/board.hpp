@@ -30,6 +30,8 @@ public:
                 int destination_index;
                 int intermediary_square_indices[9];
                 int captured_pieces_indices[9];
+                int intermediary_square_indices_size;
+                int captured_pieces_indices_size;
             } capture;
         };
 
@@ -64,14 +66,13 @@ private:
 
     enum class Square : unsigned int {
         None      = 0b0000u,  // I don't usually do this :P
-        White     = 0b0001u,
-        WhiteKing = 0b0101u,
-        Black     = 0b0010u,
-        BlackKing = 0b0110u
+        Black     = 0b0001u,
+        BlackKing = 0b0101u,
+        White     = 0b0010u,
+        WhiteKing = 0b0110u
     };
 
     struct JumpCtx {
-        unsigned int jumps = 0;
         int source_index {};
         std::stack<int, std::vector<int>> intermediary_square_indices;
         std::stack<int, std::vector<int>> captured_pieces_indices;
@@ -98,9 +99,10 @@ private:
 
     int board_size = 0;
 
-    std::array<Square, 64> board {};
+    std::array<Square, 64> board {};  // TODO half board
     Player turn = Player::Black;
     int selected_piece_index = NULL_INDEX;
+    std::vector<Move> legal_moves;
 
     OnPieceMove on_piece_move;
 
