@@ -5,6 +5,7 @@
 #include <optional>
 #include <utility>
 #include <vector>
+#include <stack>
 
 #include <wx/wx.h>
 
@@ -12,17 +13,35 @@ class Board : public wxWindow {
 public:
     static constexpr int NULL_INDEX = -1;
 
+    enum class MoveType {
+        Normal,
+        Capture
+    };
+
     struct Move {
-        int source_index = NULL_INDEX;
-        int destination_index = NULL_INDEX;
+        union {
+            struct {
+                int source_index;
+                int destination_index;
+            } normal;
+
+            struct {
+                int source_index;
+                int destination_index;
+                int intermediary_square_indices[9];
+                int captured_pieces_indices[9];
+            } capture;
+        };
+
+        MoveType type {};
     };
 
-    enum class Player {
-        Black,
-        White
+    enum class Player : unsigned int {
+        Black = 0b0001u,
+        White = 0b0010u,
     };
 
-    using OnPieceMove = std::function<bool(Move)>;
+    using OnPieceMove = std::function<bool(const Move&)>;
 
     Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move);
 
@@ -51,6 +70,13 @@ private:
         BlackKing = 0b0110u
     };
 
+    struct JumpCtx {
+        unsigned int jumps = 0;
+        int source_index {};
+        std::stack<int, std::vector<int>> intermediary_square_indices;
+        std::stack<int, std::vector<int>> captured_pieces_indices;
+    };
+
     void on_paint(wxPaintEvent& event);
     void on_mouse_move(wxMouseEvent& event);
     void on_mouse_left_down(wxMouseEvent& event);
@@ -60,10 +86,13 @@ private:
     std::pair<int, int> get_square(int square_index);
     bool select_piece(int square_index);
     std::vector<Move> generate_moves();
+    void generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king);
     void generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king);
-    void check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king);
+    bool check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx);
     int offset(int square_index, Direction direction, Diagonal diagonal);
     void change_turn();
+    void try_play_normal_move(const Move& move, int square_index);
+    void try_play_capture_move(const Move& move, int square_index);
 
     void draw(wxDC& dc);
 

@@ -78,22 +78,20 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         return;
     }
 
-    const auto moves = generate_moves();  // TODO don't generate every time
+    const auto moves = generate_moves();
 
     if (!on_piece_move) {
         return;
     }
 
-    for (Move move : moves) {
-        if (move.source_index != selected_piece_index || move.destination_index != square_index) {
-            continue;
-        }
-
-        if (on_piece_move(move)) {
-            std::swap(board[move.source_index], board[move.destination_index]);
-
-            selected_piece_index = NULL_INDEX;
-            change_turn();
+    for (const Move& move : moves) {
+        switch (move.type) {
+            case MoveType::Normal:
+                try_play_normal_move(move, square_index);
+                break;
+            case MoveType::Capture:
+                try_play_capture_move(move, square_index);
+                break;
         }
     }
 }
@@ -147,29 +145,33 @@ std::vector<Board::Move> Board::generate_moves() {
 
     for (std::size_t i = 0; i < 64; i++) {
         const bool king = static_cast<unsigned int>(board[i]) & (1u << 2);
+        const bool piece = static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn);
 
-        if (turn == Player::Black) {
-            switch (board[i]) {
-                case Square::Black:
-                case Square::BlackKing:
-                    generate_piece_moves(moves, i, Player::Black, king);
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (board[i]) {
-                case Square::White:
-                case Square::WhiteKing:
-                    generate_piece_moves(moves, i, Player::White, king);
-                    break;
-                default:
-                    break;
-            }
+        if (piece) {
+            generate_piece_capture_moves(moves, i, turn, king);
+        }
+    }
+
+    // If there are possible captures, force the player to play these moves
+    if (!moves.empty()) {
+        return moves;
+    }
+
+    for (std::size_t i = 0; i < 64; i++) {
+        const bool king = static_cast<unsigned int>(board[i]) & (1u << 2);
+        const bool piece = static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn);
+
+        if (piece) {
+            generate_piece_moves(moves, i, turn, king);
         }
     }
 
     return moves;
+}
+
+void Board::generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king) {
+    JumpCtx ctx;
+    check_piece_jumps(moves, square_index, player, king, ctx);
 }
 
 void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) {
@@ -207,18 +209,15 @@ void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Pla
         }
 
         Move move;
-        move.source_index = square_index;
-        move.destination_index = target_index;
+        move.type = MoveType::Normal;
+        move.normal.source_index = square_index;
+        move.normal.destination_index = target_index;
 
         moves.push_back(move);
     }
-
-    // TODO check jumps recursively
-
-    check_piece_jumps(moves, square_index, player, king);
 }
 
-void Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king) {
+bool Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx) {
     Direction directions[4] {};
     std::size_t index = 0;
 
@@ -266,9 +265,41 @@ void Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player
             continue;
         }
 
+        ctx.jumps++;
+        ctx.intermediary_square_indices.push(target_index);
+        ctx.captured_pieces_indices.push(enemy_index);
 
+        if (!check_piece_jumps(moves, target_index, player, king, ctx)) {
+            // This means that it reached the end of a sequence of jumps
 
+            Move move;
+            move.type = MoveType::Capture;
+            move.capture.source_index = ctx.source_index;
+            move.capture.destination_index = target_index;
+
+            std::size_t i = 0;
+
+            while (!ctx.captured_pieces_indices.empty()) {
+                move.capture.intermediary_square_indices[i] = ctx.intermediary_square_indices.top();
+                move.capture.captured_pieces_indices[i] = ctx.captured_pieces_indices.top();
+
+                ctx.intermediary_square_indices.pop();
+                ctx.captured_pieces_indices.pop();
+
+                i++;
+            }
+
+            moves.push_back(move);
+        }
+
+        ctx.jumps--;
+        ctx.intermediary_square_indices.pop();
+        ctx.captured_pieces_indices.pop();
+
+        return true;
     }
+
+    return false;
 }
 
 int Board::offset(int square_index, Direction direction, Diagonal diagonal) {
@@ -304,6 +335,23 @@ void Board::change_turn() {
     } else {
         turn = Player::Black;
     }
+}
+
+void Board::try_play_normal_move(const Move& move, int square_index) {
+    if (move.normal.source_index != selected_piece_index || move.normal.destination_index != square_index) {
+        return;
+    }
+
+    if (on_piece_move(move)) {
+        std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+
+        selected_piece_index = NULL_INDEX;
+        change_turn();
+    }
+}
+
+void Board::try_play_capture_move(const Move& move, int square_index) {
+    // TODO
 }
 
 void Board::draw(wxDC& dc) {

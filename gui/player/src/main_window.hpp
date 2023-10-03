@@ -17,7 +17,7 @@ private:
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);
 
-    bool on_piece_move(Board::Move move);
+    bool on_piece_move(const Board::Move& move);
 
     Board* board = nullptr;
 

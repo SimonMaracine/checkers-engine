@@ -72,8 +72,15 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
     board->set_size(event.GetSize().GetHeight() - 120);
 }
 
-bool MainWindow::on_piece_move(Board::Move move) {
-    std::cout << move.source_index << " -> " << move.destination_index << '\n';
+bool MainWindow::on_piece_move(const Board::Move& move) {
+    switch (move.type) {
+        case Board::MoveType::Normal:
+            std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
+            break;
+        case Board::MoveType::Capture:
+            std::cout << move.capture.source_index << " -> " << move.capture.destination_index << '\n';
+            break;
+    }
 
     return true;
 }
