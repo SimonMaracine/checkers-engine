@@ -1,11 +1,11 @@
 #include <array>
 #include <functional>
-#include <optional>
 #include <utility>
 #include <vector>
 #include <stack>
 #include <algorithm>
 #include <cstddef>
+#include <cmath>
 
 #include <wx/wx.h>
 
@@ -15,7 +15,6 @@ wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_PAINT(Board::on_paint)
     EVT_MOTION(Board::on_mouse_move)
     EVT_LEFT_DOWN(Board::on_mouse_left_down)
-    EVT_RIGHT_DOWN(Board::on_mouse_right_down)
 wxEND_EVENT_TABLE()
 
 Board::Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move)
@@ -38,7 +37,7 @@ void Board::reset() {
     selected_piece_index = NULL_INDEX;
     turn = Player::Black;
 
-    for (int i = 0; i < 24; i++) {
+    for (Idx i = 0; i < 24; i++) {
         const auto [file, rank] = get_square(i);
 
         if ((file + rank) % 2 == 1) {
@@ -46,7 +45,7 @@ void Board::reset() {
         }
     }
 
-    for (int i = 40; i < 64; i++) {
+    for (Idx i = 40; i < 64; i++) {
         const auto [file, rank] = get_square(i);
 
         if ((file + rank) % 2 == 1) {
@@ -69,7 +68,7 @@ void Board::on_mouse_move(wxMouseEvent& event) {
 void Board::on_mouse_left_down(wxMouseEvent& event) {
     Refresh();
 
-    const int square_index = get_square(event.GetPosition());
+    const Idx square_index = get_square(event.GetPosition());
 
     if (select_piece(square_index)) {
         return;
@@ -95,32 +94,24 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
     }
 }
 
-void Board::on_mouse_right_down(wxMouseEvent& event) {
-    Refresh();
+Board::Idx Board::get_square(wxPoint position) {
+    const Idx SQUARE_SIZE = board_size / 8;
 
-    const auto square = get_square(event.GetPosition());
-
-    // TODO
-}
-
-int Board::get_square(wxPoint position) {
-    const int SQUARE_SIZE = board_size / 8;
-
-    const int file = position.x / SQUARE_SIZE;
-    const int rank = position.y / SQUARE_SIZE;
+    const Idx file = position.x / SQUARE_SIZE;
+    const Idx rank = position.y / SQUARE_SIZE;
 
     return rank * 8 + file;
 }
 
-std::pair<int, int> Board::get_square(int square_index) {
-    const int file = square_index % 8;
-    const int rank = square_index / 8;
+std::pair<Board::Idx, Board::Idx> Board::get_square(Idx square_index) {
+    const Idx file = square_index % 8;
+    const Idx rank = square_index / 8;
 
     return std::make_pair(file, rank);
 }
 
-bool Board::select_piece(int square_index) {
-    for (int i = 0; i < 64; i++) {
+bool Board::select_piece(Idx square_index) {
+    for (Idx i = 0; i < 64; i++) {
         if (i != square_index) {
             continue;
         }
@@ -146,7 +137,7 @@ bool Board::select_piece(int square_index) {
 std::vector<Board::Move> Board::generate_moves() {
     std::vector<Move> moves;
 
-    for (std::size_t i = 0; i < 64; i++) {
+    for (Idx i = 0; i < 64; i++) {
         const bool king = static_cast<unsigned int>(board[i]) & (1u << 2);
         const bool piece = static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn);
 
@@ -160,7 +151,7 @@ std::vector<Board::Move> Board::generate_moves() {
         return moves;
     }
 
-    for (int i = 0; i < 64; i++) {
+    for (Idx i = 0; i < 64; i++) {
         const bool king = static_cast<unsigned int>(board[i]) & (1u << 2);
         const bool piece = static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn);
 
@@ -172,14 +163,14 @@ std::vector<Board::Move> Board::generate_moves() {
     return moves;
 }
 
-void Board::generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king) {
+void Board::generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) {
     JumpCtx ctx;
     ctx.source_index = square_index;
 
     check_piece_jumps(moves, square_index, player, king, ctx);
 }
 
-void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) {
+void Board::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) {
     Direction directions[4] {};
     std::size_t index = 0;
 
@@ -203,7 +194,7 @@ void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Pla
 
     // Check the squares above or below in diagonal
     for (std::size_t i = 0; i < index; i++) {
-        const int target_index = offset(square_index, directions[i], Short);
+        const Idx target_index = offset(square_index, directions[i], Short);
 
         if (target_index == NULL_INDEX) {
             continue;
@@ -222,7 +213,7 @@ void Board::generate_piece_moves(std::vector<Move>& moves, int square_index, Pla
     }
 }
 
-bool Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx) {
+bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) {
     Direction directions[4] {};
     std::size_t index = 0;
 
@@ -257,8 +248,8 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player
     }
 
     for (std::size_t i = 0; i < index; i++) {
-        const int enemy_index = offset(square_index, directions[i], Short);
-        const int target_index = offset(square_index, directions[i], Long);
+        const Idx enemy_index = offset(square_index, directions[i], Short);
+        const Idx target_index = offset(square_index, directions[i], Long);
 
         if (enemy_index == NULL_INDEX || target_index == NULL_INDEX) {
             continue;
@@ -314,10 +305,10 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, int square_index, Player
     return false;
 }
 
-int Board::offset(int square_index, Direction direction, Diagonal diagonal) {
+Board::Idx Board::offset(Idx square_index, Direction direction, Diagonal diagonal) {
     static constexpr int OFFSET[2] = { 1, 2 };
 
-    int result_index = square_index;
+    Idx result_index = square_index;
 
     switch (direction) {
         case Direction::NorthEast:
@@ -334,6 +325,12 @@ int Board::offset(int square_index, Direction direction, Diagonal diagonal) {
             break;
     }
 
+    // Check edge cases (literally)
+    if (std::abs(square_index / 8 - result_index / 8) != OFFSET[diagonal]) {
+        return NULL_INDEX;
+    }
+
+    // Check out of bounds
     if (result_index < 0 || result_index > 63) {
         return NULL_INDEX;
     }
@@ -349,7 +346,26 @@ void Board::change_turn() {
     }
 }
 
-void Board::try_play_normal_move(const Move& move, int square_index) {
+void Board::check_piece_crowning(Idx square_index, Player player) {
+    const Idx index = square_index / 8;
+
+    switch (turn) {
+        case Player::Black:
+            if (index == 0) {
+                board[square_index] = Square::BlackKing;
+            }
+
+            break;
+        case Player::White:
+            if (index == 7) {
+                board[square_index] = Square::WhiteKing;
+            }
+
+            break;
+    }
+}
+
+void Board::try_play_normal_move(const Move& move, Idx square_index) {
     if (move.normal.source_index != selected_piece_index || move.normal.destination_index != square_index) {
         return;
     }
@@ -357,12 +373,14 @@ void Board::try_play_normal_move(const Move& move, int square_index) {
     if (on_piece_move(move)) {
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
+        check_piece_crowning(move.normal.destination_index, turn);
+
         selected_piece_index = NULL_INDEX;
         change_turn();
     }
 }
 
-void Board::try_play_capture_move(const Move& move, int square_index) {
+void Board::try_play_capture_move(const Move& move, Idx square_index) {
     if (move.capture.source_index != selected_piece_index) {
         return;
     }
@@ -374,9 +392,11 @@ void Board::try_play_capture_move(const Move& move, int square_index) {
     if (on_piece_move(move)) {
         std::swap(board[move.capture.source_index], board[move.capture.destination_index]);
 
-        for (std::size_t i = 0; i < move.capture.captured_pieces_indices_size; i++) {
+        for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
             board[move.capture.captured_pieces_indices[i]] = Square::None;
         }
+
+        check_piece_crowning(move.capture.destination_index, turn);
 
         selected_piece_index = NULL_INDEX;
         change_turn();
@@ -384,21 +404,53 @@ void Board::try_play_capture_move(const Move& move, int square_index) {
 }
 
 void Board::draw(wxDC& dc) {
-    const auto SQUARE_WHITE = wxColour(200, 200, 200);
-    const auto SQUARE_BLACK = wxColour(80, 60, 40);
+    const auto ORANGE = wxColour(240, 180, 80);
+    const auto GOLD = wxColour(160, 160, 10);
+    const auto WHITE = wxColour(200, 200, 200);
+    const auto BLACK = wxColour(80, 60, 40);
     const int SQUARE_SIZE = board_size / 8;
 
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
             if ((x + y) % 2 == 0) {
-                dc.SetBrush(wxBrush(SQUARE_WHITE));
-                dc.SetPen(wxPen(SQUARE_WHITE));
+                dc.SetBrush(wxBrush(WHITE));
+                dc.SetPen(wxPen(WHITE));
             } else {
-                dc.SetBrush(wxBrush(SQUARE_BLACK));
-                dc.SetPen(wxPen(SQUARE_BLACK));
+                dc.SetBrush(wxBrush(BLACK));
+                dc.SetPen(wxPen(BLACK));
             }
 
             dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+        }
+    }
+
+    if (selected_piece_index != NULL_INDEX) {
+        dc.SetBrush(wxBrush(ORANGE));
+        dc.SetPen(wxPen(ORANGE));
+
+        for (const Move& move : legal_moves) {
+            switch (move.type) {
+                case MoveType::Normal: {
+                    if (move.normal.source_index == selected_piece_index) {
+                        const auto [x, y] = get_square(move.normal.destination_index);
+
+                        dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+                    }
+
+                    break;
+                }
+                case MoveType::Capture: {
+                    if (move.capture.source_index == selected_piece_index) {
+                        for (Idx i = 0; i < move.capture.intermediary_square_indices_size; i++) {
+                            const auto [x, y] = get_square(move.capture.intermediary_square_indices[i]);
+
+                            dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+                        }
+                    }
+
+                    break;
+                }
+            }
         }
     }
 
@@ -407,7 +459,7 @@ void Board::draw(wxDC& dc) {
     const int PIECE_SIZE = static_cast<int>(static_cast<float>(SQUARE_SIZE) / 2.5f);
     const int OFFSET = SQUARE_SIZE / 2;
 
-    for (int i = 0; i < 64; i++) {
+    for (Idx i = 0; i < 64; i++) {
         wxColour brush_color;
         wxColour pen_color;
 
@@ -437,29 +489,21 @@ void Board::draw(wxDC& dc) {
         }
 
         if (selected_piece_index == i) {
-            pen_color = wxColour(255, 255, 0);
+            pen_color = ORANGE;
         }
 
         dc.SetBrush(wxBrush(brush_color));
         dc.SetPen(wxPen(pen_color));
 
-        const auto [file, rank] = get_square(i);
-        const auto position = wxPoint(SQUARE_SIZE * file + OFFSET, SQUARE_SIZE * rank + OFFSET);
+        const auto [x, y] = get_square(i);
+        const auto position = wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET);
 
         dc.DrawCircle(position, PIECE_SIZE);
 
         if (king) {
-            const auto color = wxColour(140, 140, 10);
-
-            dc.SetBrush(wxBrush(color));
-            dc.SetPen(wxPen(color));
+            dc.SetBrush(wxBrush(GOLD));
+            dc.SetPen(wxPen(GOLD));
             dc.DrawCircle(position, PIECE_SIZE / 3);
         }
     }
-
-    // for (Square square : selected_squares) {
-    //     dc.SetBrush(wxBrush(wxColour(255, 255, 0)));
-    //     dc.SetPen(wxPen());
-    //     dc.DrawRectangle(wxPoint(SQUARE_SIZE * square.file, SQUARE_SIZE * square.rank), wxSize(SQUARE_SIZE, SQUARE_SIZE));
-    // }
 }

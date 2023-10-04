@@ -2,7 +2,6 @@
 
 #include <array>
 #include <functional>
-#include <optional>
 #include <utility>
 #include <vector>
 #include <stack>
@@ -11,7 +10,9 @@
 
 class Board : public wxWindow {
 public:
-    static constexpr int NULL_INDEX = -1;
+    using Idx = int;
+
+    static constexpr Idx NULL_INDEX = -1;
 
     enum class MoveType {
         Normal,
@@ -21,17 +22,17 @@ public:
     struct Move {
         union {
             struct {
-                int source_index;
-                int destination_index;
+                Idx source_index;
+                Idx destination_index;
             } normal;
 
             struct {
-                int source_index;
-                int destination_index;
-                int intermediary_square_indices[9];
-                int captured_pieces_indices[9];
-                int intermediary_square_indices_size;
-                int captured_pieces_indices_size;
+                Idx source_index;
+                Idx destination_index;
+                Idx intermediary_square_indices[9];
+                Idx captured_pieces_indices[9];
+                Idx intermediary_square_indices_size;
+                Idx captured_pieces_indices_size;
             } capture;
         };
 
@@ -73,35 +74,35 @@ private:
     };
 
     struct JumpCtx {
-        int source_index {};
-        std::stack<int, std::vector<int>> intermediary_square_indices;
-        std::stack<int, std::vector<int>> captured_pieces_indices;
+        Idx source_index {};
+        std::stack<Idx, std::vector<Idx>> intermediary_square_indices;
+        std::stack<Idx, std::vector<Idx>> captured_pieces_indices;
     };
 
     void on_paint(wxPaintEvent& event);
     void on_mouse_move(wxMouseEvent& event);
     void on_mouse_left_down(wxMouseEvent& event);
-    void on_mouse_right_down(wxMouseEvent& event);
 
-    int get_square(wxPoint position);
-    std::pair<int, int> get_square(int square_index);
-    bool select_piece(int square_index);
+    Idx get_square(wxPoint position);
+    std::pair<Idx, Idx> get_square(Idx square_index);
+    bool select_piece(Idx square_index);
     std::vector<Move> generate_moves();
-    void generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king);
-    void generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king);
-    bool check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx);
-    int offset(int square_index, Direction direction, Diagonal diagonal);
+    void generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king);
+    void generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king);
+    bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx);
+    Idx offset(Idx square_index, Direction direction, Diagonal diagonal);
     void change_turn();
-    void try_play_normal_move(const Move& move, int square_index);
-    void try_play_capture_move(const Move& move, int square_index);
+    void check_piece_crowning(Idx square_index, Player player);
+    void try_play_normal_move(const Move& move, Idx square_index);
+    void try_play_capture_move(const Move& move, Idx square_index);
 
     void draw(wxDC& dc);
 
     int board_size = 0;
 
-    std::array<Square, 64> board {};  // TODO half board
+    std::array<Square, 64> board {};
     Player turn = Player::Black;
-    int selected_piece_index = NULL_INDEX;
+    Idx selected_piece_index = NULL_INDEX;
     std::vector<Move> legal_moves;
 
     OnPieceMove on_piece_move;
