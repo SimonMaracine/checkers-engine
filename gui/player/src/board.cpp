@@ -11,6 +11,13 @@
 
 #include "board.hpp"
 
+/*
+    TODO
+    threefold repetition
+    80 moves rule
+    finish capture move implementation
+*/
+
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_PAINT(Board::on_paint)
     EVT_MOTION(Board::on_mouse_move)
