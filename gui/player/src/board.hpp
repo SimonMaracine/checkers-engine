@@ -4,7 +4,6 @@
 #include <functional>
 #include <utility>
 #include <vector>
-#include <stack>
 
 #include <wx/wx.h>
 
@@ -75,12 +74,11 @@ private:
 
     struct JumpCtx {
         Idx source_index {};
-        std::stack<Idx, std::vector<Idx>> intermediary_square_indices;
-        std::stack<Idx, std::vector<Idx>> captured_pieces_indices;
+        std::vector<Idx> intermediary_square_indices;
+        std::vector<Idx> captured_pieces_indices;
     };
 
     void on_paint(wxPaintEvent& event);
-    void on_mouse_move(wxMouseEvent& event);
     void on_mouse_left_down(wxMouseEvent& event);
 
     Idx get_square(wxPoint position);

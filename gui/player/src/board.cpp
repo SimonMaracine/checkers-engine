@@ -2,7 +2,6 @@
 #include <functional>
 #include <utility>
 #include <vector>
-#include <stack>
 #include <algorithm>
 #include <cstddef>
 #include <cmath>
@@ -16,11 +15,12 @@
     threefold repetition
     80 moves rule
     finish capture move implementation
+
+    board redraw
 */
 
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_PAINT(Board::on_paint)
-    EVT_MOTION(Board::on_mouse_move)
     EVT_LEFT_DOWN(Board::on_mouse_left_down)
 wxEND_EVENT_TABLE()
 
@@ -66,10 +66,6 @@ void Board::reset() {
 void Board::on_paint(wxPaintEvent& event) {
     wxPaintDC dc {this};
     draw(dc);
-}
-
-void Board::on_mouse_move(wxMouseEvent& event) {
-    Refresh();
 }
 
 void Board::on_mouse_left_down(wxMouseEvent& event) {
@@ -268,8 +264,8 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             continue;
         }
 
-        ctx.intermediary_square_indices.push(target_index);
-        ctx.captured_pieces_indices.push(enemy_index);
+        ctx.intermediary_square_indices.push_back(target_index);
+        ctx.captured_pieces_indices.push_back(enemy_index);
 
         // Temporarily remove the piece to avoid illegal jumps
         const Square enemy_piece = board[enemy_index];
@@ -285,16 +281,9 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             move.capture.intermediary_square_indices_size = ctx.intermediary_square_indices.size();
             move.capture.captured_pieces_indices_size = ctx.captured_pieces_indices.size();
 
-            std::size_t i = 0;
-
-            while (!ctx.captured_pieces_indices.empty()) {
-                move.capture.intermediary_square_indices[i] = ctx.intermediary_square_indices.top();
-                move.capture.captured_pieces_indices[i] = ctx.captured_pieces_indices.top();
-
-                ctx.intermediary_square_indices.pop();
-                ctx.captured_pieces_indices.pop();
-
-                i++;
+            for (std::size_t i = 0; i < ctx.captured_pieces_indices.size(); i++) {
+                move.capture.intermediary_square_indices[i] = ctx.intermediary_square_indices[i];
+                move.capture.captured_pieces_indices[i] = ctx.captured_pieces_indices[i];
             }
 
             moves.push_back(move);
@@ -303,8 +292,8 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
         // Restore removed piece
         board[enemy_index] = enemy_piece;
 
-        ctx.intermediary_square_indices.pop();
-        ctx.captured_pieces_indices.pop();
+        ctx.intermediary_square_indices.pop_back();
+        ctx.captured_pieces_indices.pop_back();
 
         return true;
     }

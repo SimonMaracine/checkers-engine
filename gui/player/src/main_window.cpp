@@ -69,7 +69,10 @@ void MainWindow::on_about(wxCommandEvent& event) {
 }
 
 void MainWindow::on_window_resize(wxSizeEvent& event) {
-    board->set_size(event.GetSize().GetHeight() - 120);
+    // This function may be called before board is initialized
+    if (board != nullptr) {
+        board->set_size(event.GetSize().GetHeight() - 120);
+    }
 }
 
 bool MainWindow::on_piece_move(const Board::Move& move) {

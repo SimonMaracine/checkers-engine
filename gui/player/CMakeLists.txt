@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-add_executable(player
+if(WIN32)
+    set(WINDOWS_APP WIN32)
+endif()
+
+add_executable(player ${WINDOWS_APP}
     "src/application.cpp"
     "src/application.hpp"
     "src/board.cpp"
@@ -10,3 +14,5 @@ add_executable(player
 )
 
 target_link_libraries(player PRIVATE wx::core wx::base)
+
+set_compile_options(player)
