@@ -2,7 +2,7 @@
 
 - small 2D game for playing checkers with the AI
 - AI itself
-  - C++ dynamic library
+  - C++ application with a protocol for communication between GUI and AI
   - minimax with alpha-beta pruning
   - transposition table
   - multithreaded
@@ -12,6 +12,4 @@
 - GUI applications for testing and comparing the AI
 - data and statistics for monitoring the AI evolution across different versions
 - unit testing
-- (maybe) bindings to other languages like Python
-- (maybe) support for Android and proof that it's working on it
 - PDN format notation

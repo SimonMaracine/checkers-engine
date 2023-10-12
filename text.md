@@ -1,6 +1,4 @@
-# Bibliotecă despre inteligență artificială pentru jocul dame
-
-<!-- Bibliotecă *cu* inteligență artificială pentru jocul dame -->
+# Inteligență artificială pentru jocul dame
 
 ## Introducere
 
@@ -189,9 +187,45 @@ care vrem să le aplicăm, lucrurile pe care vrem să le implementăm și ținte
 <!-- I create testing and developing tools for the AI, I improve the AI by comparing it with himself -->
 <!-- unit testing -->
 În această lucrare, în loc să dezvoltăm AI-ul legat de vreo anumită aplicație de interfață grafică pe
-Linux, vrem să îl creăm sub formă de bibliotecă statică sau dinamică în limbajul C++. Avantajul
-acestei abordări este că oricine dorește să scrie un joc de dame, fie pe desktop, fie pe telefon mobil
-sau orice altă platformă, poate cu ușurință să integreze acest AI în aplicația lor.
+Linux, vrem să îl creăm separat de orice interfață grafică, astfel încât să fie reutilizabil.
+Avantajul acestei abordări este că oricine dorește să scrie un joc de dame, fie pe desktop, fie pe telefon mobil
+sau pe orice altă platformă, poate cu ușurință să integreze acest AI în aplicația lor, fără să-și
+creeze propriul AI, dacă aceasta este de dorit. Ar exista două metode pentru implementarea acestui lucru.
+
+#### AI sub formă de bibliotecă
+
+Prima și cea mai lesne metodă este dezvoltarea AI-ului sub forma unei biblioteci statice sau dinamice
+(în limbajul C++). Aplicația dame cu interfață grafică ar utiliza această bibliotecă, compilând-o
+cu executabilul sau încărcând-o la rulare ca și bibliotecă dinamică.
+
+Biblioteca ar trebui să expună un API, un set de definiții, structuri și funcții, pentru a
+face posibilă utilizarea acesteia. Ca și o idee, funcțiile dintr-un astfel de API ar arăta cam așa:
+
+```c++
+void initialize();
+void uninitialize();
+void search(const SearchInput& input, Result& result);
+void set_parameter(std::string_view parameter, int value);
+```
+
+În esență, AI-ul ar trebui inițializat și finalizat, fiindcă conține stare persistentă între
+invocări ale acestuia. Ar avea funcția de cea mai mare interes, adică cea de căutare a unei mișcări bune
+pentru o anumită poziție. Astfel, structura SearchInput de mai sus ar conține toate datele necesare
+pentru identificarea clară a poziției în joc, iar structura Result ar conține datele de ieșire. Și
+AI-ul ar trebui să fie configurabil în diferite feluri.
+
+Din perspectiva dezvoltării bibliotecii, această metodă este simplă. Avantajele acestei abordări sunt,
+în primul rând, simplitatea (nu este dificil de creat o bibliotecă) și faptul că AI-ul bibliotecă,
+fiind compilat cu executabilul, rămâne oarecum invizibil sau cel puțin inutilizabil
+pentru alte scopuri decât pentru acel specific executabil. Însă, dezavantajul mare este că aplicația
+de interfață grafică dame trebuie scrisă în limbajul C++ pentru a utliza biblioteca. Pentru
+bibliotecă ar putea fi scrise legături pentru alte limbaje de programare, de exemplu Python, ceea ce
+ar face posibilă scrierea jocului dame în limbajul Python, însă aceasta nu este o soluție universală,
+pentru toate limbajele de programare, și nu este nici o soluție foarte simplă.
+
+#### AI sub formă de aplicație plus un protocol de comunicare
+
+<!-- TODO -->
 
 Un alt avantaj este că în acest fel e simplu să creăm aplicații de interfață grafică auxiliare
 cu scopul de a testa AI-ul în toate felurile și de al compara cu alte versiuni de ale sale.
@@ -223,8 +257,6 @@ constrâns și în adâncime, dar și în timp.
 Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face posibilă executarea
 proceselor și a firelor de execuție cu adevărat în paralel. Pentru o performanță mai bună, în cele
 din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mutare.
-
-<!-- TODO buy and read "Computer Systems: A Programmer's Perspective" -->
 
 ## Proiectarea și dezvoltarea bibliotecii
 
