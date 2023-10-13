@@ -180,13 +180,9 @@ Noi vom alege o altă abordare pentru scrirea adversarului pentru jocul dame și
 obiective, nu doar pe o implementare superficială. În secțiunea următoare vom vorbi despre ideile pe
 care vrem să le aplicăm, lucrurile pe care vrem să le implementăm și țintele la care vrem să ajungem.
 
-### Implementarea algoritmului minimax în această lucrare
+### Implementarea programului AI
 
-<!-- here I present what I want to do and hopefully accomplish -->
-<!-- I create the AI as a separate, usable library in C++, I use alpha-beta pruning, multithreading and much more -->
-<!-- I create testing and developing tools for the AI, I improve the AI by comparing it with himself -->
-<!-- unit testing -->
-În această lucrare, în loc să dezvoltăm AI-ul legat de vreo anumită aplicație de interfață grafică pe
+În loc să dezvoltăm AI-ul legat de vreo anumită aplicație de interfață grafică pe
 Linux, vrem să îl creăm separat de orice interfață grafică, astfel încât să fie reutilizabil.
 Avantajul acestei abordări este că oricine dorește să scrie un joc de dame, fie pe desktop, fie pe telefon mobil
 sau pe orice altă platformă, poate cu ușurință să integreze acest AI în aplicația lor, fără să-și
@@ -218,29 +214,69 @@ Din perspectiva dezvoltării bibliotecii, această metodă este simplă. Avantaj
 în primul rând, simplitatea (nu este dificil de creat o bibliotecă) și faptul că AI-ul bibliotecă,
 fiind compilat cu executabilul, rămâne oarecum invizibil sau cel puțin inutilizabil
 pentru alte scopuri decât pentru acel specific executabil. Însă, dezavantajul mare este că aplicația
-de interfață grafică dame trebuie scrisă în limbajul C++ pentru a utliza biblioteca. Pentru
-bibliotecă ar putea fi scrise legături pentru alte limbaje de programare, de exemplu Python, ceea ce
-ar face posibilă scrierea jocului dame în limbajul Python, însă aceasta nu este o soluție universală,
-pentru toate limbajele de programare, și nu este nici o soluție foarte simplă.
+de interfață grafică dame trebuie scrisă în limbajul C++ pentru a utiliza biblioteca, ceea ce
+pune greutate pe cel care scrie aplicația dame. Pentru bibliotecă ar putea fi
+scrise legături (engl. "bindings") pentru alte limbaje de programare, de exemplu Python
+(utilizând API-ul Python/C), ceea ce ar face posibilă scrierea jocului dame în limbajul Python,
+însă aceasta nu este o soluție universală, pentru toate limbajele de programare, și nu este nici
+una foarte simplă.
 
 #### AI sub formă de aplicație plus un protocol de comunicare
 
-<!-- TODO -->
+O altă metodă pentru crearea AI-ului separat de o interfață grafică este dezvoltarea acesteia sub
+forma unui simplu executabil. Ideea este ca aplicația dame de interfață grafică să lanseze AI-ul
+executabil într-un proces copil și să comunice cu acesta prin fluxuri IO. AI-ul executabil primește
+comenzi și răspunde înapoi cu rezultate. Similar cu API-ul unei biblioteci, AI-ul executabil
+trebuie să definească un protocol pentru comunicare, care ar putea arăta cam așa:
 
-Un alt avantaj este că în acest fel e simplu să creăm aplicații de interfață grafică auxiliare
+```text
+init <args...>
+set_position <position>
+search
+set_parameter <parameter> <value>
+is_ready
+
+result <move>
+info <information>
+ready
+```
+
+Primele cinci ar fi comenzi sub formă de text trimise de aplicația dame către AI, iar ultimele trei
+ar fi răspunsuri către aplicația dame. Aplicația de interfață grafică ar trebui să citească și
+să proceseze răspunsurile. De asemenea, ar trebui să existe și o formă de sincronizare.
+
+Avantajul acestei metode este că aplicația dame de interfață grafică poate fi scrisă în orice
+limbaj de programare. Trebuie numai să aibă acces la un mod de a lansa procese și de a comunica cu ele,
+ceea ce nu este dificil.
+
+Ideea aceasta este inspirată de la Stockfish, un motor de șah foarte popular (engl. chess engine),
+care în esență este un executabil. Rudolf Huber și Stefan Meyer-Kahlen au inventat un protocol
+universal de comunicare dintre interfețe grafice și motoare de șah numit "UCI"
+("Universal Chess Interface"). [6]
+
+### Implementarea AI-ului în această lucrare
+
+<!-- here I present what I want to do and hopefully accomplish -->
+<!-- I create the AI as a separate, usable library in C++, I use alpha-beta pruning, multithreading and much more -->
+<!-- I create testing and developing tools for the AI, I improve the AI by comparing it with himself -->
+<!-- unit testing -->
+În această lucrare noi vom implementa a doua metodă, fiindcă este mai flexibilă pentru cel care vrea să
+utilizeze AI-ul nostru și fiindcă prezintă niște probleme interesante de rezolvat. Alegerea de a
+scrie AI-ul ca un program individual aduce cu sine și niște beneficii mari precum faptul că
+în acest fel e simplu să creăm aplicații de interfață grafică auxiliare
 cu scopul de a testa AI-ul în toate felurile și de al compara cu alte versiuni de ale sale.
-Vom creea AI-ul sub formă de bibliotecă dinamică, care va fi încărcată la rulare de către aplicația de testare.
-Astfel, păstrând bibiotecile dinamice compilate, vom putea testa rapid orice versiune a adversarului
-calculator. Similar, pentru a testa AI-ul cu o versiune precedentă de a sa, vom încărca respectivele
-fișiere bibliotecă de pe disk.
+AI-ul executabil va fi încărcat și rulat de către o aplicație de testare.
+Astfel, păstrând executabilele compilate, vom putea testa rapid orice versiune a adversarului
+calculator. Similar, pentru a compara AI-ul cu o versiune precedentă de a sa, vom rula respectivele
+fișiere executabile.
 
-Pentru a dezvolta AI-ul și pentru a-l face mai rapid și mai bun, avem nevoie să cunoștem dacă o anumită
-modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îmbunătăți constant AI-ul,
+Pentru facilitarea dezvoltării AI-ului și pentru a-l face mai rapid și mai bun, avem nevoie să cunoaștem
+dacă o anumită modificare asupra codului îmbunătățește sau nu ceva. De aceea, pentru a îmbunătăți constant AI-ul,
 îl vom compara mereu cu ultima versiune stocată. Dacă schimbarea este bună, atunci o păstrăm.
 De asemenea, vom ține evidența versiunilor stocate pentru a vizualiza mai târziu evoluția AI-ului.
 
 Vom implementa o optimizare importantă numită (engl.) alpha-beta pruning, ideea căreia este de a
-tăia multe calcule inutile în căutarea celei mai favorabile mutări. Vom implementa și un tabel de
+elimina multe calcule inutile în căutarea celei mai favorabile mutări. Vom implementa și un tabel de
 transpunere, pentru a lua în considerare și situații similare precedente. AI-ul va fi configurabil.
 Mulți parametri vor putea fi ajustați, ceea ce va face posibilă schimbarea abilității AI-ului și
 chiar a comportamentului acestuia.
@@ -278,4 +314,5 @@ din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai 
 [2] <https://www.wcdf.net/rules/rules_of_checkers_english.pdf>  
 [3] <https://en.wikipedia.org/wiki/AlphaZero>  
 [4] <https://ro.wikipedia.org/wiki/Minimax>  
-[5] <https://en.wikipedia.org/wiki/Minimax>
+[5] <https://en.wikipedia.org/wiki/Minimax>  
+[6] <https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html>

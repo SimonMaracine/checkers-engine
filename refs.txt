@@ -4,9 +4,11 @@ https://www.wcdf.net/rules/rules_of_checkers_english.pdf
 https://en.wikipedia.org/wiki/AlphaZero
 https://ro.wikipedia.org/wiki/Minimax
 https://en.wikipedia.org/wiki/Minimax
+https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html
 
 future references
 https://boardgames.stackexchange.com/questions/18949/checkers-draughts-capture-all-pieces-in-1-move
+https://www.chess.com/blog/the_real_greco/evolution-of-a-chess-fish-what-is-nnue-anyway
 
 to read more
 https://en.wikipedia.org/wiki/Board_game
