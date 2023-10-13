@@ -5,6 +5,7 @@ https://en.wikipedia.org/wiki/AlphaZero
 https://ro.wikipedia.org/wiki/Minimax
 https://en.wikipedia.org/wiki/Minimax
 https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html
+https://terminalroot.com/the-7-best-cpp-frameworks-for-creating-graphical-interfaces/
 
 future references
 https://boardgames.stackexchange.com/questions/18949/checkers-draughts-capture-all-pieces-in-1-move

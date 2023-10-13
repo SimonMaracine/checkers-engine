@@ -294,11 +294,19 @@ Calculatoarele de astăzi conțin procesoare cu mai multe nuclee, ceea ce face p
 proceselor și a firelor de execuție cu adevărat în paralel. Pentru o performanță mai bună, în cele
 din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai rapid cea mai favorabilă mutare.
 
-## Proiectarea și dezvoltarea bibliotecii
+## Proiectarea și dezvoltarea programului AI
 
 <!-- I present how I do the things I proposed earlier -->
 <!-- I also present the failures -->
-...
+### Aplicațiile auxiliare de interfață grafică
+
+Primul pas pentru dezvoltarea AI-ului este să avem la dispoziție o aplicație grafică pentru a ne juca
+jocul dame, ceea cu duce la nevoia unui framework de interfață grafică. Pentru că scriem programele
+auxiliare în limbajul preferat C++, avem o gamă destul de largă de framework-uri de unde putem alege.
+Însă, avem nevoie de o bibliotecă cross-platform, pentru a rula aplicațiile pe Linux și pe Windows,
+și gratuită. Câteva biblioteci populare de acest fel sunt: Qt, wxWidgets, Dear ImGui, FLTK, U++, Nana. [7]
+Inițial am ales să încerc FLTK, fiindcă nu este o bibliotecă uriașă și fiindcă nu avem nevoie de una
+sofisticată. Dar
 
 ## Experimente și rezultate
 
@@ -315,4 +323,5 @@ din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai 
 [3] <https://en.wikipedia.org/wiki/AlphaZero>  
 [4] <https://ro.wikipedia.org/wiki/Minimax>  
 [5] <https://en.wikipedia.org/wiki/Minimax>  
-[6] <https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html>
+[6] <https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html>  
+[7] <https://terminalroot.com/the-7-best-cpp-frameworks-for-creating-graphical-interfaces/>
