@@ -119,7 +119,7 @@ legale, va efectua mutarea care maximizează șansele de a ajunge la poziția ce
 scorul cel mai mare. La fel, jucătorul negru va alege mutarea cea mai nefavorabilă pentru alb, care
 maximizează șansele de a ajunge la poziția cu scorul cel mai mic. Deci un scor cu valoarea 0 înseamnă
 că niciun jucător nu este în avantaj, un scor pozitiv înseamnă că jucătorul alb este în avantaj, iar
-un scor negativ semnifică avatanj pentru negru. Algoritmul se poate vizualiza sub forma unui arbore,
+un scor negativ semnifică avantaj pentru negru. Algoritmul se poate vizualiza sub forma unui arbore,
 numit arborele jocului.
 
 <!-- more and better explanation needed -->
@@ -129,7 +129,7 @@ la dispoziție în fiecare tură. Nodurile cerc reprezintă pozițiile în care 
 maximizează scorul, iar nodurile pătrat reprezintă pozițiile jucătorului care minimizează scorul.
 De regulă, arborele este limitat în înălțime, datorită numărului imens de poziții ce trebuie calculate.
 Astfel, nodurile terminale dintr-un astfel de arbore, fie că sunt nodurile finale ale jocului sau nu,
-reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcției euristice de evaluare. În imagine,
+reprezintă pozițiile care trebuie analizate static cu ajutorul unei funcții euristice de evaluare. În imagine,
 odată ce se cunosc valorile a două noduri copil, algoritmul atribuie nodului părinte maximul sau minimul,
 care depinde de jucător. Spre exemplu, primele două noduri terminale din stânga au valorile 10,
 respectiv +inf. Jucătorul minimizant va alege valoarea minimă, adică 10. La finalul algoritmului,
@@ -176,7 +176,7 @@ statică trebuie să fie bună, iar adâncimea de căutare trebuie să fie mare.
 adâncimii crește exponențial timpul de căutare, ceea ce este o problemă. De aceea, este foarte
 important ca algoritmul să fie rapid în execuție și eficient în memorie.
 
-Noi vom alege o altă abordare pentru scrirea adversarului pentru jocul dame și ne vom focaliza pe câteva
+Noi vom alege o altă abordare pentru scrierea adversarului pentru jocul dame și ne vom focaliza pe câteva
 obiective, nu doar pe o implementare superficială. În secțiunea următoare vom vorbi despre ideile pe
 care vrem să le aplicăm, lucrurile pe care vrem să le implementăm și țintele la care vrem să ajungem.
 
@@ -205,7 +205,7 @@ void set_parameter(std::string_view parameter, int value);
 ```
 
 În esență, AI-ul ar trebui inițializat și finalizat, fiindcă conține stare persistentă între
-invocări ale acestuia. Ar avea funcția de cea mai mare interes, adică cea de căutare a unei mișcări bune
+invocări ale acestuia. Ar avea funcția de cea mai mare interes, adică cea de căutare a unei mutări bune
 pentru o anumită poziție. Astfel, structura SearchInput de mai sus ar conține toate datele necesare
 pentru identificarea clară a poziției în joc, iar structura Result ar conține datele de ieșire. Și
 AI-ul ar trebui să fie configurabil în diferite feluri.
@@ -252,7 +252,7 @@ ceea ce nu este dificil.
 Ideea aceasta este inspirată de la Stockfish, un motor de șah foarte popular (engl. chess engine),
 care în esență este un executabil. Rudolf Huber și Stefan Meyer-Kahlen au inventat un protocol
 universal de comunicare dintre interfețe grafice și motoare de șah numit "UCI"
-("Universal Chess Interface"). [6]
+("Universal Chess Interface"). [6] Un protocol similar poate fi definit și pentru jocul dame.
 
 ### Implementarea AI-ului în această lucrare
 
@@ -304,7 +304,7 @@ Primul pas pentru dezvoltarea AI-ului este să avem la dispoziție o aplicație 
 jocul dame, ceea cu duce la nevoia unui framework de interfață grafică. Pentru că scriem programele
 auxiliare în limbajul preferat C++, avem o gamă destul de largă de framework-uri de unde putem alege.
 Însă, avem nevoie de o bibliotecă cross-platform, pentru a rula aplicațiile pe Linux și pe Windows,
-și gratuită. Câteva biblioteci populare de acest fel sunt: Qt, wxWidgets, Dear ImGui, FLTK, U++, Nana. [7]
+și una gratuită. Câteva biblioteci populare de acest fel sunt: Qt, wxWidgets, Dear ImGui, FLTK, U++, Nana. [7]
 Inițial am ales să încerc FLTK, fiindcă nu este o bibliotecă uriașă și fiindcă nu avem nevoie de una
 sofisticată. Dar
 
