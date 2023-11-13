@@ -9,6 +9,8 @@ add_executable(player ${WINDOWS_APP}
     "src/application.hpp"
     "src/board.cpp"
     "src/board.hpp"
+    "src/fen_string_dialog.cpp"
+    "src/fen_string_dialog.hpp"
     "src/main_window.cpp"
     "src/main_window.hpp"
 )

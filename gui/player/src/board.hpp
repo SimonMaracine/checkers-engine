@@ -4,6 +4,8 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <string>
+#include <cstddef>
 
 #include <wx/wx.h>
 
@@ -29,7 +31,7 @@ public:
                 Idx source_index;
                 Idx destination_index;
                 Idx intermediary_square_indices[9];
-                Idx captured_pieces_indices[9];
+                Idx captured_pieces_indices[9];  // FIXME remove; can be deduced
                 Idx intermediary_square_indices_size;
                 Idx captured_pieces_indices_size;
             } capture;
@@ -45,12 +47,13 @@ public:
 
     using OnPieceMove = std::function<bool(const Move&)>;
 
-    Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move);
+    Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
 
-    void set_position(int x, int y);
-    void set_size(int size);
+    void set_board_position(int x, int y);
+    void set_board_size(int size);
 
     void reset();
+    bool set_position(const std::string& fen_string);
 private:
     enum class Direction {
         NorthEast,
@@ -90,9 +93,14 @@ private:
     bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx);
     Idx offset(Idx square_index, Direction direction, Diagonal diagonal);
     void change_turn();
-    void check_piece_crowning(Idx square_index, Player player);
+    void check_piece_crowning(Idx square_index);
     void try_play_normal_move(const Move& move, Idx square_index);
     void try_play_capture_move(const Move& move, Idx square_index);
+    static Player opponent(Player player);
+    static bool validate_fen_string(const std::string& fen_string);
+    static Player parse_player(const std::string& fen_string, std::size_t index);
+    void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);
+    static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
 
     void draw(wxDC& dc);
 

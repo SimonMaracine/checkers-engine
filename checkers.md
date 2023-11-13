@@ -12,4 +12,4 @@
 - GUI applications for testing and comparing the AI
 - data and statistics for monitoring the AI evolution across different versions
 - unit testing
-- PDN format notation
+- PDN format notation (Portable Draughts Notation)

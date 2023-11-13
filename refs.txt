@@ -8,6 +8,7 @@ https://www.shredderchess.com/chess-features/uci-universal-chess-interface.html
 https://terminalroot.com/the-7-best-cpp-frameworks-for-creating-graphical-interfaces/
 
 future references
+https://en.wikipedia.org/wiki/Portable_Draughts_Notation
 https://boardgames.stackexchange.com/questions/18949/checkers-draughts-capture-all-pieces-in-1-move
 https://www.chess.com/blog/the_real_greco/evolution-of-a-chess-fish-what-is-nnue-anyway
 

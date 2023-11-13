@@ -13,6 +13,7 @@ private:
     void setup_widgets();
 
     void on_reset_board(wxCommandEvent& event);
+    void on_set_position(wxCommandEvent& event);
     void on_exit(wxCommandEvent& event);
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);

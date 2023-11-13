@@ -2,9 +2,11 @@
 #include <functional>
 #include <utility>
 #include <vector>
-#include <algorithm>
+#include <string>
 #include <cstddef>
+#include <algorithm>
 #include <cmath>
+#include <regex>
 
 #include <wx/wx.h>
 
@@ -24,16 +26,16 @@ wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_LEFT_DOWN(Board::on_mouse_left_down)
 wxEND_EVENT_TABLE()
 
-Board::Board(wxFrame* parent, int x, int y, int size, OnPieceMove on_piece_move)
+Board::Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
     : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
     reset();
 }
 
-void Board::set_position(int x, int y) {
+void Board::set_board_position(int x, int y) {
     SetPosition(wxPoint(x, y));
 }
 
-void Board::set_size(int size) {
+void Board::set_board_size(int size) {
     SetSize(size, size);
 
     board_size = std::clamp(size, 200, 2000);
@@ -63,7 +65,38 @@ void Board::reset() {
     Refresh();
 }
 
-void Board::on_paint(wxPaintEvent& event) {
+bool Board::set_position(const std::string& fen_string) {
+    if (!validate_fen_string(fen_string)) {
+        return false;
+    }
+
+    reset();
+
+    std::size_t index = 0;
+
+    turn = parse_player(fen_string, index);
+
+    index++;
+    index++;
+
+    const Player player1 = parse_player(fen_string, index);
+
+    index++;
+
+    parse_pieces(fen_string, index, player1);
+
+    index++;
+
+    const Player player2 = parse_player(fen_string, index);  // TODO check
+
+    index++;
+
+    parse_pieces(fen_string, index, player2);
+
+    return true;
+}
+
+void Board::on_paint(wxPaintEvent&) {
     wxPaintDC dc {this};
     draw(dc);
 }
@@ -239,16 +272,9 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
     }
 
     // We want an enemy piece
-    unsigned int piece_mask;
+    const unsigned int piece_mask = static_cast<unsigned int>(opponent(player));
 
-    switch (player) {
-        case Player::Black:
-            piece_mask = 0b0010u;
-            break;
-        case Player::White:
-            piece_mask = 0b0001u;
-            break;
-    }
+    bool sequence_jumps_ended = true;
 
     for (std::size_t i = 0; i < index; i++) {
         const Idx enemy_index = offset(square_index, directions[i], Short);
@@ -264,6 +290,8 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             continue;
         }
 
+        sequence_jumps_ended = false;
+
         ctx.intermediary_square_indices.push_back(target_index);
         ctx.captured_pieces_indices.push_back(enemy_index);
 
@@ -272,7 +300,7 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
         board[enemy_index] = Square::None;
 
         if (!check_piece_jumps(moves, target_index, player, king, ctx)) {
-            // This means that it reached the end of a sequence of jumps
+            // This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
             Move move;
             move.type = MoveType::Capture;
@@ -294,11 +322,9 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
 
         ctx.intermediary_square_indices.pop_back();
         ctx.captured_pieces_indices.pop_back();
-
-        return true;
     }
 
-    return false;
+    return sequence_jumps_ended;
 }
 
 Board::Idx Board::offset(Idx square_index, Direction direction, Diagonal diagonal) {
@@ -335,14 +361,10 @@ Board::Idx Board::offset(Idx square_index, Direction direction, Diagonal diagona
 }
 
 void Board::change_turn() {
-    if (turn == Player::Black) {
-        turn = Player::White;
-    } else {
-        turn = Player::Black;
-    }
+    turn = opponent(turn);
 }
 
-void Board::check_piece_crowning(Idx square_index, Player player) {
+void Board::check_piece_crowning(Idx square_index) {
     const Idx index = square_index / 8;
 
     switch (turn) {
@@ -369,7 +391,7 @@ void Board::try_play_normal_move(const Move& move, Idx square_index) {
     if (on_piece_move(move)) {
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
-        check_piece_crowning(move.normal.destination_index, turn);
+        check_piece_crowning(move.normal.destination_index);
 
         selected_piece_index = NULL_INDEX;
         change_turn();
@@ -392,11 +414,100 @@ void Board::try_play_capture_move(const Move& move, Idx square_index) {
             board[move.capture.captured_pieces_indices[i]] = Square::None;
         }
 
-        check_piece_crowning(move.capture.destination_index, turn);
+        check_piece_crowning(move.capture.destination_index);
 
         selected_piece_index = NULL_INDEX;
         change_turn();
     }
+}
+
+Board::Player Board::opponent(Player player) {
+    return player == Player::Black ? Player::White : Player::Black;
+}
+
+bool Board::validate_fen_string(const std::string& fen_string) {
+    const std::regex pattern {"(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+)+){2}"};  // FIXME limit board size
+
+    return std::regex_match(fen_string, pattern);
+}
+
+Board::Player Board::parse_player(const std::string& fen_string, std::size_t index) {
+    switch (fen_string[index]) {
+        case 'B':
+            return Player::Black;
+        case 'W':
+            return Player::White;
+    }
+
+    return {};
+}
+
+void Board::parse_pieces(const std::string& fen_string, std::size_t& index, Player player) {
+    while (fen_string[index] != ':') {
+        const auto [square, king] = parse_piece(fen_string, index);
+
+        if (player == Player::White) {
+            if (king) {
+                board[square] = Square::WhiteKing;
+            } else {
+                board[square] = Square::White;
+            }
+        } else {
+            if (king) {
+                board[square] = Square::BlackKing;
+            } else {
+                board[square] = Square::Black;
+            }
+        }
+    }
+}
+
+std::pair<Board::Idx, bool> Board::parse_piece(const std::string& fen_string, std::size_t& index) {
+    bool scanning = true;
+    bool king = false;
+    std::string result_number;
+
+    while (scanning) {
+        switch (fen_string[index]) {
+            case 'K':
+                king = true;
+                index++;
+
+                break;
+            case ',':
+            case ':':
+                index++;
+                scanning = false;
+
+                break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                result_number.push_back(fen_string[index]);
+                index++;
+
+                break;
+        }
+    }
+
+    unsigned long result = 0;
+
+    try {
+        result = std::stoul(result_number);
+    } catch (const std::invalid_argument&) {
+        return std::make_pair(NULL_INDEX, false);
+    } catch (const std::out_of_range&) {
+        return std::make_pair(NULL_INDEX, false);
+    }
+
+    return std::make_pair(static_cast<Idx>(result), king);
 }
 
 void Board::draw(wxDC& dc) {
