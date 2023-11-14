@@ -101,6 +101,8 @@ private:
     static Player parse_player(const std::string& fen_string, std::size_t index);
     void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);
     static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
+    static Idx translate_index_1_32_to_0_64(Idx index);
+    void clear();
 
     void draw(wxDC& dc);
 

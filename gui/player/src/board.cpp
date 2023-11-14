@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <regex>
+#include <stdexcept>
 
 #include <wx/wx.h>
 
@@ -19,6 +20,8 @@
     finish capture move implementation
 
     board redraw
+
+    B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
 */
 
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
@@ -70,7 +73,7 @@ bool Board::set_position(const std::string& fen_string) {
         return false;
     }
 
-    reset();
+    clear();
 
     std::size_t index = 0;
 
@@ -295,11 +298,14 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
         ctx.intermediary_square_indices.push_back(target_index);
         ctx.captured_pieces_indices.push_back(enemy_index);
 
-        // Temporarily remove the piece to avoid illegal jumps
+        // Remove the piece to avoid illegal jumps
         const Square enemy_piece = board[enemy_index];
         board[enemy_index] = Square::None;
 
-        if (!check_piece_jumps(moves, target_index, player, king, ctx)) {
+        // Jump this piece to avoid illegal jumps
+        std::swap(board[square_index], board[target_index]);
+
+        if (check_piece_jumps(moves, target_index, player, king, ctx)) {
             // This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
             Move move;
@@ -319,6 +325,9 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
 
         // Restore removed piece
         board[enemy_index] = enemy_piece;
+
+        // Restore jumped piece
+        std::swap(board[square_index], board[target_index]);
 
         ctx.intermediary_square_indices.pop_back();
         ctx.captured_pieces_indices.pop_back();
@@ -443,20 +452,24 @@ Board::Player Board::parse_player(const std::string& fen_string, std::size_t ind
 }
 
 void Board::parse_pieces(const std::string& fen_string, std::size_t& index, Player player) {
-    while (fen_string[index] != ':') {
+    while (fen_string[index] != ':' && index != fen_string.size()) {
+        // Here, square is based on the formal indexing of the board: [1, 32]
         const auto [square, king] = parse_piece(fen_string, index);
+
+        // Translate to [0, 64]
+        const Idx this_square = translate_index_1_32_to_0_64(square);
 
         if (player == Player::White) {
             if (king) {
-                board[square] = Square::WhiteKing;
+                board[this_square] = Square::WhiteKing;
             } else {
-                board[square] = Square::White;
+                board[this_square] = Square::White;
             }
         } else {
             if (king) {
-                board[square] = Square::BlackKing;
+                board[this_square] = Square::BlackKing;
             } else {
-                board[square] = Square::Black;
+                board[this_square] = Square::Black;
             }
         }
     }
@@ -468,6 +481,11 @@ std::pair<Board::Idx, bool> Board::parse_piece(const std::string& fen_string, st
     std::string result_number;
 
     while (scanning) {
+        if (index == fen_string.size()) {
+            // Also stop scanning when going past the string
+            break;
+        }
+
         switch (fen_string[index]) {
             case 'K':
                 king = true;
@@ -475,8 +493,11 @@ std::pair<Board::Idx, bool> Board::parse_piece(const std::string& fen_string, st
 
                 break;
             case ',':
-            case ':':
+                scanning = false;
                 index++;
+
+                break;
+            case ':':
                 scanning = false;
 
                 break;
@@ -508,6 +529,22 @@ std::pair<Board::Idx, bool> Board::parse_piece(const std::string& fen_string, st
     }
 
     return std::make_pair(static_cast<Idx>(result), king);
+}
+
+Board::Idx Board::translate_index_1_32_to_0_64(Idx index) {
+    if (((index - 1) / 4) % 2 == 0) {
+        return index * 2 - 1;
+    } else {
+        return (index - 1) * 2;
+    }
+}
+
+void Board::clear() {
+    std::fill(std::begin(board), std::end(board), Square::None);
+    selected_piece_index = NULL_INDEX;
+    turn = Player::Black;
+
+    Refresh();
 }
 
 void Board::draw(wxDC& dc) {

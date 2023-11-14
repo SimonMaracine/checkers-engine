@@ -64,7 +64,7 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
     board->reset();
 }
 
-void MainWindow::on_set_position(wxCommandEvent& event) {
+void MainWindow::on_set_position(wxCommandEvent&) {
     FenStringDialog dialog {this, wxID_ANY};
 
 	if (dialog.ShowModal() == wxID_OK) {
