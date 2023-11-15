@@ -435,7 +435,7 @@ Board::Player Board::opponent(Player player) {
 }
 
 bool Board::validate_fen_string(const std::string& fen_string) {
-    const std::regex pattern {"(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+)+){2}"};  // FIXME limit board size
+    const std::regex pattern {"(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}"};
 
     return std::regex_match(fen_string, pattern);
 }

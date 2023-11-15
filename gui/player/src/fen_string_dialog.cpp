@@ -16,9 +16,11 @@ FenStringDialog::FenStringDialog(wxWindow* parent, wxWindowID id)
 
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-    sizer->Add(fen_string);
+    sizer->AddStretchSpacer();
+    sizer->Add(fen_string, 0, wxEXPAND | wxLEFT | wxRIGHT);
     sizer->AddSpacer(10);
-    sizer->Add(buttons);
+    sizer->Add(buttons, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM);
+    sizer->AddStretchSpacer();
 
     SetSizer(sizer);
 }
