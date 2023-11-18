@@ -8,6 +8,7 @@
 #include <cmath>
 #include <regex>
 #include <stdexcept>
+#include <cassert>
 
 #include <wx/wx.h>
 
@@ -121,15 +122,48 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         return;
     }
 
+    // These are moves that can be played with the selected square index
+    static std::vector<Move> playable_moves;
+    playable_moves.clear();
+
     for (const Move& move : legal_moves) {
         switch (move.type) {
             case MoveType::Normal:
-                try_play_normal_move(move, square_index);
+                if (playable_normal_move(move, square_index)) {
+                    playable_moves.push_back(move);
+                }
+
                 break;
             case MoveType::Capture:
-                try_play_capture_move(move, square_index);
+                if (playable_capture_move(move, square_index)) {
+                    playable_moves.push_back(move);
+                }
+
                 break;
         }
+    }
+
+    if (playable_moves.size() == 1) {
+        // Can simply be played
+
+        const Move& move = playable_moves[0];
+
+        switch (move.type) {
+            case MoveType::Normal:
+                play_normal_move(move);
+                break;
+            case MoveType::Capture:
+                play_capture_move(move);
+                break;
+        }
+    } else if (playable_moves.size() > 1) {
+        // It's more complicated
+
+        for (const Move& move : playable_moves) {
+            assert(move.type == MoveType::Capture);
+        }
+
+        play_capture_move(playable_moves[0]);  // FIXME
     }
 }
 
@@ -295,7 +329,7 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
 
         sequence_jumps_ended = false;
 
-        ctx.intermediary_square_indices.push_back(target_index);
+        ctx.destination_indices.push_back(target_index);
         ctx.captured_pieces_indices.push_back(enemy_index);
 
         // Remove the piece to avoid illegal jumps
@@ -311,12 +345,11 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             Move move;
             move.type = MoveType::Capture;
             move.capture.source_index = ctx.source_index;
-            move.capture.destination_index = target_index;
-            move.capture.intermediary_square_indices_size = ctx.intermediary_square_indices.size();
+            move.capture.destination_indices_size = ctx.destination_indices.size();
             move.capture.captured_pieces_indices_size = ctx.captured_pieces_indices.size();
 
             for (std::size_t i = 0; i < ctx.captured_pieces_indices.size(); i++) {
-                move.capture.intermediary_square_indices[i] = ctx.intermediary_square_indices[i];
+                move.capture.destination_indices[i] = ctx.destination_indices[i];
                 move.capture.captured_pieces_indices[i] = ctx.captured_pieces_indices[i];
             }
 
@@ -329,7 +362,7 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
         // Restore jumped piece
         std::swap(board[square_index], board[target_index]);
 
-        ctx.intermediary_square_indices.pop_back();
+        ctx.destination_indices.pop_back();
         ctx.captured_pieces_indices.pop_back();
     }
 
@@ -392,11 +425,35 @@ void Board::check_piece_crowning(Idx square_index) {
     }
 }
 
-void Board::try_play_normal_move(const Move& move, Idx square_index) {
-    if (move.normal.source_index != selected_piece_index || move.normal.destination_index != square_index) {
-        return;
+bool Board::playable_normal_move(const Move& move, Idx square_index) {
+    if (move.normal.source_index != selected_piece_index) {
+        return false;
     }
 
+    if (move.normal.destination_index != square_index) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Board::playable_capture_move(const Move& move, Idx square_index) {
+    static std::size_t jump_index = 0;
+
+    if (move.capture.source_index != selected_piece_index) {
+        return false;
+    }
+
+    if (move.capture.destination_indices[jump_index] != square_index) {  // FIXME
+        return false;
+    }
+
+    jump_index++;
+
+    return true;
+}
+
+void Board::play_normal_move(const Move& move) {
     if (on_piece_move(move)) {
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
@@ -407,23 +464,17 @@ void Board::try_play_normal_move(const Move& move, Idx square_index) {
     }
 }
 
-void Board::try_play_capture_move(const Move& move, Idx square_index) {
-    if (move.capture.source_index != selected_piece_index) {
-        return;
-    }
-
-    if (move.capture.intermediary_square_indices[0] != square_index) {  // FIXME
-        return;
-    }
-
+void Board::play_capture_move(const Move& move) {
     if (on_piece_move(move)) {
-        std::swap(board[move.capture.source_index], board[move.capture.destination_index]);
+        const Idx destination_index = move.capture.destination_indices[move.capture.destination_indices_size - 1];
+
+        std::swap(board[move.capture.source_index], board[destination_index]);
 
         for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
             board[move.capture.captured_pieces_indices[i]] = Square::None;
         }
 
-        check_piece_crowning(move.capture.destination_index);
+        check_piece_crowning(destination_index);
 
         selected_piece_index = NULL_INDEX;
         change_turn();
@@ -585,8 +636,8 @@ void Board::draw(wxDC& dc) {
                 }
                 case MoveType::Capture: {
                     if (move.capture.source_index == selected_piece_index) {
-                        for (Idx i = 0; i < move.capture.intermediary_square_indices_size; i++) {
-                            const auto [x, y] = get_square(move.capture.intermediary_square_indices[i]);
+                        for (Idx i = 0; i < move.capture.destination_indices_size; i++) {
+                            const auto [x, y] = get_square(move.capture.destination_indices[i]);
 
                             dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
                         }

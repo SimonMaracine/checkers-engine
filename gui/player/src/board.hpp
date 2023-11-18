@@ -29,10 +29,9 @@ public:
 
             struct {
                 Idx source_index;
-                Idx destination_index;
-                Idx intermediary_square_indices[9];
+                Idx destination_indices[9];
                 Idx captured_pieces_indices[9];  // FIXME remove; can be deduced
-                Idx intermediary_square_indices_size;
+                Idx destination_indices_size;
                 Idx captured_pieces_indices_size;
             } capture;
         };
@@ -77,7 +76,7 @@ private:
 
     struct JumpCtx {
         Idx source_index {};
-        std::vector<Idx> intermediary_square_indices;
+        std::vector<Idx> destination_indices;
         std::vector<Idx> captured_pieces_indices;
     };
 
@@ -94,8 +93,10 @@ private:
     Idx offset(Idx square_index, Direction direction, Diagonal diagonal);
     void change_turn();
     void check_piece_crowning(Idx square_index);
-    void try_play_normal_move(const Move& move, Idx square_index);
-    void try_play_capture_move(const Move& move, Idx square_index);
+    bool playable_normal_move(const Move& move, Idx square_index);
+    bool playable_capture_move(const Move& move, Idx square_index);
+    void play_normal_move(const Move& move);
+    void play_capture_move(const Move& move);
     static Player opponent(Player player);
     static bool validate_fen_string(const std::string& fen_string);
     static Player parse_player(const std::string& fen_string, std::size_t index);
