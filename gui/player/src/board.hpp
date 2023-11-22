@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <optional>
 
 #include <wx/wx.h>
 
@@ -96,7 +97,7 @@ private:
     bool playable_normal_move(const Move& move, Idx square_index);
     bool playable_capture_move(const Move& move, Idx square_index);
     void play_normal_move(const Move& move);
-    void play_capture_move(const Move& move);
+    void play_capture_move_partial(const Move& move, std::size_t jump_index);
     static Player opponent(Player player);
     static bool validate_fen_string(const std::string& fen_string);
     static Player parse_player(const std::string& fen_string, std::size_t index);

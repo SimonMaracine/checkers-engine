@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <optional>
 #include <algorithm>
 #include <cmath>
 #include <regex>
@@ -23,6 +24,7 @@
     board redraw
 
     B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
+    W:WK4:B6,7,8,14,15,16,22,23,24
 */
 
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
@@ -122,49 +124,30 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         return;
     }
 
-    // These are moves that can be played with the selected square index
-    static std::vector<Move> playable_moves;
-    playable_moves.clear();
+    static std::vector<Move> playable_capture_moves;
+    playable_capture_moves.clear();
 
     for (const Move& move : legal_moves) {
         switch (move.type) {
             case MoveType::Normal:
                 if (playable_normal_move(move, square_index)) {
-                    playable_moves.push_back(move);
+                    play_normal_move(move);
                 }
 
                 break;
             case MoveType::Capture:
                 if (playable_capture_move(move, square_index)) {
-                    playable_moves.push_back(move);
+                    playable_capture_moves.push_back(move);
                 }
 
                 break;
         }
     }
 
-    if (playable_moves.size() == 1) {
-        // Can simply be played
+    if (!playable_capture_moves.empty()) {
 
-        const Move& move = playable_moves[0];
-
-        switch (move.type) {
-            case MoveType::Normal:
-                play_normal_move(move);
-                break;
-            case MoveType::Capture:
-                play_capture_move(move);
-                break;
-        }
-    } else if (playable_moves.size() > 1) {
-        // It's more complicated
-
-        for (const Move& move : playable_moves) {
-            assert(move.type == MoveType::Capture);
-        }
-
-        play_capture_move(playable_moves[0]);  // FIXME
     }
+
 }
 
 Board::Idx Board::get_square(wxPoint position) {
@@ -438,22 +421,20 @@ bool Board::playable_normal_move(const Move& move, Idx square_index) {
 }
 
 bool Board::playable_capture_move(const Move& move, Idx square_index) {
-    static std::size_t jump_index = 0;
-
     if (move.capture.source_index != selected_piece_index) {
         return false;
     }
 
-    if (move.capture.destination_indices[jump_index] != square_index) {  // FIXME
+    if (move.capture.destination_indices[0] != square_index) {
         return false;
     }
-
-    jump_index++;
 
     return true;
 }
 
 void Board::play_normal_move(const Move& move) {
+    assert(move.type == MoveType::Normal);
+
     if (on_piece_move(move)) {
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
@@ -464,21 +445,33 @@ void Board::play_normal_move(const Move& move) {
     }
 }
 
-void Board::play_capture_move(const Move& move) {
-    if (on_piece_move(move)) {
-        const Idx destination_index = move.capture.destination_indices[move.capture.destination_indices_size - 1];
+void Board::play_capture_move_partial(const Move& move, std::size_t jump_index) {
+    assert(move.type == MoveType::Capture);
 
-        std::swap(board[move.capture.source_index], board[destination_index]);
+    const Idx destination_index = move.capture.destination_indices[jump_index];
 
-        for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
-            board[move.capture.captured_pieces_indices[i]] = Square::None;
-        }
+    std::swap(board[move.capture.source_index], board[destination_index]);
 
-        check_piece_crowning(destination_index);
+    board[move.capture.captured_pieces_indices[jump_index]] = Square::None;
 
-        selected_piece_index = NULL_INDEX;
-        change_turn();
-    }
+    check_piece_crowning(destination_index);
+
+    if (move.)
+
+    // if (on_piece_move(move)) {
+    //     const Idx destination_index = move.capture.destination_indices[move.capture.destination_indices_size - 1];
+
+    //     std::swap(board[move.capture.source_index], board[destination_index]);
+
+    //     for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
+    //         board[move.capture.captured_pieces_indices[i]] = Square::None;
+    //     }
+
+    //     check_piece_crowning(destination_index);
+
+    //     selected_piece_index = NULL_INDEX;
+    //     change_turn();
+    // }
 }
 
 Board::Player Board::opponent(Player player) {

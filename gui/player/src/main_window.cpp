@@ -93,7 +93,7 @@ bool MainWindow::on_piece_move(const Board::Move& move) {
             std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
             break;
         case Board::MoveType::Capture:
-            std::cout << move.capture.source_index << " -> " << move.capture.destination_index << '\n';
+            std::cout << move.capture.source_index << " -> " << move.capture.destination_indices[move.capture.destination_indices_size - 1] << '\n';
             break;
     }
 
