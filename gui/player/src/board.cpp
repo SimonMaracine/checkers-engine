@@ -19,7 +19,6 @@
     TODO
     threefold repetition
     80 moves rule
-    finish capture move implementation
 
     board redraw
 
@@ -30,6 +29,7 @@
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
     EVT_PAINT(Board::on_paint)
     EVT_LEFT_DOWN(Board::on_mouse_left_down)
+    EVT_RIGHT_DOWN(Board::on_mouse_right_down)
 wxEND_EVENT_TABLE()
 
 Board::Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
@@ -48,9 +48,7 @@ void Board::set_board_size(int size) {
 }
 
 void Board::reset() {
-    std::fill(std::begin(board), std::end(board), Square::None);
-    selected_piece_index = NULL_INDEX;
-    turn = Player::Black;
+    clear();
 
     for (Idx i = 0; i < 24; i++) {
         const auto [file, rank] = get_square(i);
@@ -68,7 +66,7 @@ void Board::reset() {
         }
     }
 
-    Refresh();
+    refresh_canvas();
 }
 
 bool Board::set_position(const std::string& fen_string) {
@@ -99,6 +97,8 @@ bool Board::set_position(const std::string& fen_string) {
 
     parse_pieces(fen_string, index, player2);
 
+    refresh_canvas();
+
     return true;
 }
 
@@ -108,11 +108,10 @@ void Board::on_paint(wxPaintEvent&) {
 }
 
 void Board::on_mouse_left_down(wxMouseEvent& event) {
-    Refresh();
-
     const Idx square_index = get_square(event.GetPosition());
 
     if (select_piece(square_index)) {
+        jump_square_indices.clear();
         return;
     }
 
@@ -124,30 +123,47 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         return;
     }
 
-    static std::vector<Move> playable_capture_moves;
-    playable_capture_moves.clear();
+    const bool normal {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Normal; })};
+    const bool capture {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
 
-    for (const Move& move : legal_moves) {
-        switch (move.type) {
-            case MoveType::Normal:
+    if (normal) {
+        for (const Move& move : legal_moves) {
+            if (move.type == MoveType::Normal) {
                 if (playable_normal_move(move, square_index)) {
                     play_normal_move(move);
                 }
-
-                break;
-            case MoveType::Capture:
-                if (playable_capture_move(move, square_index)) {
-                    playable_capture_moves.push_back(move);
-                }
-
-                break;
+            }
         }
+    } else if (capture) {
+        select_jump_square(square_index);
+
+        for (const Move& move : legal_moves) {
+            if (playable_capture_move(move, jump_square_indices)) {
+                play_capture_move(move);
+                jump_square_indices.clear();
+            }
+        }
+    } else {
+        assert(false);
     }
 
-    if (!playable_capture_moves.empty()) {
+    refresh_canvas();
+}
 
+void Board::on_mouse_right_down(wxMouseEvent& event) {
+    const Idx square_index = get_square(event.GetPosition());
+
+    if (selected_piece_index == NULL_INDEX) {
+        return;
     }
 
+    if (!on_piece_move) {
+        return;
+    }
+
+    deselect_jump_square(square_index);
+
+    refresh_canvas();
 }
 
 Board::Idx Board::get_square(wxPoint position) {
@@ -176,12 +192,16 @@ bool Board::select_piece(Idx square_index) {
             selected_piece_index = NULL_INDEX;
             legal_moves.clear();
 
+            refresh_canvas();
+
             return false;
         }
 
         if (board[square_index] != Square::None) {
             selected_piece_index = square_index;
             legal_moves = generate_moves();
+
+            refresh_canvas();
 
             return true;
         }
@@ -420,12 +440,17 @@ bool Board::playable_normal_move(const Move& move, Idx square_index) {
     return true;
 }
 
-bool Board::playable_capture_move(const Move& move, Idx square_index) {
+bool Board::playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) {
     if (move.capture.source_index != selected_piece_index) {
         return false;
     }
 
-    if (move.capture.destination_indices[0] != square_index) {
+    if (!std::equal(
+        move.capture.destination_indices,
+        move.capture.destination_indices + move.capture.destination_indices_size,
+        square_indices.cbegin(),
+        square_indices.cend()
+    )) {
         return false;
     }
 
@@ -445,33 +470,47 @@ void Board::play_normal_move(const Move& move) {
     }
 }
 
-void Board::play_capture_move_partial(const Move& move, std::size_t jump_index) {
+void Board::play_capture_move(const Move& move) {
     assert(move.type == MoveType::Capture);
 
-    const Idx destination_index = move.capture.destination_indices[jump_index];
+    if (on_piece_move(move)) {
+        const Idx destination_index = move.capture.destination_indices[move.capture.destination_indices_size - 1];
 
-    std::swap(board[move.capture.source_index], board[destination_index]);
+        std::swap(board[move.capture.source_index], board[destination_index]);
 
-    board[move.capture.captured_pieces_indices[jump_index]] = Square::None;
+        for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
+            board[move.capture.captured_pieces_indices[i]] = Square::None;
+        }
 
-    check_piece_crowning(destination_index);
+        check_piece_crowning(destination_index);
 
-    if (move.)
+        selected_piece_index = NULL_INDEX;
+        change_turn();
+    }
+}
 
-    // if (on_piece_move(move)) {
-    //     const Idx destination_index = move.capture.destination_indices[move.capture.destination_indices_size - 1];
+void Board::select_jump_square(Idx square_index) {
+    const auto [x, y] = get_square(square_index);
 
-    //     std::swap(board[move.capture.source_index], board[destination_index]);
+    if ((x + y) % 2 == 0) {
+        return;
+    }
 
-    //     for (Idx i = 0; i < move.capture.captured_pieces_indices_size; i++) {
-    //         board[move.capture.captured_pieces_indices[i]] = Square::None;
-    //     }
+    jump_square_indices.push_back(square_index);
+}
 
-    //     check_piece_crowning(destination_index);
+void Board::deselect_jump_square(Idx square_index) {
+    const auto [x, y] = get_square(square_index);
 
-    //     selected_piece_index = NULL_INDEX;
-    //     change_turn();
-    // }
+    if ((x + y) % 2 == 0) {
+        return;
+    }
+
+    const auto iter {std::find(jump_square_indices.cbegin(), jump_square_indices.cend(), square_index)};
+
+    if (iter != jump_square_indices.cend()) {
+        jump_square_indices.erase(iter);
+    }
 }
 
 Board::Player Board::opponent(Player player) {
@@ -585,14 +624,20 @@ Board::Idx Board::translate_index_1_32_to_0_64(Idx index) {
 
 void Board::clear() {
     std::fill(std::begin(board), std::end(board), Square::None);
-    selected_piece_index = NULL_INDEX;
     turn = Player::Black;
+    selected_piece_index = NULL_INDEX;
+    legal_moves.clear();
+    jump_square_indices.clear();
+}
 
+void Board::refresh_canvas() {
     Refresh();
+    Update();
 }
 
 void Board::draw(wxDC& dc) {
     const auto ORANGE = wxColour(240, 180, 80);
+    const auto REDDISH = wxColour(255, 140, 60);
     const auto GOLD = wxColour(160, 160, 10);
     const auto WHITE = wxColour(200, 200, 200);
     const auto BLACK = wxColour(80, 60, 40);
@@ -639,6 +684,15 @@ void Board::draw(wxDC& dc) {
                     break;
                 }
             }
+        }
+
+        dc.SetBrush(wxBrush(REDDISH));
+        dc.SetPen(wxPen(REDDISH));
+
+        for (const Idx square_index : jump_square_indices) {
+            const auto [x, y] = get_square(square_index);
+
+            dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
         }
     }
 

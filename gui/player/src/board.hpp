@@ -83,6 +83,7 @@ private:
 
     void on_paint(wxPaintEvent& event);
     void on_mouse_left_down(wxMouseEvent& event);
+    void on_mouse_right_down(wxMouseEvent& event);
 
     Idx get_square(wxPoint position);
     std::pair<Idx, Idx> get_square(Idx square_index);
@@ -95,9 +96,11 @@ private:
     void change_turn();
     void check_piece_crowning(Idx square_index);
     bool playable_normal_move(const Move& move, Idx square_index);
-    bool playable_capture_move(const Move& move, Idx square_index);
+    bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices);
     void play_normal_move(const Move& move);
-    void play_capture_move_partial(const Move& move, std::size_t jump_index);
+    void play_capture_move(const Move& move);
+    void select_jump_square(Idx square_index);
+    void deselect_jump_square(Idx square_index);
     static Player opponent(Player player);
     static bool validate_fen_string(const std::string& fen_string);
     static Player parse_player(const std::string& fen_string, std::size_t index);
@@ -105,6 +108,7 @@ private:
     static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
     static Idx translate_index_1_32_to_0_64(Idx index);
     void clear();
+    void refresh_canvas();
 
     void draw(wxDC& dc);
 
@@ -114,6 +118,7 @@ private:
     Player turn = Player::Black;
     Idx selected_piece_index = NULL_INDEX;
     std::vector<Move> legal_moves;
+    std::vector<Idx> jump_square_indices;
 
     OnPieceMove on_piece_move;
 
