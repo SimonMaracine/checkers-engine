@@ -111,7 +111,6 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
     const Idx square_index = get_square(event.GetPosition());
 
     if (select_piece(square_index)) {
-        jump_square_indices.clear();
         return;
     }
 
@@ -161,7 +160,20 @@ void Board::on_mouse_right_down(wxMouseEvent& event) {
         return;
     }
 
+    const bool capture {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
+
+    if (!capture) {
+        return;
+    }
+
     deselect_jump_square(square_index);
+
+    for (const Move& move : legal_moves) {
+        if (playable_capture_move(move, jump_square_indices)) {
+            play_capture_move(move);
+            jump_square_indices.clear();
+        }
+    }
 
     refresh_canvas();
 }
@@ -191,6 +203,7 @@ bool Board::select_piece(Idx square_index) {
         if (selected_piece_index == square_index) {
             selected_piece_index = NULL_INDEX;
             legal_moves.clear();
+            jump_square_indices.clear();
 
             refresh_canvas();
 
@@ -200,6 +213,7 @@ bool Board::select_piece(Idx square_index) {
         if (board[square_index] != Square::None) {
             selected_piece_index = square_index;
             legal_moves = generate_moves();
+            jump_square_indices.clear();
 
             refresh_canvas();
 
@@ -496,7 +510,11 @@ void Board::select_jump_square(Idx square_index) {
         return;
     }
 
-    jump_square_indices.push_back(square_index);
+    const auto count {std::count(jump_square_indices.cbegin(), jump_square_indices.cend(), square_index)};
+
+    if (count < 2) {
+        jump_square_indices.push_back(square_index);
+    }
 }
 
 void Board::deselect_jump_square(Idx square_index) {
@@ -638,6 +656,7 @@ void Board::refresh_canvas() {
 void Board::draw(wxDC& dc) {
     const auto ORANGE = wxColour(240, 180, 80);
     const auto REDDISH = wxColour(255, 140, 60);
+    const auto DARKER_REDDISH = wxColour(255, 100, 40);
     const auto GOLD = wxColour(160, 160, 10);
     const auto WHITE = wxColour(200, 200, 200);
     const auto BLACK = wxColour(80, 60, 40);
@@ -686,13 +705,40 @@ void Board::draw(wxDC& dc) {
             }
         }
 
-        dc.SetBrush(wxBrush(REDDISH));
-        dc.SetPen(wxPen(REDDISH));
+        for (std::size_t i {0}; i < jump_square_indices.size(); i++) {
+            const auto count {std::count(jump_square_indices.cbegin(), jump_square_indices.cend(), jump_square_indices[i])};
 
-        for (const Idx square_index : jump_square_indices) {
-            const auto [x, y] = get_square(square_index);
+            if (count < 2) {
+                dc.SetBrush(wxBrush(REDDISH));
+                dc.SetPen(wxPen(REDDISH));
+            } else {
+                dc.SetBrush(wxBrush(DARKER_REDDISH));
+                dc.SetPen(wxPen(DARKER_REDDISH));
+            }
+
+            const auto [x, y] = get_square(jump_square_indices[i]);
 
             dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+        }
+
+        std::vector<Idx> indices_visited;
+
+        for (std::size_t i {0}; i < jump_square_indices.size(); i++) {
+            const auto iter {std::find(indices_visited.cbegin(), indices_visited.cend(), jump_square_indices[i])};
+
+            int alignment {0};
+
+            if (iter == indices_visited.cend()) {
+                alignment = wxALIGN_LEFT | wxALIGN_TOP;
+            } else {
+                alignment = wxALIGN_RIGHT | wxALIGN_TOP;
+            }
+
+            const auto [x, y] = get_square(jump_square_indices[i]);
+
+            dc.DrawLabel(std::to_string(i + 1), wxRect(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE, SQUARE_SIZE), alignment);
+
+            indices_visited.push_back(jump_square_indices[i]);
         }
     }
 
