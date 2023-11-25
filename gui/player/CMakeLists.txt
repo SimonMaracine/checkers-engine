@@ -15,6 +15,6 @@ add_executable(player ${WINDOWS_APP}
     "src/main_window.hpp"
 )
 
-target_link_libraries(player PRIVATE wx::core wx::base)
+target_link_libraries(player PRIVATE wxmono)
 
 set_compile_options(player)
