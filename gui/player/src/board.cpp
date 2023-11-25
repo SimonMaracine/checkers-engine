@@ -20,8 +20,6 @@
     threefold repetition
     80 moves rule
 
-    board redraw
-
     B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
     W:WK4:B6,7,8,14,15,16,22,23,24
 */
@@ -45,6 +43,8 @@ void Board::set_board_size(int size) {
     SetSize(size, size);
 
     board_size = std::clamp(size, 200, 2000);
+
+    refresh_canvas();
 }
 
 void Board::reset() {
