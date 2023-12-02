@@ -108,6 +108,10 @@ void Board::on_paint(wxPaintEvent&) {
 }
 
 void Board::on_mouse_left_down(wxMouseEvent& event) {
+    if (game_over) {
+        return;
+    }
+
     const Idx square_index = get_square(event.GetPosition());
 
     if (select_piece(square_index)) {
@@ -149,7 +153,11 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
     refresh_canvas();
 }
 
-void Board::on_mouse_right_down(wxMouseEvent& event) {
+void Board::on_mouse_right_down(wxMouseEvent& event) {\
+    if (game_over) {
+        return;
+    }
+
     const Idx square_index = get_square(event.GetPosition());
 
     if (selected_piece_index == NULL_INDEX) {
@@ -423,6 +431,16 @@ void Board::change_turn() {
     turn = opponent(turn);
 }
 
+void Board::check_80_move_rule(bool advancement) {
+    if (advancement) {
+        plies_without_advancement = 0;
+    } else {
+        if (++plies_without_advancement == 80) {
+            game_over = true;
+        }
+    }
+}
+
 void Board::check_piece_crowning(Idx square_index) {
     const Idx index = square_index / 8;
 
@@ -477,10 +495,16 @@ void Board::play_normal_move(const Move& move) {
     if (on_piece_move(move)) {
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
+        const bool advancement {
+            board[move.normal.destination_index] == Square::Black ||
+            board[move.normal.destination_index] == Square::White
+        };
+
         check_piece_crowning(move.normal.destination_index);
+        change_turn();
+        check_80_move_rule(advancement);
 
         selected_piece_index = NULL_INDEX;
-        change_turn();
     }
 }
 
@@ -497,9 +521,10 @@ void Board::play_capture_move(const Move& move) {
         }
 
         check_piece_crowning(destination_index);
+        change_turn();
+        check_80_move_rule(true);
 
         selected_piece_index = NULL_INDEX;
-        change_turn();
     }
 }
 

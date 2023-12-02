@@ -38,7 +38,7 @@ cel puțin cele care ne interesează pe noi: [2]
   atunci are obligația să o facă. Dacă imediat după o captură, în aceeași tură, jucătorul la
   rând mai poate captura o piesă a adversarului, sărind peste aceasta, este obligat să o facă. Dacă
   un jucător are posibilitatea de a captura piese din sărituri diferite, atunci poate alege care captură
-  să o facă. O piesă poate fi sărită o singura dată.
+  să o facă. O piesă poate fi sărită o singură dată.
 - Dacă o piesă ajunge până la ultimul rând, pe partea opusă a tablei, atunci ea devine "rege" și are
   abilitatea în plus de a se deplasa și de a captura în spate. Ea devine rege doar la finalul turei sale.
 - Jocul se sfârșește atunci când un jucător nu mai poate face nicio mutare legală, fie că piesele

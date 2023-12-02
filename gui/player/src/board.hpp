@@ -54,6 +54,8 @@ public:
 
     void reset();
     bool set_position(const std::string& fen_string);
+
+    bool is_game_over() { return game_over; }
 private:
     enum class Direction {
         NorthEast,
@@ -94,6 +96,7 @@ private:
     bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx);
     Idx offset(Idx square_index, Direction direction, Diagonal diagonal);
     void change_turn();
+    void check_80_move_rule(bool advancement);
     void check_piece_crowning(Idx square_index);
     bool playable_normal_move(const Move& move, Idx square_index);
     bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices);
@@ -119,6 +122,8 @@ private:
     Idx selected_piece_index = NULL_INDEX;
     std::vector<Move> legal_moves;
     std::vector<Idx> jump_square_indices;
+    unsigned int plies_without_advancement {0};
+    bool game_over {false};
 
     OnPieceMove on_piece_move;
 

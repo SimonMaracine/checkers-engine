@@ -21,6 +21,8 @@ private:
     bool on_piece_move(const Board::Move& move);
 
     Board* board = nullptr;
+    wxPanel* right_side {nullptr};
+    wxStaticText* game_status {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };

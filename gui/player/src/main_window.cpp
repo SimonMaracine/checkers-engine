@@ -50,10 +50,26 @@ void MainWindow::setup_menubar() {
 
 void MainWindow::setup_widgets() {
     board = new Board(this, 20, 20, GetSize().GetHeight() - 120,
-        [this](Board::Move move) {
+        [this](const Board::Move& move) {
             return on_piece_move(move);
         }
     );
+
+    right_side = new wxPanel(this);
+
+    wxBoxSizer* right_side_sizer = new wxBoxSizer(wxVERTICAL);
+
+    game_status = new wxStaticText(right_side, wxID_ANY, "Game In Progress");
+    right_side_sizer->Add(game_status);
+
+    right_side->SetSizer(right_side_sizer);
+
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    sizer->Add(board);
+    sizer->Add(right_side);
+
+    SetSizer(sizer);
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
@@ -62,6 +78,7 @@ void MainWindow::on_exit(wxCommandEvent&) {
 
 void MainWindow::on_reset_board(wxCommandEvent&) {
     board->reset();
+    game_status->SetLabelText("Game In Progress");
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
