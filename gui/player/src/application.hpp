@@ -10,5 +10,5 @@ struct Application : public wxApp {
 
     virtual bool OnInit() override;
 
-    MainWindow* window = nullptr;
+    MainWindow* window {nullptr};
 };

@@ -20,7 +20,9 @@ private:
 
     bool on_piece_move(const Board::Move& move);
 
-    Board* board = nullptr;
+    int get_ideal_board_size();
+
+    Board* board {nullptr};
     wxPanel* right_side {nullptr};
     wxStaticText* game_status {nullptr};
 

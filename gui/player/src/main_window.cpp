@@ -21,10 +21,8 @@ MainWindow::MainWindow()
     : wxFrame(nullptr, wxID_ANY, "Checkers Player") {
     setup_menubar();
 
-    CreateStatusBar();
-
+    SetMinSize(wxSize(896, 504));  // Set minimum size here to trigger a resize event after widgets creation
     setup_widgets();
-    SetMinSize(wxSize(1024, 576));
     Center();
 }
 
@@ -33,15 +31,15 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setup_menubar() {
-    wxMenu* men_file = new wxMenu;
+    wxMenu* men_file {new wxMenu};
     men_file->Append(RESET_BOARD, "Reset Board");
     men_file->Append(SET_POSITION, "Set Position");
     men_file->Append(wxID_EXIT, "Exit");
 
-    wxMenu* men_help = new wxMenu;
+    wxMenu* men_help {new wxMenu};
     men_help->Append(wxID_ABOUT, "About");
 
-    wxMenuBar* menu_bar = new wxMenuBar;
+    wxMenuBar* menu_bar {new wxMenuBar};
     menu_bar->Append(men_file, "File");
     menu_bar->Append(men_help, "Help");
 
@@ -49,27 +47,31 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-    board = new Board(this, 20, 20, GetSize().GetHeight() - 120,
+    board = new Board(this, -1, -1, 400,
         [this](const Board::Move& move) {
             return on_piece_move(move);
         }
     );
 
-    right_side = new wxPanel(this);
+    board->SetBackgroundColour(wxColour("blue"));
 
-    wxBoxSizer* right_side_sizer = new wxBoxSizer(wxVERTICAL);
+    right_side = new wxPanel(this);
+    right_side->SetBackgroundColour(wxColour("red"));
+
+    wxBoxSizer* right_side_sizer {new wxBoxSizer(wxVERTICAL)};
 
     game_status = new wxStaticText(right_side, wxID_ANY, "Game In Progress");
     right_side_sizer->Add(game_status);
 
     right_side->SetSizer(right_side_sizer);
 
-    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* main_sizer {new wxBoxSizer(wxHORIZONTAL)};
 
-    sizer->Add(board);
-    sizer->Add(right_side);
+    main_sizer->Add(board, 3, wxEXPAND | wxALL);
+    main_sizer->AddSpacer(20);
+    main_sizer->Add(right_side, 1);
 
-    SetSizer(sizer);
+    SetSizer(main_sizer);
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
@@ -100,8 +102,10 @@ void MainWindow::on_about(wxCommandEvent&) {
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     // This function may be called before board is initialized
     if (board != nullptr) {
-        board->set_board_size(event.GetSize().GetHeight() - 120);
+        board->set_board_size(get_ideal_board_size());
     }
+
+    event.Skip();
 }
 
 bool MainWindow::on_piece_move(const Board::Move& move) {
@@ -115,4 +119,10 @@ bool MainWindow::on_piece_move(const Board::Move& move) {
     }
 
     return true;
+}
+
+int MainWindow::get_ideal_board_size() {
+    const wxSize size {board->GetSize()};
+
+    return std::min(size.GetHeight(), size.GetWidth());
 }

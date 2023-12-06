@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include <cstddef>
-#include <optional>
 
 #include <wx/wx.h>
 
@@ -14,7 +13,7 @@ class Board : public wxWindow {
 public:
     using Idx = int;
 
-    static constexpr Idx NULL_INDEX = -1;
+    static constexpr Idx NULL_INDEX {-1};
 
     enum class MoveType {
         Normal,
@@ -49,7 +48,6 @@ public:
 
     Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
 
-    void set_board_position(int x, int y);
     void set_board_size(int size);
 
     void reset();
@@ -115,10 +113,10 @@ private:
 
     void draw(wxDC& dc);
 
-    int board_size = 0;
+    int board_size {0};
 
     std::array<Square, 64> board {};
-    Player turn = Player::Black;
+    Player turn {Player::Black};
     Idx selected_piece_index = NULL_INDEX;
     std::vector<Move> legal_moves;
     std::vector<Idx> jump_square_indices;
