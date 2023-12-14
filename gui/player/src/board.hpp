@@ -117,7 +117,7 @@ private:
 
     std::array<Square, 64> board {};
     Player turn {Player::Black};
-    Idx selected_piece_index = NULL_INDEX;
+    Idx selected_piece_index {NULL_INDEX};
     std::vector<Move> legal_moves;
     std::vector<Idx> jump_square_indices;
     unsigned int plies_without_advancement {0};
