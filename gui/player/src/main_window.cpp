@@ -67,7 +67,7 @@ void MainWindow::setup_widgets() {
 
     wxBoxSizer* main_sizer {new wxBoxSizer(wxHORIZONTAL)};
 
-    main_sizer->Add(board, 3, wxEXPAND | wxALL);
+    main_sizer->Add(board, 1, wxEXPAND | wxALL);
     main_sizer->AddSpacer(20);
     main_sizer->Add(right_side, 1);
 

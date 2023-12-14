@@ -300,13 +300,16 @@ din urmă ne vom folosi de mai multe fire de execuție pentru a căuta mult mai 
 <!-- I also present the failures -->
 ### Aplicațiile auxiliare de interfață grafică
 
-Primul pas pentru dezvoltarea AI-ului este să avem la dispoziție o aplicație grafică pentru a ne juca
-jocul dame, ceea cu duce la nevoia unui framework de interfață grafică. Pentru că scriem programele
+<!-- FIXME nope, use first person singular -->
+Primul pas pentru dezvoltarea AI-ului a fost să avem la dispoziție o aplicație grafică pentru a ne juca
+jocul dame, ceea ce a dus la nevoia unui framework de interfață grafică. Pentru că scriem programele
 auxiliare în limbajul preferat C++, avem o gamă destul de largă de framework-uri de unde putem alege.
 Însă, avem nevoie de o bibliotecă cross-platform, pentru a rula aplicațiile pe Linux și pe Windows,
 și una gratuită. Câteva biblioteci populare de acest fel sunt: Qt, wxWidgets, Dear ImGui, FLTK, U++, Nana. [7]
-Inițial am ales să încerc FLTK, fiindcă nu este o bibliotecă uriașă și fiindcă nu avem nevoie de una
-sofisticată. Dar
+Inițial am ales să încercăm FLTK, fiindcă nu este o bibliotecă uriașă și fiindcă nu avem nevoie de una
+sofisticată. Dar am schimbat ulterior biblioteca cu wxWidgets, pentru că nu ne-a plăcut interfața și inflexibilitatea
+acesteia. wxWidgets este, într-adevăr, o bibliotecă mult mai mare, dar este și foarte populară. Este o alegere mai bună,
+fiindcă avem deja experiențe din trecut cu această bibliotecă.
 
 ## Experimente și rezultate
 
