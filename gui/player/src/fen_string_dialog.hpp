@@ -8,5 +8,5 @@ public:
 
 	wxString get_fen_string() const;
 private:
-	wxTextCtrl* fen_string = nullptr;
+	wxTextCtrl* fen_string {nullptr};
 };

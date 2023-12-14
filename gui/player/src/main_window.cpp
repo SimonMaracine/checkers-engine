@@ -6,8 +6,8 @@
 #include "board.hpp"
 #include "fen_string_dialog.hpp"
 
-static constexpr int RESET_BOARD = 10;
-static constexpr int SET_POSITION = 11;
+static constexpr int RESET_BOARD {10};
+static constexpr int SET_POSITION {11};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
