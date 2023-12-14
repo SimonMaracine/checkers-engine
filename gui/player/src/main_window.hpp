@@ -18,13 +18,18 @@ private:
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);
 
-    bool on_piece_move(const Board::Move& move);
+    void on_piece_move(const Board::Move& move);
 
     int get_ideal_board_size();
 
     Board* board {nullptr};
     wxPanel* right_side {nullptr};
-    wxStaticText* game_status {nullptr};
+
+    struct {
+        wxStaticText* status {nullptr};
+        wxStaticText* player {nullptr};
+        wxStaticText* plies_without_advancement {nullptr};
+    } game;
 
     wxDECLARE_EVENT_TABLE();
 };

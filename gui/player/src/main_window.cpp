@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <wx/wx.h>
+#include <wx/statline.h>
 
 #include "main_window.hpp"
 #include "board.hpp"
@@ -8,6 +9,10 @@
 
 static constexpr int RESET_BOARD {10};
 static constexpr int SET_POSITION {11};
+
+static const wxString STATUS {"Status: "};
+static const wxString PLAYER {"Player: "};
+static const wxString PLIES_WITHOUT_ADVANCEMENT {"Plies without advancement: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
@@ -52,16 +57,21 @@ void MainWindow::setup_widgets() {
             return on_piece_move(move);
         }
     );
-
-    board->SetBackgroundColour(wxColour("blue"));
+    // board->SetBackgroundColour(wxColour("blue"));
 
     right_side = new wxPanel(this);
-    right_side->SetBackgroundColour(wxColour("red"));
+    // right_side->SetBackgroundColour(wxColour("red"));
 
     wxBoxSizer* right_side_sizer {new wxBoxSizer(wxVERTICAL)};
 
-    game_status = new wxStaticText(right_side, wxID_ANY, "Game In Progress");
-    right_side_sizer->Add(game_status);
+    game.status = new wxStaticText(right_side, wxID_ANY, STATUS + "game in progress");
+    right_side_sizer->Add(game.status, 1);
+
+    game.player = new wxStaticText(right_side, wxID_ANY, PLAYER + "black");
+    right_side_sizer->Add(game.player, 1);
+
+    game.plies_without_advancement = new wxStaticText(right_side, wxID_ANY, PLIES_WITHOUT_ADVANCEMENT + "0");
+    right_side_sizer->Add(game.plies_without_advancement, 1);
 
     right_side->SetSizer(right_side_sizer);
 
@@ -80,7 +90,9 @@ void MainWindow::on_exit(wxCommandEvent&) {
 
 void MainWindow::on_reset_board(wxCommandEvent&) {
     board->reset();
-    game_status->SetLabelText("Game In Progress");
+    game.status->SetLabelText(STATUS + "game in progress");
+    game.player->SetLabelText(PLAYER + "black");
+    game.plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -102,13 +114,14 @@ void MainWindow::on_about(wxCommandEvent&) {
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     // This function may be called before board is initialized
     if (board != nullptr) {
+        Layout();  // Force layout refresh
         board->set_board_size(get_ideal_board_size());
     }
 
     event.Skip();
 }
 
-bool MainWindow::on_piece_move(const Board::Move& move) {
+void MainWindow::on_piece_move(const Board::Move& move) {
     switch (move.type) {
         case Board::MoveType::Normal:
             std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
@@ -118,7 +131,9 @@ bool MainWindow::on_piece_move(const Board::Move& move) {
             break;
     }
 
-    return true;
+    game.status->SetLabelText(STATUS + (board->is_game_over() ? "game over" : "game in progress"));
+    game.player->SetLabelText(PLAYER + (board->get_player() == Board::Player::Black ? "black" : "white"));
+    game.plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
 }
 
 int MainWindow::get_ideal_board_size() {

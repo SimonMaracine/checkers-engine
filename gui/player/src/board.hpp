@@ -44,7 +44,7 @@ public:
         White = 0b0010u,
     };
 
-    using OnPieceMove = std::function<bool(const Move&)>;
+    using OnPieceMove = std::function<void(const Move&)>;
 
     Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
 
@@ -53,7 +53,10 @@ public:
     void reset();
     bool set_position(const std::string& fen_string);
 
-    bool is_game_over() { return game_over; }
+    bool is_game_over() const { return game_over; }
+    Player get_player() const { return turn; }
+    const std::vector<Move>& get_legal_moves() const { return legal_moves; }
+    unsigned int get_plies_without_advancement() const { return plies_without_advancement; }
 private:
     enum class Direction {
         NorthEast,
@@ -96,6 +99,7 @@ private:
     void change_turn();
     void check_80_move_rule(bool advancement);
     void check_piece_crowning(Idx square_index);
+    void check_no_pieces(Player player);
     bool playable_normal_move(const Move& move, Idx square_index);
     bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices);
     void play_normal_move(const Move& move);
@@ -110,7 +114,6 @@ private:
     static Idx translate_index_1_32_to_0_64(Idx index);
     void clear();
     void refresh_canvas();
-
     void draw(wxDC& dc);
 
     int board_size {0};
@@ -123,6 +126,7 @@ private:
     unsigned int plies_without_advancement {0};
     bool game_over {false};
 
+    // Called every time a move has been made
     OnPieceMove on_piece_move;
 
     wxDECLARE_EVENT_TABLE();

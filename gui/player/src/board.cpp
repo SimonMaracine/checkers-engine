@@ -17,7 +17,6 @@
 /*
     TODO
     threefold repetition
-    80 moves rule
 
     B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
     W:WK4:B6,7,8,14,15,16,22,23,24
@@ -453,6 +452,16 @@ void Board::check_piece_crowning(Idx square_index) {
     }
 }
 
+void Board::check_no_pieces(Player player) {
+    const auto iter {std::find_if(board.cbegin(), board.cend(), [player](const Square square) {
+        return static_cast<bool>(static_cast<unsigned int>(square) & static_cast<unsigned int>(player));
+    })};
+
+    if (iter == board.cend()) {
+        game_over = true;
+    }
+}
+
 bool Board::playable_normal_move(const Move& move, Idx square_index) {
     if (move.normal.source_index != selected_piece_index) {
         return false;
@@ -485,40 +494,42 @@ bool Board::playable_capture_move(const Move& move, const std::vector<Idx>& squa
 void Board::play_normal_move(const Move& move) {
     assert(move.type == MoveType::Normal);
 
-    if (on_piece_move(move)) {
-        std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+    std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
-        const bool advancement {
-            board[move.normal.destination_index] == Square::Black ||
-            board[move.normal.destination_index] == Square::White
-        };
+    const bool advancement {
+        board[move.normal.destination_index] == Square::Black ||
+        board[move.normal.destination_index] == Square::White
+    };
 
-        check_piece_crowning(move.normal.destination_index);
-        change_turn();
-        check_80_move_rule(advancement);
+    check_piece_crowning(move.normal.destination_index);
+    change_turn();
+    check_80_move_rule(advancement);
+    check_no_pieces(turn);
 
-        selected_piece_index = NULL_INDEX;
-    }
+    selected_piece_index = NULL_INDEX;
+
+    on_piece_move(move);
 }
 
 void Board::play_capture_move(const Move& move) {
     assert(move.type == MoveType::Capture);
 
-    if (on_piece_move(move)) {
-        const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1]};
+    const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1]};
 
-        std::swap(board[move.capture.source_index], board[destination_index]);
+    std::swap(board[move.capture.source_index], board[destination_index]);
 
-        for (Idx i {0}; i < move.capture.captured_pieces_indices_size; i++) {
-            board[move.capture.captured_pieces_indices[i]] = Square::None;
-        }
-
-        check_piece_crowning(destination_index);
-        change_turn();
-        check_80_move_rule(true);
-
-        selected_piece_index = NULL_INDEX;
+    for (Idx i {0}; i < move.capture.captured_pieces_indices_size; i++) {
+        board[move.capture.captured_pieces_indices[i]] = Square::None;
     }
+
+    check_piece_crowning(destination_index);
+    change_turn();
+    check_80_move_rule(true);
+    check_no_pieces(turn);
+
+    selected_piece_index = NULL_INDEX;
+
+    on_piece_move(move);
 }
 
 void Board::select_jump_square(Idx square_index) {
@@ -664,6 +675,7 @@ void Board::clear() {
     selected_piece_index = NULL_INDEX;
     legal_moves.clear();
     jump_square_indices.clear();
+    game_over = false;
 }
 
 void Board::refresh_canvas() {
