@@ -21,6 +21,7 @@ private:
     void on_piece_move(const Board::Move& move);
 
     int get_ideal_board_size();
+    const char* game_over_text();
 
     Board* board {nullptr};
     wxPanel* right_side {nullptr};

@@ -30,9 +30,7 @@ public:
             struct {
                 Idx source_index;
                 Idx destination_indices[9];
-                Idx captured_pieces_indices[9];  // FIXME remove; can be deduced
                 Idx destination_indices_size;
-                Idx captured_pieces_indices_size;
             } capture;
         };
 
@@ -44,6 +42,13 @@ public:
         White = 0b0010u,
     };
 
+    enum class GameOver {
+        None,
+        WinnerBlack,
+        WinnerWhite,
+        Tie
+    };
+
     using OnPieceMove = std::function<void(const Move&)>;
 
     Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
@@ -53,7 +58,7 @@ public:
     void reset();
     bool set_position(const std::string& fen_string);
 
-    bool is_game_over() const { return game_over; }
+    GameOver get_game_over() const { return game_over; }
     Player get_player() const { return turn; }
     const std::vector<Move>& get_legal_moves() const { return legal_moves; }
     unsigned int get_plies_without_advancement() const { return plies_without_advancement; }
@@ -79,6 +84,7 @@ private:
     };
 
     struct JumpCtx {
+        std::array<Square, 64> board {};  // Use a copy of the board
         Idx source_index {};
         std::vector<Idx> destination_indices;
         std::vector<Idx> captured_pieces_indices;
@@ -88,30 +94,33 @@ private:
     void on_mouse_left_down(wxMouseEvent& event);
     void on_mouse_right_down(wxMouseEvent& event);
 
-    Idx get_square(wxPoint position);
-    std::pair<Idx, Idx> get_square(Idx square_index);
+    Idx get_square(wxPoint position) const;
+    std::pair<Idx, Idx> get_square(Idx square_index) const;
     bool select_piece(Idx square_index);
-    std::vector<Move> generate_moves();
-    void generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king);
-    void generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king);
-    bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx);
-    Idx offset(Idx square_index, Direction direction, Diagonal diagonal);
+    std::vector<Move> generate_moves() const;
+    void generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const;
+    void generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const;
+    bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) const;
+    Idx offset(Idx square_index, Direction direction, Diagonal diagonal) const;
     void change_turn();
     void check_80_move_rule(bool advancement);
     void check_piece_crowning(Idx square_index);
-    void check_no_pieces(Player player);
-    bool playable_normal_move(const Move& move, Idx square_index);
-    bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices);
+    void check_legal_moves();
+    bool playable_normal_move(const Move& move, Idx square_index) const;
+    bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) const;
     void play_normal_move(const Move& move);
     void play_capture_move(const Move& move);
     void select_jump_square(Idx square_index);
     void deselect_jump_square(Idx square_index);
+    void remove_jumped_pieces(const Move& move);
+    static Idx get_jumped_piece_index(Idx index1, Idx index2);
     static Player opponent(Player player);
     static bool validate_fen_string(const std::string& fen_string);
     static Player parse_player(const std::string& fen_string, std::size_t index);
     void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);
     static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
     static Idx translate_index_1_32_to_0_64(Idx index);
+    static Idx translate_index_0_64_to_1_32(Idx index);
     void clear();
     void refresh_canvas();
     void draw(wxDC& dc);
@@ -124,7 +133,7 @@ private:
     std::vector<Move> legal_moves;
     std::vector<Idx> jump_square_indices;
     unsigned int plies_without_advancement {0};
-    bool game_over {false};
+    GameOver game_over {GameOver::None};
 
     // Called every time a move has been made
     OnPieceMove on_piece_move;

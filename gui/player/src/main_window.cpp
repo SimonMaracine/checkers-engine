@@ -131,7 +131,7 @@ void MainWindow::on_piece_move(const Board::Move& move) {
             break;
     }
 
-    game.status->SetLabelText(STATUS + (board->is_game_over() ? "game over" : "game in progress"));
+    game.status->SetLabelText(STATUS + game_over_text());
     game.player->SetLabelText(PLAYER + (board->get_player() == Board::Player::Black ? "black" : "white"));
     game.plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
 }
@@ -140,4 +140,19 @@ int MainWindow::get_ideal_board_size() {
     const wxSize size {board->GetSize()};
 
     return std::min(size.GetHeight(), size.GetWidth());
+}
+
+const char* MainWindow::game_over_text() {
+    switch (board->get_game_over()) {
+        case Board::GameOver::None:
+            return "game in progress";
+        case Board::GameOver::WinnerBlack:
+            return "game over (winner black)";
+        case Board::GameOver::WinnerWhite:
+            return "game over (winner white)";
+        case Board::GameOver::Tie:
+            return "game over (tie)";
+    }
+
+    return nullptr;
 }

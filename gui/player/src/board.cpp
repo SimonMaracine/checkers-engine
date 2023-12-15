@@ -20,6 +20,13 @@
 
     B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
     W:WK4:B6,7,8,14,15,16,22,23,24
+
+    winner white W:WK7,K8:B16
+    winner black W:W8:BK12,K15
+    winner white B:W1,2,K7:B5,6,15,9
+    winner black W:W25,6:BK14,29,30
+
+    tie W:WK2:BK30
 */
 
 wxBEGIN_EVENT_TABLE(Board, wxWindow)
@@ -58,6 +65,8 @@ void Board::reset() {
         }
     }
 
+    legal_moves = generate_moves();
+
     refresh_canvas();
 }
 
@@ -89,6 +98,8 @@ bool Board::set_position(const std::string& fen_string) {
 
     parse_pieces(fen_string, index, player2);
 
+    legal_moves = generate_moves();
+
     refresh_canvas();
 
     return true;
@@ -100,7 +111,7 @@ void Board::on_paint(wxPaintEvent&) {
 }
 
 void Board::on_mouse_left_down(wxMouseEvent& event) {
-    if (game_over) {
+    if (game_over != GameOver::None) {
         return;
     }
 
@@ -114,10 +125,6 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         return;
     }
 
-    if (!on_piece_move) {
-        return;
-    }
-
     const bool normal {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Normal; })};
     const bool capture {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
 
@@ -126,6 +133,11 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
             if (move.type == MoveType::Normal) {
                 if (playable_normal_move(move, square_index)) {
                     play_normal_move(move);
+
+                    legal_moves = generate_moves();
+                    selected_piece_index = NULL_INDEX;
+
+                    break;
                 }
             }
         }
@@ -135,7 +147,12 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
         for (const Move& move : legal_moves) {
             if (playable_capture_move(move, jump_square_indices)) {
                 play_capture_move(move);
+
+                legal_moves = generate_moves();
+                selected_piece_index = NULL_INDEX;
                 jump_square_indices.clear();
+
+                break;
             }
         }
     } else {
@@ -146,17 +163,13 @@ void Board::on_mouse_left_down(wxMouseEvent& event) {
 }
 
 void Board::on_mouse_right_down(wxMouseEvent& event) {
-    if (game_over) {
+    if (game_over != GameOver::None) {
         return;
     }
 
     const Idx square_index {get_square(event.GetPosition())};
 
     if (selected_piece_index == NULL_INDEX) {
-        return;
-    }
-
-    if (!on_piece_move) {
         return;
     }
 
@@ -171,14 +184,19 @@ void Board::on_mouse_right_down(wxMouseEvent& event) {
     for (const Move& move : legal_moves) {
         if (playable_capture_move(move, jump_square_indices)) {
             play_capture_move(move);
+
+            legal_moves = generate_moves();
+            selected_piece_index = NULL_INDEX;
             jump_square_indices.clear();
+
+            break;
         }
     }
 
     refresh_canvas();
 }
 
-Board::Idx Board::get_square(wxPoint position) {
+Board::Idx Board::get_square(wxPoint position) const {
     const Idx SQUARE_SIZE {board_size / 8};
 
     const Idx file {position.x / SQUARE_SIZE};
@@ -187,7 +205,7 @@ Board::Idx Board::get_square(wxPoint position) {
     return rank * 8 + file;
 }
 
-std::pair<Board::Idx, Board::Idx> Board::get_square(Idx square_index) {
+std::pair<Board::Idx, Board::Idx> Board::get_square(Idx square_index) const {
     const Idx file {square_index % 8};
     const Idx rank {square_index / 8};
 
@@ -202,7 +220,6 @@ bool Board::select_piece(Idx square_index) {
 
         if (selected_piece_index == square_index) {
             selected_piece_index = NULL_INDEX;
-            legal_moves.clear();
             jump_square_indices.clear();
 
             refresh_canvas();
@@ -212,7 +229,6 @@ bool Board::select_piece(Idx square_index) {
 
         if (board[square_index] != Square::None) {
             selected_piece_index = square_index;
-            legal_moves = generate_moves();
             jump_square_indices.clear();
 
             refresh_canvas();
@@ -224,7 +240,7 @@ bool Board::select_piece(Idx square_index) {
     return false;
 }
 
-std::vector<Board::Move> Board::generate_moves() {
+std::vector<Board::Move> Board::generate_moves() const {
     std::vector<Move> moves;
 
     for (Idx i {0}; i < 64; i++) {
@@ -253,14 +269,15 @@ std::vector<Board::Move> Board::generate_moves() {
     return moves;
 }
 
-void Board::generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) {
+void Board::generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const {
     JumpCtx ctx;
+    ctx.board = board;
     ctx.source_index = square_index;
 
     check_piece_jumps(moves, square_index, player, king, ctx);
 }
 
-void Board::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) {
+void Board::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const {
     Direction directions[4] {};
     std::size_t index {0};
 
@@ -303,7 +320,7 @@ void Board::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Pla
     }
 }
 
-bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) {
+bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) const {
     Direction directions[4] {};
     std::size_t index {0};
 
@@ -338,23 +355,22 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             continue;
         }
 
-        const bool is_enemy_piece {static_cast<bool>(static_cast<unsigned int>(board[enemy_index]) & piece_mask)};
+        const bool is_enemy_piece {static_cast<bool>(static_cast<unsigned int>(ctx.board[enemy_index]) & piece_mask)};
 
-        if (!is_enemy_piece || board[target_index] != Square::None) {
+        if (!is_enemy_piece || ctx.board[target_index] != Square::None) {
             continue;
         }
 
         sequence_jumps_ended = false;
 
         ctx.destination_indices.push_back(target_index);
-        ctx.captured_pieces_indices.push_back(enemy_index);
 
         // Remove the piece to avoid illegal jumps
-        const Square enemy_piece {board[enemy_index]};
-        board[enemy_index] = Square::None;
+        const Square enemy_piece {ctx.board[enemy_index]};
+        ctx.board[enemy_index] = Square::None;
 
         // Jump this piece to avoid illegal jumps
-        std::swap(board[square_index], board[target_index]);
+        std::swap(ctx.board[square_index], ctx.board[target_index]);
 
         if (check_piece_jumps(moves, target_index, player, king, ctx)) {
             // This means that it reached the end of a sequence of jumps; the piece can't jump anymore
@@ -363,30 +379,27 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             move.type = MoveType::Capture;
             move.capture.source_index = ctx.source_index;
             move.capture.destination_indices_size = ctx.destination_indices.size();
-            move.capture.captured_pieces_indices_size = ctx.captured_pieces_indices.size();
 
-            for (std::size_t i {0}; i < ctx.captured_pieces_indices.size(); i++) {
+            for (std::size_t i {0}; i < ctx.destination_indices.size(); i++) {
                 move.capture.destination_indices[i] = ctx.destination_indices[i];
-                move.capture.captured_pieces_indices[i] = ctx.captured_pieces_indices[i];
             }
 
             moves.push_back(move);
         }
 
         // Restore removed piece
-        board[enemy_index] = enemy_piece;
+        ctx.board[enemy_index] = enemy_piece;
 
         // Restore jumped piece
-        std::swap(board[square_index], board[target_index]);
+        std::swap(ctx.board[square_index], ctx.board[target_index]);
 
         ctx.destination_indices.pop_back();
-        ctx.captured_pieces_indices.pop_back();
     }
 
     return sequence_jumps_ended;
 }
 
-Board::Idx Board::offset(Idx square_index, Direction direction, Diagonal diagonal) {
+Board::Idx Board::offset(Idx square_index, Direction direction, Diagonal diagonal) const {
     static constexpr int OFFSET[2] { 1, 2 };
 
     Idx result_index {square_index};
@@ -428,7 +441,7 @@ void Board::check_80_move_rule(bool advancement) {
         plies_without_advancement = 0;
     } else {
         if (++plies_without_advancement == 80) {
-            game_over = true;
+            game_over = GameOver::Tie;
         }
     }
 }
@@ -452,17 +465,17 @@ void Board::check_piece_crowning(Idx square_index) {
     }
 }
 
-void Board::check_no_pieces(Player player) {
-    const auto iter {std::find_if(board.cbegin(), board.cend(), [player](const Square square) {
-        return static_cast<bool>(static_cast<unsigned int>(square) & static_cast<unsigned int>(player));
-    })};
+void Board::check_legal_moves() {
+    // Generate current player's possible moves
+    auto moves {generate_moves()};
 
-    if (iter == board.cend()) {
-        game_over = true;
+    if (moves.empty()) {
+        // Either they have no pieces left or they are blocked
+        game_over = turn == Player::Black ? GameOver::WinnerWhite : GameOver::WinnerBlack;
     }
 }
 
-bool Board::playable_normal_move(const Move& move, Idx square_index) {
+bool Board::playable_normal_move(const Move& move, Idx square_index) const {
     if (move.normal.source_index != selected_piece_index) {
         return false;
     }
@@ -474,7 +487,7 @@ bool Board::playable_normal_move(const Move& move, Idx square_index) {
     return true;
 }
 
-bool Board::playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) {
+bool Board::playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) const {
     if (move.capture.source_index != selected_piece_index) {
         return false;
     }
@@ -504,9 +517,7 @@ void Board::play_normal_move(const Move& move) {
     check_piece_crowning(move.normal.destination_index);
     change_turn();
     check_80_move_rule(advancement);
-    check_no_pieces(turn);
-
-    selected_piece_index = NULL_INDEX;
+    check_legal_moves();  // This sets game over and has higher precedence
 
     on_piece_move(move);
 }
@@ -518,16 +529,12 @@ void Board::play_capture_move(const Move& move) {
 
     std::swap(board[move.capture.source_index], board[destination_index]);
 
-    for (Idx i {0}; i < move.capture.captured_pieces_indices_size; i++) {
-        board[move.capture.captured_pieces_indices[i]] = Square::None;
-    }
+    remove_jumped_pieces(move);
 
     check_piece_crowning(destination_index);
     change_turn();
     check_80_move_rule(true);
-    check_no_pieces(turn);
-
-    selected_piece_index = NULL_INDEX;
+    check_legal_moves();  // This sets game over and has higher precedence
 
     on_piece_move(move);
 }
@@ -557,6 +564,34 @@ void Board::deselect_jump_square(Idx square_index) {
 
     if (iter != jump_square_indices.cend()) {
         jump_square_indices.erase(iter);
+    }
+}
+
+void Board::remove_jumped_pieces(const Move& move) {  // FIXME :P
+    const auto index {get_jumped_piece_index(
+        translate_index_0_64_to_1_32(move.capture.source_index),
+        translate_index_0_64_to_1_32(move.capture.destination_indices[0])
+    )};
+    board[translate_index_1_32_to_0_64(index)] = Square::None;
+
+    for (Idx i {0}; i < move.capture.destination_indices_size - 1; i++) {
+        const auto index {get_jumped_piece_index(
+            translate_index_0_64_to_1_32(move.capture.destination_indices[i]),
+            translate_index_0_64_to_1_32(move.capture.destination_indices[i + 1])
+        )};
+        board[translate_index_1_32_to_0_64(index)] = Square::None;
+    }
+}
+
+Board::Idx Board::get_jumped_piece_index(Idx index1, Idx index2) {
+    const auto sum {index1 + index2};
+
+    assert(sum % 2 == 1);
+
+    if (((index1 - 1) / 4) % 2 == 0) {
+        return (sum + 1) / 2;
+    } else {
+        return (sum - 1) / 2;
     }
 }
 
@@ -669,13 +704,21 @@ Board::Idx Board::translate_index_1_32_to_0_64(Idx index) {
     }
 }
 
+Board::Idx Board::translate_index_0_64_to_1_32(Idx index) {
+    if (index % 2 == 1) {
+        return (index + 1) / 2;
+    } else {
+        return (index / 2) + 1;
+    }
+}
+
 void Board::clear() {
     std::fill(std::begin(board), std::end(board), Square::None);
     turn = Player::Black;
     selected_piece_index = NULL_INDEX;
     legal_moves.clear();
     jump_square_indices.clear();
-    game_over = false;
+    game_over = GameOver::None;
 }
 
 void Board::refresh_canvas() {

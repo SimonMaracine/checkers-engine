@@ -17,4 +17,9 @@ add_executable(player ${WINDOWS_APP}
 
 target_link_libraries(player PRIVATE wxmono)
 
+# According to the code doc, this should be defined for Linux
+if(UNIX)
+    target_compile_definitions(player PRIVATE "__WXGTK__")
+endif()
+
 set_compile_options(player)
