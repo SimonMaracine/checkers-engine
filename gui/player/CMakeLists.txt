@@ -22,4 +22,6 @@ if(UNIX)
     target_compile_definitions(player PRIVATE "__WXGTK__")
 endif()
 
+target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
+
 set_compile_options(player)
