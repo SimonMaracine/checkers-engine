@@ -62,6 +62,7 @@ public:
     Player get_player() const { return turn; }
     const std::vector<Move>& get_legal_moves() const { return legal_moves; }
     unsigned int get_plies_without_advancement() const { return plies_without_advancement; }
+    std::size_t get_repetition_size() const { return repetition.positions.size(); }
 private:
     enum class Direction {
         NorthEast,
@@ -106,6 +107,7 @@ private:
     void check_80_move_rule(bool advancement);
     void check_piece_crowning(Idx square_index);
     void check_legal_moves();
+    void check_repetition(bool advancement);
     bool playable_normal_move(const Move& move, Idx square_index) const;
     bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) const;
     void play_normal_move(const Move& move);
@@ -134,6 +136,19 @@ private:
     std::vector<Idx> jump_square_indices;
     unsigned int plies_without_advancement {0};
     GameOver game_over {GameOver::None};
+
+    struct Repetition {
+        struct Position {
+            std::array<Square, 64> board {};
+            Player turn {Player::Black};
+
+            bool operator==(const Position& other) const {
+                return board == other.board && turn == other.turn;
+            }
+        };
+
+        std::vector<Position> positions;
+    } repetition;
 
     // Called every time a move has been made
     OnPieceMove on_piece_move;

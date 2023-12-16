@@ -15,9 +15,6 @@
 #include "board.hpp"
 
 /*
-    TODO
-    threefold repetition
-
     B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
     W:WK4:B6,7,8,14,15,16,22,23,24
 
@@ -475,6 +472,26 @@ void Board::check_legal_moves() {
     }
 }
 
+void Board::check_repetition(bool advancement) {
+    Repetition::Position current;
+    current.board = board;
+    current.turn = turn;
+
+    if (advancement) {
+        repetition.positions.clear();
+    } else {
+        auto count {std::count(repetition.positions.cbegin(), repetition.positions.cend(), current)};
+
+        if (count == 2) {
+            game_over = GameOver::Tie;
+            return;
+        }
+    }
+
+    // Insert current position even after advancement
+    repetition.positions.push_back(current);
+}
+
 bool Board::playable_normal_move(const Move& move, Idx square_index) const {
     if (move.normal.source_index != selected_piece_index) {
         return false;
@@ -517,6 +534,7 @@ void Board::play_normal_move(const Move& move) {
     check_piece_crowning(move.normal.destination_index);
     change_turn();
     check_80_move_rule(advancement);
+    check_repetition(advancement);
     check_legal_moves();  // This sets game over and has higher precedence
 
     on_piece_move(move);
@@ -534,6 +552,7 @@ void Board::play_capture_move(const Move& move) {
     check_piece_crowning(destination_index);
     change_turn();
     check_80_move_rule(true);
+    check_repetition(true);
     check_legal_moves();  // This sets game over and has higher precedence
 
     on_piece_move(move);
@@ -719,6 +738,7 @@ void Board::clear() {
     legal_moves.clear();
     jump_square_indices.clear();
     game_over = GameOver::None;
+    repetition.positions.clear();
 }
 
 void Board::refresh_canvas() {

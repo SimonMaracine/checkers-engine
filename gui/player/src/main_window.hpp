@@ -30,6 +30,7 @@ private:
         wxStaticText* status {nullptr};
         wxStaticText* player {nullptr};
         wxStaticText* plies_without_advancement {nullptr};
+        wxStaticText* repetition_size {nullptr};
     } game;
 
     wxDECLARE_EVENT_TABLE();
