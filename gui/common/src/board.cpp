@@ -15,8 +15,8 @@
 #include "board.hpp"
 
 /*
-    B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
-    W:WK4:B6,7,8,14,15,16,22,23,24
+    branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
+    longest capture W:WK4:B6,7,8,14,15,16,22,23,24
 
     winner white W:WK7,K8:B16
     winner black W:W8:BK12,K15
@@ -68,6 +68,9 @@ void Board::reset() {
 }
 
 bool Board::set_position(const std::string& fen_string) {
+    // Doesn't validate for any stupid things the string might contain
+    // Validates only the format
+
     if (!validate_fen_string(fen_string)) {
         return false;
     }
@@ -89,7 +92,7 @@ bool Board::set_position(const std::string& fen_string) {
 
     index++;
 
-    const Player player2 {parse_player(fen_string, index)};  // TODO check
+    const Player player2 {parse_player(fen_string, index)};
 
     index++;
 
@@ -363,10 +366,10 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
         ctx.destination_indices.push_back(target_index);
 
         // Remove the piece to avoid illegal jumps
-        const Square enemy_piece {ctx.board[enemy_index]};
+        const Square removed_enemy_piece {ctx.board[enemy_index]};
         ctx.board[enemy_index] = Square::None;
 
-        // Jump this piece to avoid illegal jumps
+        // Jump this piece to avoid other illegal jumps
         std::swap(ctx.board[square_index], ctx.board[target_index]);
 
         if (check_piece_jumps(moves, target_index, player, king, ctx)) {
@@ -384,11 +387,11 @@ bool Board::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player
             moves.push_back(move);
         }
 
-        // Restore removed piece
-        ctx.board[enemy_index] = enemy_piece;
-
         // Restore jumped piece
         std::swap(ctx.board[square_index], ctx.board[target_index]);
+
+        // Restore removed piece
+        ctx.board[enemy_index] = removed_enemy_piece;
 
         ctx.destination_indices.pop_back();
     }

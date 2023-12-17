@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <wx/wx.h>
-#include <wx/statline.h>
 
 #include "main_window.hpp"
 #include "board.hpp"
