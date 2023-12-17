@@ -17,6 +17,14 @@ function(set_compile_options TARGET)
     set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS OFF)
 endfunction()
 
+# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+# elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+#     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+# endif()
+
 add_subdirectory(library)
 add_subdirectory(gui)
 add_subdirectory(tests)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)

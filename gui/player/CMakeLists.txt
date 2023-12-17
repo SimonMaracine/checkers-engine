@@ -11,5 +11,7 @@ add_executable(player ${WINDOWS_APP}
 
 target_link_libraries(player PRIVATE wxmono common)
 
+target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
+
 set_compile_options(player)
 set_linux_defines(player)

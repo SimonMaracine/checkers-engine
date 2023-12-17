@@ -136,7 +136,7 @@ void MainWindow::on_piece_move(const Board::Move& move) {
     game.status->SetLabelText(STATUS + game_over_text());
     game.player->SetLabelText(PLAYER + (board->get_player() == Board::Player::Black ? "black" : "white"));
     game.plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
-    game.repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%lu", board->get_repetition_size()));
+    game.repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 }
 
 int MainWindow::get_ideal_board_size() {
