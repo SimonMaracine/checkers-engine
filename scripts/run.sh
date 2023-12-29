@@ -13,5 +13,7 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
+# Can only run GUI binaries
+
 cd ../build/gui/$TARGET
 ./$TARGET

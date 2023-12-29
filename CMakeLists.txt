@@ -23,8 +23,8 @@ endfunction()
 #     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 # endif()
 
-add_subdirectory(library)
 add_subdirectory(gui)
+add_subdirectory(engine)
 add_subdirectory(tests)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
