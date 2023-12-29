@@ -16,17 +16,22 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   folosit foarte mult de enumerații cu spații de nume pentru a reprezenta tabla, jucătorii, tipurile de mutări etc.
   Unele dintre enumerații conțin valori binare personalizate pentru folosirea operațiilor pe biți în logica codului.
   Fiindcă o mutare poate fi de două tipuri: normală și de captură, și fiindcă cele două tipuri necesită date diferite,
-  m-am folosit de uniuni în C++ (union), mai exact engl. tagged unions, pentru a face tipul de date mutare să fie
-  polimorfic.
+  m-am folosit de uniuni în C++ (engl. "union"), mai exact engl. tagged unions, pentru a face tipul de date mutare să fie
+  polimorfic. Am utilizat în mod corespunzător multe tipuri de date și algoritmi din biblioteca standard C++ din
+  antetele array, functional, vector, string și algorithm, utility. Astfel n-am avut nevoie să reinventez roata în vreun
+  fel sau altul și codul scris este concis.
 - Aș fi avut două diferite moduri de a implementa regulile jocului dame, mai exact mutarea pieselor. Atunci când
   utilizatorul încearcă să facă o anumită mutare, aș putea verifica prin multe condiții dacă acea singură
-  mutare este validă, iar dacă este, să o permit și să manipulez datele. Ideea aceasta merge, dar ar fi alta mai bună.
+  mutare este validă, iar dacă este, să o permit și să manipulez datele. Ideea aceasta merge, dar ar exista alta mai bună.
   La fiecare tură aș putea, în schimb, să generez toate mutările posibile ale jucătorului la rând. Iar atunci când
-  utilizatorul vrea să facă o mutare, pur și simplu să caut mutarea resepctivă în lista de mutări generate anterior.
-  Validarea devine astfel trivială. Un mare avantaj ale acestei abordări este că, știind toate mutările posibile, le pot
+  utilizatorul vrea să facă o mutare, pur și simplu să caut mutarea respectivă în lista de mutări generate anterior.
+  Validarea devine astfel trivială. Un mare avantaj al acestei abordări este că, știind toate mutările posibile, le pot
   afișa oarecum grafic pe tablă, ceea ce îmbunătățește mult experiența utilizatorului. Am ales a doua variantă.
 - După implementarea mutărilor, am implementat și condițiile de pierdere și de remiză, adică tot jocul dame.
 - Programul GUI poate oricând reseta tot jocul dame și poate seta starea jocului la o anumită poziție folosind șirurile
   de caractere "FEN" ("Forsyth–Edwards Notation") din notația portabilă de dame ("Portable Draugts Notation", "PDN").
   Acest lucru este foarte important pentru dezvoltarea jocului și a AI-ului, fiindcă îmi permite să testez rapid orice
-  fel de situație din joc, orice poziție.
+  fel de situație din joc, orice poziție. Pentru validarea șirurilor de caractere "FEN" am folosit expresiile regulate
+  (engl. "regular expressions") implementate în biblioteca standard C++.
+
+TODO structura și organizarea proiectului pe module, versiunea de wxWidgets

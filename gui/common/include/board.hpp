@@ -9,7 +9,7 @@
 
 #include <wx/wx.h>
 
-class Board : public wxWindow {
+class CheckersBoard : public wxWindow {
 public:
     using Idx = int;
 
@@ -51,10 +51,9 @@ public:
 
     using OnPieceMove = std::function<void(const Move&)>;
 
-    Board(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
+    CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
 
     void set_board_size(int size);
-
     void reset();
     bool set_position(const std::string& fen_string);
 
@@ -84,14 +83,15 @@ private:
         WhiteKing = 0b0110u
     };
 
+    using Board = std::array<Square, 64>;
+
     struct JumpCtx {
-        std::array<Square, 64> board {};  // Use a copy of the board
+        Board board {};  // Use a copy of the board
         Idx source_index {};
         std::vector<Idx> destination_indices;
-        std::vector<Idx> captured_pieces_indices;
     };
 
-    void on_paint(wxPaintEvent& event);
+    void on_paint(wxPaintEvent&);
     void on_mouse_left_down(wxMouseEvent& event);
     void on_mouse_right_down(wxMouseEvent& event);
 
@@ -127,19 +127,24 @@ private:
     void refresh_canvas();
     void draw(wxDC& dc);
 
+    // Used for mouse cursor detection
     int board_size {0};
 
-    std::array<Square, 64> board {};
+    // Called every time a move has been made
+    OnPieceMove on_piece_move;
+
+    // Game data
+    Board board {};
     Player turn {Player::Black};
     Idx selected_piece_index {NULL_INDEX};
     std::vector<Move> legal_moves;
     std::vector<Idx> jump_square_indices;
-    unsigned int plies_without_advancement {0};
+    unsigned int plies_without_advancement {0u};
     GameOver game_over {GameOver::None};
 
     struct Repetition {
         struct Position {
-            std::array<Square, 64> board {};
+            Board board {};
             Player turn {Player::Black};
 
             bool operator==(const Position& other) const {
@@ -149,9 +154,6 @@ private:
 
         std::vector<Position> positions;
     } repetition;
-
-    // Called every time a move has been made
-    OnPieceMove on_piece_move;
 
     wxDECLARE_EVENT_TABLE();
 };

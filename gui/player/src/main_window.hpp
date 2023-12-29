@@ -7,7 +7,6 @@
 class MainWindow : public wxFrame {
 public:
     MainWindow();
-    ~MainWindow();
 private:
     void setup_menubar();
     void setup_widgets();
@@ -18,12 +17,12 @@ private:
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);
 
-    void on_piece_move(const Board::Move& move);
+    void on_piece_move(const CheckersBoard::Move& move);
 
     int get_ideal_board_size();
     const char* game_over_text();
 
-    Board* board {nullptr};
+    CheckersBoard* board {nullptr};
     wxPanel* right_side {nullptr};
 
     struct {
