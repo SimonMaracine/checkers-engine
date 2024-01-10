@@ -35,3 +35,27 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   (engl. "regular expressions") implementate în biblioteca standard C++.
 
 TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
+
+- Am început scrierea AI-ului (numit "engine", fiindcă acest termen este des utilizat, ex. "chess engine") prin
+  implementarea comunicării dintre acesta și joc (interfața GUI).
+- Inițial m-am gândit la un sistem destul de complex de fire de execuție task-uri, în care firul principal (main)
+  citește într-o buclă infinită mesaje de la fișierul stdin și deleagă sarcinilie unui al doilea fir de execuție.
+  Ideea este ca AI-ul tot timpul să poată citi și procesa mesaje, iar calculele de lungă durată să le facă pe
+  un fir separat. Task-urile ar fi fost schimbări simple de stări sau algoritmul minimax etc.
+- M-am lovit de problema citirii și scrierii concurente în fișierele stdin, respectiv stdout. Operațiile acestea
+  de citire și scriere trebuie sincronizate. Problema mai mare, însă, este că operația de citire există numai cu
+  blocare în biblioteca standard C++. Aș fi vrut să citesc fără blocare și să scriu de pe același fir.
+- M-am gândit la soluția de a rula bucla infinită de citire pe propriul lui fir de execuție, astfel având
+  un fir pentru citire, alt fir pentru scriere, altul pentru execuție a comenzilor lungi, și firul principal pentru
+  coordonare între celelalte fire. Pentru aceasta este nevoie de două cozi sincronizate (LIFO) între ele.
+- Însă am mai avut alte probleme: odată începută, citirea pe stdin nu poate fi oprită în niciun fel decât
+  prin intervenție umană (apăsarea tastei Enter), și nici închiderea elegantă a programului (Ctrl+C) nu putea fi
+  implementată.
+- M-am întrebat cum au rezolvat alte motoare problema aceasta. Am aruncat o scurtă privire asupra codului
+  sursă a proiectului Stockfish și m-a surprins soluția simplă implementată de ei: firul principal citește normal,
+  cu blocare într-o buclă și tot ea execută toate comenzile și scrie înapoi în stdout. Iar singurul algoritm
+  de lungă durată în execuție, minimax, este cel care rulează într-un fir separat. Sincronizarea trebuie făcută numai
+  între acest fir și firul principal. Iar problema închiderii elegante cu Ctrl+C dispare, fiindcă nu (trebuie să)
+  tratez acest semnal. Închiderea elegantă a motorului trebuie făcută numai prin comanda quit.
+- Aș fi putut folosi funcții de citire fără blocare oferite de POSIX, însă acestea sunt prezente numai în Linux.
+  Trebuie să folosesc numai funcții cross-platform (Linux și Windows).

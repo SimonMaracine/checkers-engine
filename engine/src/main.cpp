@@ -1,33 +1,8 @@
-#include <csignal>
-#include <cstdlib>
-#include <utility>
-#include <iostream>
-
-#include "io.hpp"
-
-volatile bool running {true};
+#include "engine.hpp"
+#include "loop.hpp"
 
 int main() {
-    const auto handler {[](int) {
-        running = false;
-    }};
+    EngineData data;
 
-    if (std::signal(SIGINT, handler) == SIG_ERR) {
-        std::exit(1);
-    }
-
-    IoCommunication io;
-    io.start();
-
-    while (running) {
-        const auto message {io.get_message()};
-
-        if (!message) {
-            continue;
-        }
-
-        io.put_message(*message);
-    }
-
-    io.stop();
+    main_loop(data);
 }
