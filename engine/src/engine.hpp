@@ -1,12 +1,14 @@
 #pragma once
 
-struct EngineData {
-    /* TODO
-        internal position
-        transposition table
-        opening book
-        parameters
-    */
-};
+namespace engine {
+    struct EngineData {
+        /* TODO
+            internal position
+            transposition table
+            opening book
+            parameters
+        */
+    };
 
-// TODO initialization, finalization
+    // TODO initialization, finalization
+}

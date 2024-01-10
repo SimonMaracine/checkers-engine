@@ -1,71 +1,74 @@
 #include "loop.hpp"
 
 #include <iostream>
-#include <string>
-#include <array>
-#include <cstddef>
 #include <cstring>
+#include <unordered_map>
 
-struct InputTokens {
-    static constexpr std::size_t MAX {8u};
+#include "commands.hpp"
 
-    std::array<std::string, MAX> tokens {};
-    std::size_t count {};
-};
+namespace loop {
+    static InputTokens tokenize_input(const char* input) {
+        InputTokens result;
 
-static InputTokens tokenize_input(const char* input) {
-    InputTokens result;
+        std::string mutable_buffer {input};
 
-    std::string mutable_buffer {input};
+        char* token {std::strtok(mutable_buffer.data(), " \t")};  // TODO other whitespace characters?
 
-    char* token {std::strtok(mutable_buffer.data(), " \t")};  // TODO other whitespace characters?
+        while (token != nullptr) {
+            if (result.count == InputTokens::MAX) {
+                break;
+            }
 
-    while (token != nullptr) {
-        if (result.count == InputTokens::MAX) {
-            break;
+            result.tokens[result.count++] = token;
+
+            token = std::strtok(nullptr, " \t");
         }
 
-        result.tokens[result.count++] = token;
-
-        token = std::strtok(nullptr, " \t");
+        return result;
     }
 
-    return result;
-}
+    static void send_message_error() {
+        std::cout << "ERRORCOMMAND\n";
+    }
 
-static void send_message_error() {
-    std::cout << "ERRORCOMMAND\n";
-}
+    static bool execute_command(const InputTokens& input_tokens, engine::EngineData& data) {
+        static const std::unordered_map<std::string, commands::TryCommand> COMMANDS {
+            { "INIT", commands::try_init }
+        };
 
-void main_loop(EngineData& data) {
-    while (true) {
-        char input[128] {};
-        std::cin.getline(input, 128);
+        const auto& command_name {input_tokens.tokens[0]};
 
-        const InputTokens input_tokens {tokenize_input(input)};
-
-        if (input_tokens.count == 0) {
-            continue;
+        if (COMMANDS.find(command_name) == COMMANDS.cend()) {
+            return false;
         }
 
-        const auto& command {input_tokens.tokens[0]};
+        // Call the command
+        if (!COMMANDS.at(command_name)(input_tokens, data)) {
+            return false;
+        }
 
-        if (command == "INIT") {
+        return true;
+    }
 
-        } else if (command == "NEWGAME") {
+    void main_loop(engine::EngineData& data) {
+        while (true) {
+            char input[128] {};
+            std::cin.getline(input, 128);
 
-        } else if (command == "MOVE") {
+            const InputTokens input_tokens {tokenize_input(input)};
 
-        } else if (command == "GO") {
+            if (input_tokens.count == 0) {
+                continue;
+            }
 
-        } else if (command == "SETPARAMETER") {
+            // Handle QUIT separately
+            if (input_tokens.tokens[0] == "QUIT") {
+                break;
+            }
 
-        } else if (command == "GETPARAMETER") {
-
-        } else if (command == "QUIT") {
-            break;
-        } else {
-            send_message_error();
+            if (!execute_command(input_tokens, data)) {
+                send_message_error();
+            }
         }
     }
 }

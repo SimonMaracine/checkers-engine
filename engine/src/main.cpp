@@ -2,7 +2,7 @@
 #include "loop.hpp"
 
 int main() {
-    EngineData data;
+    engine::EngineData data;
 
-    main_loop(data);
+    loop::main_loop(data);
 }
