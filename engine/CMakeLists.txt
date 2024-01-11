@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 add_executable(checkers-engine
     "src/commands.cpp"
     "src/commands.hpp"
+    "src/engine.cpp"
     "src/engine.hpp"
     "src/game.cpp"
     "src/game.hpp"

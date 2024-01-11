@@ -28,7 +28,7 @@ namespace loop {
         return result;
     }
 
-    static bool execute_command(const InputTokens& input_tokens, engine::EngineData& data) {
+    static bool execute_command(engine::EngineData& data, const InputTokens& input_tokens) {
         static const std::unordered_map<std::string, commands::TryCommand> COMMANDS {
             { "INIT", commands::try_init },
             { "NEWGAME", commands::try_newgame },
@@ -45,7 +45,7 @@ namespace loop {
         }
 
         // Call the command
-        if (!COMMANDS.at(command_name)(input_tokens, data)) {
+        if (!COMMANDS.at(command_name)(data, input_tokens)) {
             return false;
         }
 
@@ -68,7 +68,7 @@ namespace loop {
                 break;
             }
 
-            if (!execute_command(input_tokens, data)) {
+            if (!execute_command(data, input_tokens)) {
                 messages::errorcommand();
             }
         }

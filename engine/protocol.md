@@ -20,7 +20,8 @@ Tells the engine to get ready to play.
 ### NEWGAME [start position] [setup moves]
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
-(right after INIT). Optionally tells it to start from a specific position and then play the setup moves.
+(right after INIT), as if INIT automatically calls NEWGAME. Optionally tells it to start from a specific position
+and then play the setup moves.
 
 ### MOVE \<move string\>
 
