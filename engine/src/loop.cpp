@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "commands.hpp"
+#include "messages.hpp"
 
 namespace loop {
     static InputTokens tokenize_input(const char* input) {
@@ -27,13 +28,14 @@ namespace loop {
         return result;
     }
 
-    static void send_message_error() {
-        std::cout << "ERRORCOMMAND\n";
-    }
-
     static bool execute_command(const InputTokens& input_tokens, engine::EngineData& data) {
         static const std::unordered_map<std::string, commands::TryCommand> COMMANDS {
-            { "INIT", commands::try_init }
+            { "INIT", commands::try_init },
+            { "NEWGAME", commands::try_newgame },
+            { "MOVE", commands::try_move },
+            { "GO", commands::try_go },
+            { "SETPARAMETER", commands::try_setparameter },
+            { "GETPARAMETER", commands::try_getparameter }
         };
 
         const auto& command_name {input_tokens.tokens[0]};
@@ -67,7 +69,7 @@ namespace loop {
             }
 
             if (!execute_command(input_tokens, data)) {
-                send_message_error();
+                messages::errorcommand();
             }
         }
     }
