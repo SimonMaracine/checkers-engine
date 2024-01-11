@@ -39,7 +39,7 @@ public:
 
     enum class Player : unsigned int {
         Black = 0b0001u,
-        White = 0b0010u,
+        White = 0b0010u
     };
 
     enum class GameOver {
