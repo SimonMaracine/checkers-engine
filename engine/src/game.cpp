@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <array>
 #include <cassert>
+#include <cmath>
 
 #include "moves.hpp"
 
@@ -153,7 +154,37 @@ namespace game {
         }
 
         static std::pair<std::array<game::Idx, 9>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
-            // TODO
+            std::array<game::Idx, 9> indices {};
+            std::size_t count {0u};
+
+            while (true) {
+                if (index == move_string.size()) {
+                    break;
+                }
+
+                const auto number {parse_number(move_string, index)};
+
+                assert(number <= 32u);
+
+                indices[count++] = static_cast<game::Idx>(number);
+            }
+
+            return std::make_pair(indices, count);
+        }
+
+        static bool is_capture_move(game::Idx source, const std::array<game::Idx, 9>& destinations, std::size_t count) {
+            if (count == 1) {
+                const auto distance {std::abs(source - 1 - destinations[0u] - 1)};
+
+                if (distance >= 4 && distance <= 6) {
+                    // Then it can't be a capture move
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            return true;
         }
     }
 
@@ -197,15 +228,31 @@ namespace game {
 
         std::size_t index {0u};
 
+        // These are in range [1, 32] and need to be shifted
         const auto source {pdn::parse_source_square(move_string, index)};
         const auto [destinations, count] {pdn::parse_destination_squares(move_string, index)};
 
-        // TODO figure out move type
+        // Construct a move and play it
 
         game::Move move;
-        move.type;
+
+        if (pdn::is_capture_move(source, destinations, count)) {
+            move.type = game::MoveType::Capture;
+            move.capture.source_index = source - 1;
+            move.capture.destination_indices_size = count;
+
+            for (std::size_t i {0u}; i < count; i++) {
+                move.capture.destination_indices[i] = destinations[i] - 1;
+            }
+        } else {
+            move.type = game::MoveType::Normal;
+            move.normal.source_index = source - 1;
+            move.normal.destination_index = destinations[0u] - 1;
+        }
 
         moves::play_move(position, move);
+
+        // TODO increment ply counter
 
         return true;
     }

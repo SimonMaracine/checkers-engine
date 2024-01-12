@@ -58,7 +58,7 @@ namespace game {
         MoveType type {};
     };
 
-    bool set_position(Position& position, const std::string& fen_string);
+    bool set_position(Position& position, const std::string& fen_string);  // TODO handle error?
     void reset_position(Position& position);
     bool make_move(Position& position, const std::string& move_string);
 }

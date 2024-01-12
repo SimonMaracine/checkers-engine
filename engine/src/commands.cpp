@@ -15,7 +15,7 @@ namespace commands {
         }
 
         static void move(engine::EngineData& data, const std::string& move) {
-
+            game::make_move(data.position, move);  // TODO can't handle error
         }
 
         static void go(engine::EngineData& data, bool dont_play_move) {
@@ -44,7 +44,11 @@ namespace commands {
     }
 
     bool try_move(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::move(data, "");
+        if (input_tokens.count != 2u) {
+            return false;
+        }
+
+        core::move(data, input_tokens.tokens[1u]);
 
         return true;
     }
