@@ -1,11 +1,12 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 namespace game {
     using Eval = int;
 
-    using Idx = signed char;
+    using Idx = signed char;  // Indices are in the range [0, 31]
 
     inline constexpr Idx NULL_INDEX {-1};
 
@@ -56,4 +57,8 @@ namespace game {
 
         MoveType type {};
     };
+
+    bool set_position(Position& position, const std::string& fen_string);
+    void reset_position(Position& position);
+    bool make_move(Position& position, const std::string& move_string);
 }

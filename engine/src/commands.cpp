@@ -2,14 +2,16 @@
 
 #include <string>
 
+#include "game.hpp"
+
 namespace commands {
     namespace core {
         static void init(engine::EngineData& data) {
-            engine::reset_position(data);
+            game::reset_position(data.position);
         }
 
         static void newgame(engine::EngineData& data) {
-            engine::reset_position(data);
+            game::reset_position(data.position);
         }
 
         static void move(engine::EngineData& data, const std::string& move) {

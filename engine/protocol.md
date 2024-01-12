@@ -11,6 +11,8 @@ The string of a command can contain arbitrary whitespace around tokens.
 If a received command is invalid in any way, it should be ignored completely and the receiver should respond with
 the message "ERRORCOMMAND".
 
+Positions and moves are encoded as FEN strings using the Portable Draughts Notation format.
+
 ## GUI -> Engine
 
 ### INIT
