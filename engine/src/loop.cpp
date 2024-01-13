@@ -6,6 +6,7 @@
 
 #include "commands.hpp"
 #include "messages.hpp"
+#include "error.hpp"
 
 namespace loop {
     static InputTokens tokenize_input(const char* input) {
@@ -45,6 +46,7 @@ namespace loop {
         }
 
         // Call the command
+        // May throw errors
         if (!COMMANDS.at(command_name)(data, input_tokens)) {
             return false;
         }
@@ -52,7 +54,7 @@ namespace loop {
         return true;
     }
 
-    void main_loop(engine::EngineData& data) {
+    int main_loop(engine::EngineData& data) {
         while (true) {
             char input[128] {};
             std::cin.getline(input, 128);
@@ -68,9 +70,15 @@ namespace loop {
                 break;
             }
 
-            if (!execute_command(data, input_tokens)) {
-                messages::errorcommand();
+            try {
+                if (!execute_command(data, input_tokens)) {
+                    messages::warning();
+                }
+            } catch (error::Error) {
+                return 1;
             }
         }
+
+        return 0;
     }
 }

@@ -25,16 +25,16 @@ namespace game {
 
     using Board = std::array<Square, 32>;
 
-    struct Position {
+    struct FenPosition {
         Board board {};
         Player player {Player::Black};
     };
 
-    // struct FenPosition {
-    //     Position position;
-    //     unsigned int plies_without_advancement {};
-    //     // TODO other fields?
-    // };
+    struct Position {
+        FenPosition position;
+        unsigned int plies {0u};
+        unsigned int plies_without_advancement {0u};
+    };
 
     enum class MoveType : unsigned char {
         Normal,
@@ -58,7 +58,7 @@ namespace game {
         MoveType type {};
     };
 
-    bool set_position(Position& position, const std::string& fen_string);  // TODO handle error?
-    void reset_position(Position& position);
-    bool make_move(Position& position, const std::string& move_string);
+    void set_position(FenPosition& position, const std::string& fen_string);
+    void make_move(Position& position, const std::string& move_string);
+    Player opponent(Player player);
 }

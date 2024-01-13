@@ -4,5 +4,5 @@
 #include <optional>
 
 namespace messages {
-    void errorcommand(const std::optional<std::string>& message = std::nullopt);
+    void warning(const std::optional<std::string>& message = std::nullopt);
 }

@@ -3,11 +3,11 @@
 #include <iostream>
 
 namespace messages {
-    void errorcommand(const std::optional<std::string>& message) {
+    void warning(const std::optional<std::string>& message) {
         if (message) {
-            std::cout << "ERRORCOMMAND " << *message << '\n';
+            std::cout << "WARNING " << *message << '\n';
         } else {
-            std::cout << "ERRORCOMMAND\n";
+            std::cout << "WARNING\n";
         }
     }
 }

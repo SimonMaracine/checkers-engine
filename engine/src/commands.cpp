@@ -2,43 +2,17 @@
 
 #include <string>
 
-#include "game.hpp"
+#include "engine.hpp"
 
 namespace commands {
-    namespace core {
-        static void init(engine::EngineData& data) {
-            game::reset_position(data.position);
-        }
-
-        static void newgame(engine::EngineData& data) {
-            game::reset_position(data.position);
-        }
-
-        static void move(engine::EngineData& data, const std::string& move) {
-            game::make_move(data.position, move);  // TODO can't handle error
-        }
-
-        static void go(engine::EngineData& data, bool dont_play_move) {
-
-        }
-
-        static void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {
-
-        }
-
-        static void getparameter(engine::EngineData& data, const std::string& name) {
-
-        }
-    }
-
-    bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::init(data);
+    bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {  // TODO use input tokens as arguments
+        engine::init(data);
 
         return true;
     }
 
     bool try_newgame(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::newgame(data);
+        engine::newgame(data);
 
         return true;
     }
@@ -48,25 +22,25 @@ namespace commands {
             return false;
         }
 
-        core::move(data, input_tokens.tokens[1u]);
+        engine::move(data, input_tokens.tokens[1u]);
 
         return true;
     }
 
     bool try_go(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::go(data, true);
+        engine::go(data, true);
 
         return true;
     }
 
     bool try_setparameter(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::setparameter(data, "", "");
+        engine::setparameter(data, "", "");
 
         return true;
     }
 
     bool try_getparameter(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        core::getparameter(data, "");
+        engine::getparameter(data, "");
 
         return true;
     }

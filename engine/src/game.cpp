@@ -5,10 +5,10 @@
 #include <utility>
 #include <stdexcept>
 #include <array>
-#include <cassert>
 #include <cmath>
 
 #include "moves.hpp"
+#include "error.hpp"
 
 namespace game {
     namespace pdn {
@@ -25,6 +25,8 @@ namespace game {
                 case 'W':
                     return game::Player::White;
             }
+
+            throw error::ERR;
 
             return {};
         }
@@ -77,9 +79,9 @@ namespace game {
             try {
                 result = std::stoul(result_number);
             } catch (const std::invalid_argument&) {
-                return std::make_pair(game::NULL_INDEX, false);
+                throw error::ERR;
             } catch (const std::out_of_range&) {
-                return std::make_pair(game::NULL_INDEX, false);
+                throw error::ERR;
             }
 
             return std::make_pair(static_cast<game::Idx>(result), king);
@@ -128,7 +130,7 @@ namespace game {
                     index++;
                     break;
                 } else {
-                    return game::NULL_INDEX;
+                    throw error::ERR;
                 }
             }
 
@@ -137,9 +139,9 @@ namespace game {
             try {
                 result = std::stoul(result_number);
             } catch (const std::invalid_argument&) {
-                return game::NULL_INDEX;
+                throw error::ERR;
             } catch (const std::out_of_range&) {
-                return game::NULL_INDEX;
+                throw error::ERR;
             }
 
             return static_cast<game::Idx>(result);
@@ -148,7 +150,9 @@ namespace game {
         static game::Idx parse_source_square(const std::string& move_string, std::size_t& index) {
             const auto number {parse_number(move_string, index)};
 
-            assert(number <= 32u);
+            if (number > 32u) {
+                throw error::ERR;
+            }
 
             return static_cast<game::Idx>(number);
         }
@@ -164,7 +168,9 @@ namespace game {
 
                 const auto number {parse_number(move_string, index)};
 
-                assert(number <= 32u);
+                if (number > 32u) {
+                    throw error::ERR;
+                }
 
                 indices[count++] = static_cast<game::Idx>(number);
             }
@@ -188,9 +194,9 @@ namespace game {
         }
     }
 
-    bool set_position(Position& position, const std::string& fen_string) {
+    void set_position(FenPosition& position, const std::string& fen_string) {
         if (!pdn::valid_fen_string(fen_string)) {
-            return false;
+            throw error::ERR;
         }
 
         std::size_t index {0u};
@@ -213,17 +219,11 @@ namespace game {
         index++;
 
         pdn::parse_pieces(fen_string, index, player2, position.board);
-
-        return true;
     }
 
-    void reset_position(Position& position) {
-        set_position(position, "B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32");
-    }
-
-    bool make_move(Position& position, const std::string& move_string) {
+    void make_move(Position& position, const std::string& move_string) {
         if (!pdn::valid_move_string(move_string)) {
-            return false;
+            throw error::ERR;
         }
 
         std::size_t index {0u};
@@ -239,7 +239,7 @@ namespace game {
         if (pdn::is_capture_move(source, destinations, count)) {
             move.type = game::MoveType::Capture;
             move.capture.source_index = source - 1;
-            move.capture.destination_indices_size = count;
+            move.capture.destination_indices_size = static_cast<unsigned char>(count);
 
             for (std::size_t i {0u}; i < count; i++) {
                 move.capture.destination_indices[i] = destinations[i] - 1;
@@ -251,9 +251,13 @@ namespace game {
         }
 
         moves::play_move(position, move);
+    }
 
-        // TODO increment ply counter
-
-        return true;
+    Player opponent(Player player) {
+        if (player == Player::Black) {  // TODO opt. maybe do xor
+            return Player::White;
+        } else {
+            return Player::Black;
+        }
     }
 }

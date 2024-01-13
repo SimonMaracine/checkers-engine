@@ -5,6 +5,7 @@ add_executable(checkers-engine
     "src/commands.hpp"
     "src/engine.cpp"
     "src/engine.hpp"
+    "src/error.hpp"
     "src/game.cpp"
     "src/game.hpp"
     "src/loop.cpp"

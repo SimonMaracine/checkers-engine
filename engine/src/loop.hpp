@@ -14,5 +14,5 @@ namespace loop {
         std::size_t count {};
     };
 
-    void main_loop(engine::EngineData& data);
+    int main_loop(engine::EngineData& data);
 }

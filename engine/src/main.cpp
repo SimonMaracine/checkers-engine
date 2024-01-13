@@ -4,5 +4,5 @@
 int main() {
     engine::EngineData data;
 
-    loop::main_loop(data);
+    return loop::main_loop(data);
 }
