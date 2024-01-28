@@ -67,6 +67,7 @@ namespace loop {
 
             // Handle QUIT separately
             if (input_tokens.tokens[0] == "QUIT") {
+                engine::quit(data);
                 break;
             }
 

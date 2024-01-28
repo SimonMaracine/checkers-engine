@@ -1,6 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <thread>
+#include <functional>
+#include <condition_variable>
+#include <mutex>
+#include <optional>
 
 #include "game.hpp"
 
@@ -12,6 +17,14 @@ namespace engine {
             parameters
             other
         */
+
+       struct {
+            std::thread thread;
+            std::function<game::Move()> search;
+            std::condition_variable cv;
+            std::mutex mutex;
+            bool running {false};
+       } minimax;
 
         struct {
             game::Position position;  // Internal position
@@ -29,6 +42,7 @@ namespace engine {
     void go(engine::EngineData& data, bool dont_play_move);
     void setparameter(engine::EngineData& data, const std::string& name, const std::string& value);
     void getparameter(engine::EngineData& data, const std::string& name);
+    void quit(engine::EngineData& data);
 
     // TODO maybe initialization, finalization
 }

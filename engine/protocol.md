@@ -19,6 +19,8 @@ Positions and moves are encoded as FEN strings using the Portable Draughts Notat
 
 Tells the engine to get ready to play.
 
+Must be called at the beginning and only once.
+
 ### NEWGAME [start position] [setup moves]
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
