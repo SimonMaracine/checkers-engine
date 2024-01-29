@@ -5,25 +5,25 @@
 
 namespace moves {
     static game::Idx get_jumped_piece_index(game::Idx index1, game::Idx index2) {
-        const auto sum {index1 + index2};
+        const int sum {index1 + index2};
 
         assert(sum % 2 == 1);
 
         if (((index1 - 1) / 4) % 2 == 0) {
-            return (sum + 1) / 2;
+            return static_cast<game::Idx>((sum + 1) / 2);
         } else {
-            return (sum - 1) / 2;
+            return static_cast<game::Idx>((sum - 1) / 2);
         }
     }
 
-    static void remove_jumped_pieces(game::Position& position, const game::Move& move) {  // FIXME
+    static void remove_jumped_pieces(game::Position& position, const game::Move& move) {
         assert(move.type == game::MoveType::Capture);
 
         auto& board {position.position.board};
 
         const auto index {get_jumped_piece_index(
             move.capture.source_index + 1,
-            move.capture.destination_indices[0u] + 1
+            move.capture.destination_indices[0u] + 1  // FIXME create conversion functions!
         )};
         board[index - 1] = game::Square::None;
 

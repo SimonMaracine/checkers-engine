@@ -3,6 +3,8 @@
 #include <cassert>
 
 #include "moves.hpp"
+#include "messages.hpp"
+#include "search.hpp"
 
 namespace engine {
     static void reset(EngineData& data) {
@@ -27,6 +29,7 @@ namespace engine {
 
         data.minimax.thread = std::thread([&data]() {
             while (true) {
+                // Returning from this only happens when there is work to do or when it should stop running
                 wait_sleeping(data);
 
                 if (!data.minimax.running) {
@@ -56,7 +59,22 @@ namespace engine {
     }
 
     void go(engine::EngineData& data, bool dont_play_move) {
-        // TODO set search function and notify
+        assert(data.minimax.running);  // TODO maybe use exceptions instead
+        assert(!data.minimax.search);
+
+        data.minimax.search = [&data, dont_play_move]() {
+            search::Search instance;
+
+            const auto best_move {
+                instance.search(data.game.position, data.game.previous_positions, data.game.moves_played)
+            };
+
+            messages::bestmove(best_move);
+
+            return best_move;
+        };
+
+        data.minimax.cv.notify_one();
     }
 
     void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {

@@ -15,6 +15,8 @@ add_executable(checkers-engine
     "src/messages.hpp"
     "src/moves.cpp"
     "src/moves.hpp"
+    "src/search.cpp"
+    "src/search.hpp"
 )
 
 set_compile_options(checkers-engine)

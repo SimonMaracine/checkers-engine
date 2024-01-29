@@ -45,8 +45,7 @@ namespace loop {
             return false;
         }
 
-        // Call the command
-        // May throw errors
+        // Call the command; may throw errors
         if (!COMMANDS.at(command_name)(data, input_tokens)) {
             return false;
         }
