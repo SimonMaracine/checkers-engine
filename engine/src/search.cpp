@@ -1,5 +1,7 @@
 #include "search.hpp"
 
+#include <limits>
+
 namespace search {
     game::Move Search::search(
         const game::Position& position,
@@ -14,6 +16,13 @@ namespace search {
         unsigned int depth,
         unsigned int plies_from_root
     ) {
-        return {};
+        if (player == game::Player::Black) {
+            game::Eval min_evaluation {std::numeric_limits<game::Eval>::max()};
+
+            
+
+        } else {
+
+        }
     }
 }

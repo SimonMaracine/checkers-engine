@@ -9,6 +9,7 @@
 #include <regex>
 #include <stdexcept>
 #include <cassert>
+#include <iterator>
 
 #include <wx/wx.h>
 
@@ -278,7 +279,7 @@ void CheckersBoard::generate_piece_capture_moves(std::vector<Move>& moves, Idx s
 }
 
 void CheckersBoard::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const {
-    Direction directions[4] {};
+    Direction directions[4u] {};
     std::size_t index {0u};
 
     if (king) {
@@ -300,8 +301,8 @@ void CheckersBoard::generate_piece_moves(std::vector<Move>& moves, Idx square_in
     }
 
     // Check the squares above or below in diagonal
-    for (std::size_t i {0u}; i < index; i++) {
-        const Idx target_index {offset(square_index, directions[i], Short)};
+    for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
+        const Idx target_index {offset(square_index, *iter, Short)};
 
         if (target_index == NULL_INDEX) {
             continue;
@@ -321,7 +322,7 @@ void CheckersBoard::generate_piece_moves(std::vector<Move>& moves, Idx square_in
 }
 
 bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) const {
-    Direction directions[4] {};
+    Direction directions[4u] {};
     std::size_t index {0u};
 
     if (king) {
@@ -347,9 +348,9 @@ bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, Idx square_index
 
     bool sequence_jumps_ended {true};
 
-    for (std::size_t i {0u}; i < index; i++) {
-        const Idx enemy_index {offset(square_index, directions[i], Short)};
-        const Idx target_index {offset(square_index, directions[i], Long)};
+    for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
+        const Idx enemy_index {offset(square_index, *iter, Short)};
+        const Idx target_index {offset(square_index, *iter, Long)};
 
         if (enemy_index == NULL_INDEX || target_index == NULL_INDEX) {
             continue;
@@ -400,7 +401,7 @@ bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, Idx square_index
 }
 
 CheckersBoard::Idx CheckersBoard::offset(Idx square_index, Direction direction, Diagonal diagonal) const {
-    static constexpr int OFFSET[2] { 1, 2 };
+    static constexpr int OFFSET[2u] { 1, 2 };
 
     Idx result_index {square_index};
 
@@ -546,7 +547,7 @@ void CheckersBoard::play_normal_move(const Move& move) {
 void CheckersBoard::play_capture_move(const Move& move) {
     assert(move.type == MoveType::Capture);
 
-    const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1]};
+    const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1u]};
 
     std::swap(board[move.capture.source_index], board[destination_index]);
 
@@ -596,10 +597,10 @@ void CheckersBoard::remove_jumped_pieces(const Move& move) {  // FIXME :P
     )};
     board[translate_index_1_32_to_0_64(index)] = Square::None;
 
-    for (Idx i {0}; i < move.capture.destination_indices_size - 1; i++) {
+    for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
         const auto index {get_jumped_piece_index(
             translate_index_0_64_to_1_32(move.capture.destination_indices[i]),
-            translate_index_0_64_to_1_32(move.capture.destination_indices[i + 1])
+            translate_index_0_64_to_1_32(move.capture.destination_indices[i + 1u])
         )};
         board[translate_index_1_32_to_0_64(index)] = Square::None;
     }
@@ -790,7 +791,7 @@ void CheckersBoard::draw(wxDC& dc) {
                 }
                 case MoveType::Capture: {
                     if (move.capture.source_index == selected_piece_index) {
-                        for (Idx i {0}; i < move.capture.destination_indices_size; i++) {
+                        for (std::size_t i {0u}; i < move.capture.destination_indices_size; i++) {
                             const auto [x, y] {get_square(move.capture.destination_indices[i])};
 
                             dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));

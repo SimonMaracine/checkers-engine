@@ -29,8 +29,8 @@ public:
 
             struct {
                 Idx source_index;
-                Idx destination_indices[9];
-                Idx destination_indices_size;
+                Idx destination_indices[9u];
+                std::size_t destination_indices_size;
             } capture;
         };
 
