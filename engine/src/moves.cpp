@@ -22,17 +22,17 @@ namespace moves {
         auto& board {position.position.board};
 
         const auto index {get_jumped_piece_index(
-            move.capture.source_index + 1,
-            move.capture.destination_indices[0u] + 1  // FIXME create conversion functions!
+            game::to_1_32(move.capture.source_index),
+            game::to_1_32(move.capture.destination_indices[0u])
         )};
-        board[index - 1] = game::Square::None;
+        board[game::to_0_31(index)] = game::Square::None;
 
         for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
             const auto index {get_jumped_piece_index(
-                move.capture.destination_indices[i] + 1,
-                move.capture.destination_indices[i + 1u] + 1
+                game::to_1_32(move.capture.destination_indices[i]),
+                game::to_1_32(move.capture.destination_indices[i + 1u])
             )};
-            board[index - 1] = game::Square::None;
+            board[game::to_0_31(index)] = game::Square::None;
         }
     }
 

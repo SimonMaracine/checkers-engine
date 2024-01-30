@@ -6,7 +6,7 @@
 namespace game {
     using Eval = int;
 
-    using Idx = signed char;  // Indices are in the range [0, 31]
+    using Idx = signed char;  // Indices can be in the range [0, 31] or [1, 32]
 
     inline constexpr Idx NULL_INDEX {-1};
 
@@ -23,7 +23,7 @@ namespace game {
         White = 0b0010u
     };
 
-    using Board = std::array<Square, 32>;
+    using Board = std::array<Square, 32u>;
 
     struct FenPosition {
         Board board {};
@@ -43,6 +43,7 @@ namespace game {
 
     struct Move {
         union {
+            // Always in the range [0, 31]
             struct {
                 Idx source_index;
                 Idx destination_index;
@@ -50,7 +51,7 @@ namespace game {
 
             struct {
                 Idx source_index;
-                Idx destination_indices[9];
+                Idx destination_indices[9u];
                 unsigned char destination_indices_size;
             } capture;
         };
@@ -61,4 +62,12 @@ namespace game {
     void set_position(FenPosition& position, const std::string& fen_string);
     void make_move(Position& position, const std::string& move_string);
     Player opponent(Player player);
+
+    constexpr Idx to_0_31(Idx index) {
+        return index - 1;
+    }
+
+    constexpr Idx to_1_32(Idx index) {
+        return index + 1;
+    }
 }

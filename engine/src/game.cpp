@@ -94,15 +94,15 @@ namespace game {
 
                 if (player == game::Player::Black) {
                     if (king) {
-                        board[square - 1] = game::Square::BlackKing;
+                        board[to_0_31(square)] = game::Square::BlackKing;
                     } else {
-                        board[square - 1] = game::Square::Black;
+                        board[to_0_31(square)] = game::Square::Black;
                     }
                 } else {
                     if (king) {
-                        board[square - 1] = game::Square::WhiteKing;
+                        board[to_0_31(square)] = game::Square::WhiteKing;
                     } else {
-                        board[square - 1] = game::Square::White;
+                        board[to_0_31(square)] = game::Square::White;
                     }
                 }
             }
@@ -180,7 +180,7 @@ namespace game {
 
         static bool is_capture_move(game::Idx source, const std::array<game::Idx, 9>& destinations, std::size_t count) {
             if (count == 1) {
-                const auto distance {std::abs(source - 1 - destinations[0u] - 1)};
+                const auto distance {std::abs(to_0_31(source) - to_0_31(destinations[0u]))};
 
                 if (distance >= 4 && distance <= 6) {
                     // Then it can't be a capture move
@@ -238,16 +238,16 @@ namespace game {
 
         if (pdn::is_capture_move(source, destinations, count)) {
             move.type = game::MoveType::Capture;
-            move.capture.source_index = source - 1;
+            move.capture.source_index = to_0_31(source);
             move.capture.destination_indices_size = static_cast<unsigned char>(count);
 
             for (std::size_t i {0u}; i < count; i++) {
-                move.capture.destination_indices[i] = destinations[i] - 1;
+                move.capture.destination_indices[i] = to_0_31(destinations[i]);
             }
         } else {
             move.type = game::MoveType::Normal;
-            move.normal.source_index = source - 1;
-            move.normal.destination_index = destinations[0u] - 1;
+            move.normal.source_index = to_0_31(source);
+            move.normal.destination_index = to_0_31(destinations[0u]);
         }
 
         moves::play_move(position, move);

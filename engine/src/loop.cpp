@@ -39,7 +39,7 @@ namespace loop {
             { "GETPARAMETER", commands::try_getparameter }
         };
 
-        const auto& command_name {input_tokens.tokens[0]};
+        const auto& command_name {input_tokens.tokens[0u]};
 
         if (COMMANDS.find(command_name) == COMMANDS.cend()) {
             return false;
@@ -60,12 +60,12 @@ namespace loop {
 
             const InputTokens input_tokens {tokenize_input(input)};
 
-            if (input_tokens.count == 0) {
+            if (input_tokens.count == 0u) {
                 continue;
             }
 
             // Handle QUIT separately
-            if (input_tokens.tokens[0] == "QUIT") {
+            if (input_tokens.tokens[0u] == "QUIT") {
                 engine::quit(data);
                 break;
             }
