@@ -8,4 +8,12 @@ namespace search {
     ) {
         return {};
     }
+
+    game::Eval Search::minimax(
+        game::Player player,
+        unsigned int depth,
+        unsigned int plies_from_root
+    ) {
+        return {};
+    }
 }

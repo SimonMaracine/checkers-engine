@@ -5,7 +5,6 @@
 #include <functional>
 #include <condition_variable>
 #include <mutex>
-#include <optional>
 
 #include "game.hpp"
 
@@ -33,7 +32,7 @@ namespace engine {
         } game;
     };
 
-    // The commands the engine executes
+    // Commands the engine executes
     // Arguments to these aren't checked
     // May throw errors
     void init(engine::EngineData& data);
