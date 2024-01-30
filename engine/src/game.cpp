@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <utility>
 #include <stdexcept>
-#include <array>
 #include <cmath>
 
 #include "moves.hpp"
@@ -157,8 +156,8 @@ namespace game {
             return static_cast<game::Idx>(number);
         }
 
-        static std::pair<std::array<game::Idx, 9>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
-            std::array<game::Idx, 9> indices {};
+        static std::pair<std::array<game::Idx, 9u>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
+            std::array<game::Idx, 9u> indices {};
             std::size_t count {0u};
 
             while (true) {
@@ -178,8 +177,8 @@ namespace game {
             return std::make_pair(indices, count);
         }
 
-        static bool is_capture_move(game::Idx source, const std::array<game::Idx, 9>& destinations, std::size_t count) {
-            if (count == 1) {
+        static bool is_capture_move(game::Idx source, const std::array<game::Idx, 9u>& destinations, std::size_t count) {
+            if (count == 1u) {
                 const auto distance {std::abs(to_0_31(source) - to_0_31(destinations[0u]))};
 
                 if (distance >= 4 && distance <= 6) {

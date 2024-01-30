@@ -55,7 +55,7 @@ namespace loop {
 
     int main_loop(engine::EngineData& data) {
         while (true) {
-            char input[128] {};
+            char input[128u] {};
             std::cin.getline(input, 128);
 
             const InputTokens input_tokens {tokenize_input(input)};

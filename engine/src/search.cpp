@@ -19,9 +19,8 @@ namespace search {
         if (player == game::Player::Black) {
             game::Eval min_evaluation {std::numeric_limits<game::Eval>::max()};
 
-            
-
         } else {
+            game::Eval max_evaluation {std::numeric_limits<game::Eval>::min()};
 
         }
     }

@@ -1,7 +1,6 @@
 #include "messages.hpp"
 
 #include <iostream>
-#include <string>
 #include <sstream>
 
 namespace messages {
@@ -10,14 +9,14 @@ namespace messages {
 
         switch (move.type) {
             case game::MoveType::Normal:
-                stream << move.normal.source_index + 1 << 'x' << move.normal.destination_index;
+                stream << game::to_1_32(move.normal.source_index) << 'x' << game::to_1_32(move.normal.destination_index);
 
                 break;
             case game::MoveType::Capture:
-                stream << move.capture.source_index + 1;
+                stream << game::to_1_32(move.capture.source_index);
 
                 for (unsigned char i {0u}; i < move.capture.destination_indices_size; i++) {
-                    stream << 'x' << move.capture.destination_indices[i] + 1;
+                    stream << 'x' << game::to_1_32(move.capture.destination_indices[i]);
                 }
 
                 break;
@@ -26,9 +25,9 @@ namespace messages {
         return stream.str();
     }
 
-    void warning(const std::optional<std::string>& message) {
-        if (message) {
-            std::cout << "WARNING " << *message << '\n';
+    void warning(const std::string& message) {
+        if (!message.empty()) {
+            std::cout << "WARNING " << message << '\n';
         } else {
             std::cout << "WARNING\n";
         }

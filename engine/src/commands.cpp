@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "engine.hpp"
-
 namespace commands {
     bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {  // TODO use input tokens as arguments
         engine::init(data);
