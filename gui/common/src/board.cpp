@@ -401,27 +401,25 @@ bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, Idx square_index
 }
 
 CheckersBoard::Idx CheckersBoard::offset(Idx square_index, Direction direction, Diagonal diagonal) const {
-    static constexpr int OFFSET[2u] { 1, 2 };
-
     Idx result_index {square_index};
 
     switch (direction) {
         case Direction::NorthEast:
-            result_index -= 7 * OFFSET[diagonal];
+            result_index -= 7 * static_cast<int>(diagonal);
             break;
         case Direction::NorthWest:
-            result_index -= 9 * OFFSET[diagonal];
+            result_index -= 9 * static_cast<int>(diagonal);
             break;
         case Direction::SouthEast:
-            result_index += 9 * OFFSET[diagonal];
+            result_index += 9 * static_cast<int>(diagonal);
             break;
         case Direction::SouthWest:
-            result_index += 7 * OFFSET[diagonal];
+            result_index += 7 * static_cast<int>(diagonal);
             break;
     }
 
     // Check edge cases (literally)
-    if (std::abs(square_index / 8 - result_index / 8) != OFFSET[diagonal]) {
+    if (std::abs(square_index / 8 - result_index / 8) != static_cast<int>(diagonal)) {
         return NULL_INDEX;
     }
 

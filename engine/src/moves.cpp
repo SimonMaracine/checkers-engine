@@ -46,8 +46,8 @@ namespace moves {
     };
 
     enum Diagonal {
-        Short = 0,
-        Long = 1
+        Short = 1,
+        Long = 2
     };
 
     struct JumpCtx {
@@ -59,46 +59,52 @@ namespace moves {
     static game::Idx offset(game::Idx square_index, Direction direction, Diagonal diagonal) {
         game::Idx result_index {square_index};
 
-        switch (direction) {
-            case Direction::NorthEast:  // FIXME offset logic is very weird and varies a lot
-                result_index -= 4;
+        const bool even_row {(square_index / 4) % 2 == 0};
+
+        switch (direction) {  // TODO opt.
+            case Direction::NorthEast:
+                result_index -= even_row ? 3 : 4;  // TODO fix warnings
+
                 if (diagonal == Diagonal::Long) {
-                    result_index -= 3;
+                    result_index -= even_row ? 4 : 3;
                 }
 
                 break;
             case Direction::NorthWest:
-                result_index -= 5;
+                result_index -= even_row ? 4 : 5;
+
                 if (diagonal == Diagonal::Long) {
-                    result_index -= 4;
+                    result_index -= even_row ? 5 : 4;
                 }
 
                 break;
             case Direction::SouthEast:
-                result_index += 4;
+                result_index += even_row ? 5 : 4;
+
                 if (diagonal == Diagonal::Long) {
-                    result_index += 5;
+                    result_index += even_row ? 4 : 5;
                 }
 
                 break;
             case Direction::SouthWest:
-                result_index += 3;
+                result_index += even_row ? 4 : 3;
+
                 if (diagonal == Diagonal::Long) {
-                    result_index += 4;
+                    result_index += even_row ? 3 : 4;
                 }
 
                 break;
         }
 
         // Check edge cases (literally)
-        // if (std::abs(square_index / 8 - result_index / 8) != OFFSET[diagonal]) {  // TODO
-        //     return game::NULL_INDEX;
-        // }
+        if (std::abs(square_index / 4 - result_index / 4) != static_cast<int>(diagonal)) {
+            return game::NULL_INDEX;
+        }
 
         // Check out of bounds
-        // if (result_index < 0 || result_index > 63) {  // TODO
-        //     return game::NULL_INDEX;
-        // }
+        if (result_index < 0 || result_index > 31) {
+            return game::NULL_INDEX;
+        }
 
         return result_index;
     }
@@ -161,7 +167,7 @@ namespace moves {
                 game::Move move;
                 move.type = game::MoveType::Capture;
                 move.capture.source_index = ctx.source_index;
-                move.capture.destination_indices_size = ctx.destination_indices.size();
+                move.capture.destination_indices_size = static_cast<unsigned char>(ctx.destination_indices.size());
 
                 for (std::size_t i {0u}; i < ctx.destination_indices.size(); i++) {
                     move.capture.destination_indices[i] = ctx.destination_indices[i];

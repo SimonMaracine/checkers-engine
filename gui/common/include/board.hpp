@@ -71,8 +71,8 @@ private:
     };
 
     enum Diagonal {
-        Short = 0,
-        Long = 1
+        Short = 1,
+        Long = 2
     };
 
     enum class Square : unsigned int {
