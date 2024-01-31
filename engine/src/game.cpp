@@ -8,6 +8,7 @@
 
 #include "moves.hpp"
 #include "error.hpp"
+#include "search_node.hpp"
 
 namespace game {
     namespace pdn {
@@ -257,6 +258,23 @@ namespace game {
             return Player::White;
         } else {
             return Player::Black;
+        }
+    }
+
+    bool is_game_over(const search::SearchNode& node) {
+        unsigned int black_pieces {0u};
+        unsigned int white_pieces {0u};
+
+        for (Idx i {0}; i < 32; i++) {
+            if (static_cast<unsigned char>(node.board[i]) & 1u << 0) {  // TODO opt.
+                black_pieces++;
+            } else if (static_cast<unsigned char>(node.board[i]) & 1u << 1) {
+                white_pieces++;
+            }
+        }
+
+        if (black_pieces == 0u || white_pieces == 0u) {
+            return true;
         }
     }
 }

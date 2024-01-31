@@ -3,9 +3,11 @@
 #include <array>
 #include <string>
 
-namespace game {
-    using Eval = int;
+namespace search {
+    struct SearchNode;
+}
 
+namespace game {
     using Idx = signed char;  // Indices can be in the range [0, 31] or [1, 32]
 
     inline constexpr Idx NULL_INDEX {-1};
@@ -62,6 +64,7 @@ namespace game {
     void set_position(FenPosition& position, const std::string& fen_string);
     void make_move(Position& position, const std::string& move_string);
     Player opponent(Player player);
+    bool is_game_over(const search::SearchNode& node);
 
     constexpr Idx to_0_31(Idx index) {
         return index - 1;

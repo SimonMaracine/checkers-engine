@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "game.hpp"
+#include "search_node.hpp"
+#include "evaluation.hpp"
 
 namespace search {
     class Search {
@@ -15,20 +17,25 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
     private:
-        game::Eval minimax(
+        evaluation::Eval minimax(
             game::Player player,
             unsigned int depth,
-            unsigned int plies_from_root
+            unsigned int plies_from_root,
+            SearchNode& current_node
+        );
+
+        SearchNode& setup_nodes(
+            const game::Position& position,
+            const std::vector<game::Position>& previous_positions,
+            const std::vector<game::Move>& moves_played
         );
 
         game::Move best_move {};
         unsigned int nodes_evaluated {};
 
-        struct {
-            game::Board board {};
-            unsigned int plies {0u};
-            unsigned int plies_without_advancement {0u};
-        } ctx;
+        // The current position and previous positions (for threefold reptition)
+        // position0, position1, position2, ..., positionN (current)
+        std::vector<SearchNode> nodes;
 
         struct {
             // TODO

@@ -6,6 +6,8 @@ add_executable(checkers-engine
     "src/engine.cpp"
     "src/engine.hpp"
     "src/error.hpp"
+    "src/evaluation.cpp"
+    "src/evaluation.hpp"
     "src/game.cpp"
     "src/game.hpp"
     "src/loop.cpp"
@@ -15,6 +17,8 @@ add_executable(checkers-engine
     "src/messages.hpp"
     "src/moves.cpp"
     "src/moves.hpp"
+    "src/search_node.cpp"
+    "src/search_node.hpp"
     "src/search.cpp"
     "src/search.hpp"
 )
