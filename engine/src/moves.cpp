@@ -18,10 +18,26 @@ namespace moves {
         }
     }
 
-    static void remove_jumped_pieces(game::Position& position, const game::Move& move) {
+    static void remove_jumped_pieces(game::Board& board, const game::Move& move) {
         assert(move.type == game::MoveType::Capture);
 
-        auto& board {position.position.board};
+        const auto index {get_jumped_piece_index(
+            game::to_1_32(move.capture.source_index),
+            game::to_1_32(move.capture.destination_indices[0u])
+        )};
+        board[game::to_0_31(index)] = game::Square::None;
+
+        for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+            const auto index {get_jumped_piece_index(
+                game::to_1_32(move.capture.destination_indices[i]),
+                game::to_1_32(move.capture.destination_indices[i + 1u])
+            )};
+            board[game::to_0_31(index)] = game::Square::None;
+        }
+    }
+
+    static void insert_jumped_pieces(game::Board& board, const game::Move& move) {  // FIXME use node based approach
+        assert(move.type == game::MoveType::Capture);
 
         const auto index {get_jumped_piece_index(
             game::to_1_32(move.capture.source_index),
@@ -252,13 +268,53 @@ namespace moves {
                     board[move.capture.source_index],
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
-                remove_jumped_pieces(position, move);
+                remove_jumped_pieces(position.position.board, move);
 
                 break;
         }
 
-        position.position.player = opponent(position.position.player);
+        position.position.player = game::opponent(position.position.player);
         position.plies++;
+    }
+
+    void play_move(game::Board& board, game::Player& player, unsigned int& plies, unsigned int& plies_without_advancement, const game::Move& move) {
+        switch (move.type) {
+            case game::MoveType::Normal:
+                std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+
+                break;
+            case game::MoveType::Capture:
+                std::swap(
+                    board[move.capture.source_index],
+                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
+                );
+                remove_jumped_pieces(board, move);
+
+                break;
+        }
+
+        player = game::opponent(player);
+        plies++;
+    }
+
+    void unplay_move(game::Board& board, game::Player& player, unsigned int& plies, unsigned int& plies_without_advancement, const game::Move& move) {  // FIXME use node based approach
+        switch (move.type) {
+            case game::MoveType::Normal:
+                std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+
+                break;
+            case game::MoveType::Capture:
+                std::swap(
+                    board[move.capture.source_index],
+                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
+                );
+                remove_jumped_pieces(board, move);
+
+                break;
+        }
+
+        player = game::opponent(player);
+        plies--;
     }
 
     std::vector<game::Move> generate_moves(const game::Board& board, game::Player player) {

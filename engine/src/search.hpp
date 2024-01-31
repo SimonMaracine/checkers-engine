@@ -26,6 +26,7 @@ namespace search {
 
         struct {
             game::Board board {};
+            unsigned int plies {0u};
             unsigned int plies_without_advancement {0u};
         } ctx;
 
