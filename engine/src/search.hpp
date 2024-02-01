@@ -9,7 +9,12 @@
 namespace search {
     class Search {
     public:
-        // TODO initialize parameters in constructor
+        Search(int parameter_piece);
+
+        Search(const Search&) = delete;
+        Search& operator=(const Search&) = delete;
+        Search(Search&&) = delete;
+        Search& operator=(Search&&) = delete;
 
         game::Move search(
             const game::Position& position,
@@ -37,8 +42,6 @@ namespace search {
         // position0, position1, position2, ..., positionN (current)
         std::vector<SearchNode> nodes;
 
-        struct {
-            // TODO
-        } parameters;
+        evaluation::Parameters parameters;
     };
 }

@@ -22,6 +22,10 @@ namespace engine {
         data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
     }
 
+    static void initialize_parameters(EngineData& data) {
+        data.minimax.parameters["piece"] = 10;
+    }
+
     void init(engine::EngineData& data) {
         assert(!data.minimax.running);
 
@@ -38,6 +42,8 @@ namespace engine {
 
                 const game::Move best_move {data.minimax.search()};
 
+                messages::bestmove(best_move);
+
                 moves::play_move(data.game.position, best_move);
                 // TODO store move and store position
 
@@ -47,6 +53,7 @@ namespace engine {
         });
 
         reset(data);
+        initialize_parameters(data);
     }
 
     void newgame(engine::EngineData& data) {
@@ -63,13 +70,13 @@ namespace engine {
         assert(!data.minimax.search);
 
         data.minimax.search = [&data, dont_play_move]() {
-            search::Search instance;
+            const int parameter_piece {std::get<0u>(data.minimax.parameters.at("piece"))};
+
+            search::Search instance {parameter_piece};
 
             const auto best_move {
                 instance.search(data.game.position, data.game.previous_positions, data.game.moves_played)
             };
-
-            messages::bestmove(best_move);
 
             return best_move;
         };

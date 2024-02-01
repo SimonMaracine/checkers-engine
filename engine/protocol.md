@@ -43,6 +43,9 @@ the resulted move on its internal board.
 
 Tells the engine to set the parameter to that value.
 
+<!-- TODO what parameters must exist? -->
+<!-- FIXME specify messages more rigorously -->
+
 ### GETPARAMETER \<parameter name\>
 
 Asks the engine for that parameter value.
@@ -56,7 +59,7 @@ Tells the engine to shut down and exit gracefully.
 ### WARNING [warning or error message]
 
 Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It can
-optionally contain an error message.
+optionally contain a message.
 
 ### BESTMOVE \<move string\>
 

@@ -5,6 +5,8 @@
 #include <functional>
 #include <condition_variable>
 #include <mutex>
+#include <unordered_map>
+#include <variant>
 
 #include "game.hpp"
 
@@ -13,15 +15,17 @@ namespace engine {
         /* TODO
             transposition table
             opening book
-            parameters
             other
         */
+
+       using Param = std::variant<int>;
 
        struct {
             std::thread thread;
             std::function<game::Move()> search;
             std::condition_variable cv;
             std::mutex mutex;
+            std::unordered_map<std::string, Param> parameters;
             bool running {false};
        } minimax;
 

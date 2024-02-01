@@ -7,6 +7,10 @@
 #include "moves.hpp"
 
 namespace search {
+    Search::Search(int parameter_piece) {
+        parameters.PIECE = parameter_piece;
+    }
+
     game::Move Search::search(
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
@@ -33,7 +37,8 @@ namespace search {
         SearchNode& current_node
     ) {
         if (depth == 0u || game::is_game_over(current_node)) {
-            return evaluation::static_evaluation(current_node);
+            nodes_evaluated++;
+            return evaluation::static_evaluation(current_node, parameters);
         }
 
         // TODO threefold repetition, eighty move rule
@@ -44,7 +49,8 @@ namespace search {
             const auto moves {moves::generate_moves(current_node.board, player)};
 
             if (moves.empty()) {
-                return evaluation::static_evaluation(current_node);
+                nodes_evaluated++;
+                return evaluation::static_evaluation(current_node, parameters);
             }
 
             for (const game::Move& move : moves) {
@@ -73,7 +79,8 @@ namespace search {
             const auto moves {moves::generate_moves(current_node.board, player)};
 
             if (moves.empty()) {
-                return evaluation::static_evaluation(current_node);
+                nodes_evaluated++;
+                return evaluation::static_evaluation(current_node, parameters);
             }
 
             for (const game::Move& move : moves) {
