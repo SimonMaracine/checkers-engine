@@ -16,6 +16,8 @@ private:
     void on_exit(wxCommandEvent& event);
     void on_about(wxCommandEvent& event);
     void on_window_resize(wxSizeEvent& event);
+    void on_black_change(wxCommandEvent& event);
+    void on_white_change(wxCommandEvent& event);
 
     void on_piece_move(const CheckersBoard::Move& move);
 
@@ -23,14 +25,19 @@ private:
     const char* game_over_text();
 
     CheckersBoard* board {nullptr};
-    wxPanel* right_side {nullptr};
 
     struct {
-        wxStaticText* status {nullptr};
-        wxStaticText* player {nullptr};
-        wxStaticText* plies_without_advancement {nullptr};
-        wxStaticText* repetition_size {nullptr};
+        wxStaticText* txt_status {nullptr};
+        wxStaticText* txt_player {nullptr};
+        wxStaticText* txt_plies_without_advancement {nullptr};
+        wxStaticText* txt_repetition_size {nullptr};
     } game;
+
+    wxRadioButton* btn_black_human {nullptr};
+    wxRadioButton* btn_black_computer {nullptr};
+
+    wxRadioButton* btn_white_human {nullptr};
+    wxRadioButton* btn_white_computer {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };

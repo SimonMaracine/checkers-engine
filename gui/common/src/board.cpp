@@ -1,19 +1,11 @@
-#include <array>
-#include <functional>
-#include <utility>
-#include <vector>
-#include <string>
-#include <cstddef>
+#include "board.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <regex>
 #include <stdexcept>
 #include <cassert>
 #include <iterator>
-
-#include <wx/wx.h>
-
-#include "board.hpp"
 
 /*
     branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
@@ -69,8 +61,8 @@ void CheckersBoard::reset() {
 }
 
 bool CheckersBoard::set_position(const std::string& fen_string) {
-    // Doesn't validate for any stupid things the string might contain
-    // Validates only the format
+    // Don't validate for any stupid things the string might contain
+    // Validate only the format
 
     if (!validate_fen_string(fen_string)) {
         return false;

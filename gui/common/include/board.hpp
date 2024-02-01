@@ -76,14 +76,14 @@ private:
     };
 
     enum class Square : unsigned int {
-        None      = 0b0000u,  // I don't usually do this :P
+        None      = 0b0000u,  // I don't usually align like this :P
         Black     = 0b0001u,
         BlackKing = 0b0101u,
         White     = 0b0010u,
         WhiteKing = 0b0110u
     };
 
-    using Board = std::array<Square, 64>;
+    using Board = std::array<Square, 64u>;
 
     struct JumpCtx {
         Board board {};  // Use a copy of the board

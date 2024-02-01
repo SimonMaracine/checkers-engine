@@ -1,30 +1,28 @@
-#include <wx/wx.h>
-
 #include "fen_string_dialog.hpp"
 
 FenStringDialog::FenStringDialog(wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, "FEN String") {
-    fen_string = new wxTextCtrl(this, wxID_ANY);
+    txt_fen_string = new wxTextCtrl(this, wxID_ANY);
 
-    wxPanel* buttons {new wxPanel(this)};
-    wxBoxSizer* buttons_sizer {new wxBoxSizer(wxHORIZONTAL)};
+    wxPanel* pnl_buttons {new wxPanel(this)};
+    wxBoxSizer* szr_buttons {new wxBoxSizer(wxHORIZONTAL)};
 
-    buttons_sizer->Add(new wxButton(buttons, wxID_OK, "Ok"));
-    buttons_sizer->Add(new wxButton(buttons, wxID_CANCEL, "Cancel"));
+    szr_buttons->Add(new wxButton(pnl_buttons, wxID_OK, "Ok"));
+    szr_buttons->Add(new wxButton(pnl_buttons, wxID_CANCEL, "Cancel"));
 
-    buttons->SetSizer(buttons_sizer);
+    pnl_buttons->SetSizer(szr_buttons);
 
-    wxBoxSizer* sizer {new wxBoxSizer(wxVERTICAL)};
+    wxBoxSizer* szr_main {new wxBoxSizer(wxVERTICAL)};
 
-    sizer->AddStretchSpacer();
-    sizer->Add(fen_string, 0, wxEXPAND | wxLEFT | wxRIGHT);
-    sizer->AddSpacer(10);
-    sizer->Add(buttons, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM);
-    sizer->AddStretchSpacer();
+    szr_main->AddStretchSpacer();
+    szr_main->Add(txt_fen_string, 0, wxEXPAND | wxLEFT | wxRIGHT);
+    szr_main->AddSpacer(10);
+    szr_main->Add(pnl_buttons, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM);
+    szr_main->AddStretchSpacer();
 
-    SetSizer(sizer);
+    SetSizer(szr_main);
 }
 
 wxString FenStringDialog::get_fen_string() const {
-    return fen_string->GetValue();
+    return txt_fen_string->GetValue();
 }
