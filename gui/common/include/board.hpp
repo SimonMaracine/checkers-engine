@@ -56,6 +56,8 @@ public:
     void set_board_size(int size);
     void reset();
     bool set_position(const std::string& fen_string);
+    void set_user_input(bool user_input);
+    void play_move(const Move& move);
 
     GameOver get_game_over() const { return game_over; }
     Player get_player() const { return turn; }
@@ -132,6 +134,9 @@ private:
 
     // Called every time a move has been made
     OnPieceMove on_piece_move;
+
+    // Used to differentiate between human and computer turns
+    bool user_input {true};
 
     // Game data
     Board board {};

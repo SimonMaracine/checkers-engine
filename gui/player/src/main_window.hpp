@@ -11,18 +11,19 @@ private:
     void setup_menubar();
     void setup_widgets();
 
-    void on_reset_board(wxCommandEvent& event);
-    void on_set_position(wxCommandEvent& event);
-    void on_exit(wxCommandEvent& event);
-    void on_about(wxCommandEvent& event);
+    void on_reset_board(wxCommandEvent&);
+    void on_set_position(wxCommandEvent&);
+    void on_exit(wxCommandEvent&);
+    void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);
-    void on_black_change(wxCommandEvent& event);
-    void on_white_change(wxCommandEvent& event);
+    void on_black_change(wxCommandEvent&);
+    void on_white_change(wxCommandEvent&);
 
     void on_piece_move(const CheckersBoard::Move& move);
 
     int get_ideal_board_size();
     const char* game_over_text();
+    void update_board_user_input();
 
     CheckersBoard* board {nullptr};
 
@@ -38,6 +39,14 @@ private:
 
     wxRadioButton* btn_white_human {nullptr};
     wxRadioButton* btn_white_computer {nullptr};
+
+    enum class Player {
+        Human,
+        Computer
+    };
+
+    Player black {Player::Human};
+    Player white {Player::Computer};
 
     wxDECLARE_EVENT_TABLE();
 };

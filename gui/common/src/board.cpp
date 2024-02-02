@@ -98,12 +98,33 @@ bool CheckersBoard::set_position(const std::string& fen_string) {
     return true;
 }
 
+void CheckersBoard::set_user_input(bool user_input) {
+    this->user_input = user_input;
+}
+
+void CheckersBoard::play_move(const Move& move) {
+    switch (move.type) {
+        case MoveType::Normal:
+            play_normal_move(move);
+            break;
+        case MoveType::Capture:
+            play_capture_move(move);
+            break;
+    }
+
+    legal_moves = generate_moves();
+}
+
 void CheckersBoard::on_paint(wxPaintEvent&) {
     wxPaintDC dc {this};
     draw(dc);
 }
 
 void CheckersBoard::on_mouse_left_down(wxMouseEvent& event) {
+    if (!user_input) {
+        return;
+    }
+
     if (game_over != GameOver::None) {
         return;
     }
@@ -156,6 +177,10 @@ void CheckersBoard::on_mouse_left_down(wxMouseEvent& event) {
 }
 
 void CheckersBoard::on_mouse_right_down(wxMouseEvent& event) {
+    if (!user_input) {
+        return;
+    }
+
     if (game_over != GameOver::None) {
         return;
     }

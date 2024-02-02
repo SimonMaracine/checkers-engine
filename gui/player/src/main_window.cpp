@@ -1,6 +1,9 @@
 #include "main_window.hpp"
 
 #include <iostream>
+#include <cassert>
+
+#include <wx/statline.h>
 
 #include "fen_string_dialog.hpp"
 
@@ -73,6 +76,8 @@ void MainWindow::setup_widgets() {
     szr_right_side->Add(game.txt_repetition_size, 1);
 
     szr_right_side->AddSpacer(10);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 1);  // FIXME
+    szr_right_side->AddSpacer(10);
 
     wxPanel* pnl_players {new wxPanel(pnl_right_side)};
 
@@ -102,6 +107,7 @@ void MainWindow::setup_widgets() {
     szr_white->Add(btn_white_human);
 
     btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
+    btn_white_computer->SetValue(true);
     szr_white->Add(btn_white_computer);
 
     pnl_white->SetSizer(szr_white);
@@ -162,12 +168,24 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
     event.Skip();
 }
 
-void MainWindow::on_black_change(wxCommandEvent& event) {
-
+void MainWindow::on_black_change(wxCommandEvent&) {
+    if (btn_black_human->GetValue()) {
+        assert(!btn_black_computer->GetValue());
+        black = Player::Human;
+    } else {
+        assert(btn_black_computer->GetValue());
+        black = Player::Computer;
+    }
 }
 
-void MainWindow::on_white_change(wxCommandEvent& event) {
-
+void MainWindow::on_white_change(wxCommandEvent&) {
+    if (btn_white_human->GetValue()) {
+        assert(!btn_white_computer->GetValue());
+        white = Player::Human;
+    } else {
+        assert(btn_white_computer->GetValue());
+        white = Player::Computer;
+    }
 }
 
 void MainWindow::on_piece_move(const CheckersBoard::Move& move) {
@@ -176,7 +194,7 @@ void MainWindow::on_piece_move(const CheckersBoard::Move& move) {
             std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
             break;
         case CheckersBoard::MoveType::Capture:
-            std::cout << move.capture.source_index << " -> " << move.capture.destination_indices[move.capture.destination_indices_size - 1] << '\n';
+            std::cout << move.capture.source_index << " -> " << move.capture.destination_indices[move.capture.destination_indices_size - 1u] << '\n';
             break;
     }
 
@@ -184,6 +202,8 @@ void MainWindow::on_piece_move(const CheckersBoard::Move& move) {
     game.txt_player->SetLabelText(PLAYER + (board->get_player() == CheckersBoard::Player::Black ? "black" : "white"));
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
+
+    update_board_user_input();
 }
 
 int MainWindow::get_ideal_board_size() {
@@ -205,4 +225,14 @@ const char* MainWindow::game_over_text() {
     }
 
     return nullptr;
+}
+
+void MainWindow::update_board_user_input() {
+    const Player PLAYERS[2u] { black, white };
+
+    if (PLAYERS[static_cast<unsigned int>(board->get_player()) - 1u] == Player::Computer) {
+        board->set_user_input(false);
+    } else {
+        board->set_user_input(true);
+    }
 }
