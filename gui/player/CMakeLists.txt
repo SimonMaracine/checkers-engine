@@ -17,5 +17,8 @@ target_link_libraries(player PRIVATE wxmono common subprocess)
 
 target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
+target_compile_options(player PRIVATE "-fsanitize=undefined" "-g")
+target_link_options(player PRIVATE "-static-libasan" "-fsanitize=undefined")
+
 set_compile_options(player)
 set_linux_defines(player)

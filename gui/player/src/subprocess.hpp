@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdio>
 #include <optional>
+#include <vector>
 
 struct subprocess_s;
 
@@ -12,12 +13,15 @@ public:
     Subprocess(const std::string& file_path);
     ~Subprocess();
 
-    void send(const std::string& data) const;
-    std::optional<std::string> receive() const;
+    bool send(const std::string& data) const;
+    bool receive(std::string& data) const;
 
     std::optional<int> join();
 private:
     struct subprocess_s* subprocess {nullptr};
-    std::FILE* input {nullptr};
     std::FILE* output {nullptr};
+
+    mutable struct {
+        std::vector<char> buffered;
+    } input;
 };

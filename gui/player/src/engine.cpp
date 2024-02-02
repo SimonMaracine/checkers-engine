@@ -6,28 +6,43 @@ void EngineReader::Notify() {
     assert(process != nullptr);
     assert(callback);
 
-    const auto message {process->receive()};
+    std::string message;
 
-    if (!message) {
+    if (!process->receive(message)) {
         return;
     }
 
-    callback(*message);
+    callback(message);
 }
 
 void Engine::start(const std::string& file_path, const ReadCallback& callback) {
-    process = Subprocess(file_path);
-    process.send("INIT\n");
+    try {
+        process = std::make_unique<Subprocess>(file_path);
+    } catch (int) {
+        // TODO error
+        throw;
+    }
 
-    reader = std::make_unique<EngineReader>(&process, callback);
-    reader->Start();
+    if (!process->send("INIT")) {
+        // TODO error
+    }
+
+    reader = std::make_unique<EngineReader>(process.get(), callback);
+
+    for (unsigned int i {0u}; i < 5u; i++) {
+        if (reader->Start(250)) {
+            return;
+        }
+    }
+
+    // TODO error
 }
 
 void Engine::stop() {
     reader->Stop();
 
-    process.send("QUIT\n");
-    const auto result {process.join()};
+    process->send("QUIT");
+    const auto result {process->join()};
 
     if (!result) {
         // TODO error

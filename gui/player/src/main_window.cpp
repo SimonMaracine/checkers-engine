@@ -161,7 +161,12 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
         txt_engine->SetLabelText(ENGINE + dialog.GetName());
 
         engine = std::make_unique<Engine>();
-        engine->start(dialog.GetPath().ToStdString(), [this](const auto& message) { on_engine_message(message); });
+
+        try {
+            engine->start(dialog.GetPath().ToStdString(), [this](const auto& message) { on_engine_message(message); });
+        } catch (int) {
+            std::cout << "Error creating process\n";
+        }
     }
 }
 

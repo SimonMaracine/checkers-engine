@@ -28,6 +28,6 @@ public:
     void start(const std::string& file_path, const ReadCallback& callback);
     void stop();
 private:
-    Subprocess process;
+    std::unique_ptr<Subprocess> process;
     std::unique_ptr<EngineReader> reader;
 };

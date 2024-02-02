@@ -56,7 +56,7 @@ private:
 
     wxStaticText* txt_engine {nullptr};
 
-    std::unique_ptr<Engine> engine;
+    std::unique_ptr<Engine> engine;  // TODO remove heap allocation
 
     wxDECLARE_EVENT_TABLE();
 };
