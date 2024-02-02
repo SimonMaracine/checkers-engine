@@ -3,7 +3,7 @@
 #include <subprocess.h>
 
 Subprocess::Subprocess(const std::string& file_path) {
-    const char* cmd[] { file_path.c_str(), nullptr };
+    const char* const cmd[] { file_path.c_str(), nullptr };
 
     subprocess = new struct subprocess_s;
     const int result {subprocess_create(cmd, 0, subprocess)};
@@ -13,30 +13,42 @@ Subprocess::Subprocess(const std::string& file_path) {
     }
 
     input = subprocess_stdin(subprocess);
-    // std::fputs("Hello, world!", p_stdin);
-
     output = subprocess_stdout(subprocess);
-    // char hello_world[32];
-    // std::fgets(hello_world, 32, p_stdout);
 }
 
 Subprocess::~Subprocess() {
     const int result {subprocess_destroy(subprocess)};
 
     if (result != 0) {
-
+        // TODO error
     }
 
     delete subprocess;
 }
 
-int Subprocess::join() {
+std::optional<int> Subprocess::join() {
     int process_return {};
     const int result {subprocess_join(subprocess, &process_return)};
 
     if (result != 0) {
-
+        return std::nullopt;
     }
 
-    return process_return;
+    return std::make_optional(process_return);
+}
+
+void Subprocess::send(const std::string& data) const {
+    if (std::fprintf(output, "%s\n", data.c_str()) < 0) {
+        // TODO error
+    }
+}
+
+std::optional<std::string> Subprocess::receive() const {
+    char buffer[512u] {};
+
+    if (std::fgets(buffer, 512, input) == nullptr) {
+        return std::nullopt;
+    }
+
+    return std::make_optional(buffer);
 }

@@ -7,7 +7,6 @@
 #include <wx/statline.h>
 
 #include "fen_string_dialog.hpp"
-#include "subprocess.hpp"
 
 static constexpr int START_ENGINE {10};
 static constexpr int RESET_BOARD {11};
@@ -19,6 +18,7 @@ static const wxString STATUS {"Status: "};
 static const wxString PLAYER {"Player: "};
 static const wxString PLIES_WITHOUT_ADVANCEMENT {"Plies without advancement: "};
 static const wxString REPETITION_SIZE {"Repetition size: "};
+static const wxString ENGINE {"Engine: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(START_ENGINE, MainWindow::on_start_engine)
@@ -124,6 +124,13 @@ void MainWindow::setup_widgets() {
 
     szr_right_side->Add(pnl_players);
 
+    szr_right_side->AddSpacer(10);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 1);  // FIXME
+    szr_right_side->AddSpacer(10);
+
+    txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
+    szr_right_side->Add(txt_engine);
+
     pnl_right_side->SetSizer(szr_right_side);
 
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
@@ -136,6 +143,10 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
+    if (engine != nullptr) {
+        engine->stop();
+    }
+
     wxExit();
 }
 
@@ -143,7 +154,14 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
     if (dialog.ShowModal() == wxID_OK) {
-        Subprocess* p {new Subprocess(dialog.GetPath().ToStdString())};  // TODO
+        if (engine != nullptr) {
+            engine->stop();
+        }
+
+        txt_engine->SetLabelText(ENGINE + dialog.GetName());
+
+        engine = std::make_unique<Engine>();
+        engine->start(dialog.GetPath().ToStdString(), [this](const auto& message) { on_engine_message(message); });
     }
 }
 
@@ -217,6 +235,10 @@ void MainWindow::on_piece_move(const CheckersBoard::Move& move) {
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
     update_board_user_input();
+}
+
+void MainWindow::on_engine_message(const std::string& message) {
+    std::cout << "ENGINE MESSAGE: " << message;
 }
 
 int MainWindow::get_ideal_board_size() {

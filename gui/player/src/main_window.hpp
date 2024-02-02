@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include <wx/wx.h>
 
 #include "board.hpp"
+#include "engine.hpp"
 
 class MainWindow : public wxFrame {
 public:
@@ -21,6 +25,7 @@ private:
     void on_white_change(wxCommandEvent&);
 
     void on_piece_move(const CheckersBoard::Move& move);
+    void on_engine_message(const std::string& message);
 
     int get_ideal_board_size();
     const char* game_over_text();
@@ -48,6 +53,10 @@ private:
 
     Player black {Player::Human};
     Player white {Player::Computer};
+
+    wxStaticText* txt_engine {nullptr};
+
+    std::unique_ptr<Engine> engine;
 
     wxDECLARE_EVENT_TABLE();
 };
