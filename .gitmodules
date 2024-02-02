@@ -2,3 +2,6 @@
 	path = gui/extern/wxWidgets
 	url = https://github.com/wxWidgets/wxWidgets/
 	branch = 3.2
+[submodule "gui/extern/subprocess"]
+	path = gui/extern/subprocess
+	url = https://github.com/sheredom/subprocess.h

@@ -7,9 +7,11 @@ add_executable(player ${WINDOWS_APP}
     "src/fen_string_dialog.hpp"
     "src/main_window.cpp"
     "src/main_window.hpp"
+    "src/subprocess.cpp"
+    "src/subprocess.hpp"
 )
 
-target_link_libraries(player PRIVATE wxmono common)
+target_link_libraries(player PRIVATE wxmono common subprocess)
 
 target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
 

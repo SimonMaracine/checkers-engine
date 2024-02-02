@@ -7,6 +7,9 @@ function(set_linux_defines TARGET)
     endif()
 endfunction()
 
+add_library(subprocess INTERFACE)
+target_include_directories(subprocess INTERFACE "extern/subprocess")
+
 set(wxBUILD_SHARED ON)
 set(wxBUILD_MONOLITHIC ON)
 

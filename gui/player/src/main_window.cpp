@@ -2,15 +2,18 @@
 
 #include <iostream>
 #include <cassert>
+#include <cstdio>
 
 #include <wx/statline.h>
 
 #include "fen_string_dialog.hpp"
+#include "subprocess.hpp"
 
-static constexpr int RESET_BOARD {10};
-static constexpr int SET_POSITION {11};
-static constexpr int BLACK {12};
-static constexpr int WHITE {13};
+static constexpr int START_ENGINE {10};
+static constexpr int RESET_BOARD {11};
+static constexpr int SET_POSITION {12};
+static constexpr int BLACK {13};
+static constexpr int WHITE {14};
 
 static const wxString STATUS {"Status: "};
 static const wxString PLAYER {"Player: "};
@@ -18,6 +21,7 @@ static const wxString PLIES_WITHOUT_ADVANCEMENT {"Plies without advancement: "};
 static const wxString REPETITION_SIZE {"Repetition size: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
+    EVT_MENU(START_ENGINE, MainWindow::on_start_engine)
     EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
     EVT_MENU(SET_POSITION, MainWindow::on_set_position)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
@@ -38,6 +42,7 @@ MainWindow::MainWindow()
 
 void MainWindow::setup_menubar() {
     wxMenu* men_file {new wxMenu};
+    men_file->Append(START_ENGINE, "Start Engine");
     men_file->Append(RESET_BOARD, "Reset Board");
     men_file->Append(SET_POSITION, "Set Position");
     men_file->Append(wxID_EXIT, "Exit");
@@ -132,6 +137,14 @@ void MainWindow::setup_widgets() {
 
 void MainWindow::on_exit(wxCommandEvent&) {
     wxExit();
+}
+
+void MainWindow::on_start_engine(wxCommandEvent&) {
+    wxFileDialog dialog {this};
+
+    if (dialog.ShowModal() == wxID_OK) {
+        Subprocess* p {new Subprocess(dialog.GetPath().ToStdString())};  // TODO
+    }
 }
 
 void MainWindow::on_reset_board(wxCommandEvent&) {
