@@ -8,7 +8,7 @@ void EngineReader::Notify() {
 
     std::string message;
 
-    if (!process->read(message)) {
+    if (!process->read_from(message)) {
         return;
     }
 
@@ -23,7 +23,7 @@ void Engine::start(const std::string& file_path, const ReadCallback& callback) {
         throw;
     }
 
-    if (!process->write("INIT")) {
+    if (!process->write_to("INIT\n")) {
         // TODO error
     }
 
@@ -41,14 +41,11 @@ void Engine::start(const std::string& file_path, const ReadCallback& callback) {
 void Engine::stop() {
     reader->Stop();
 
-    process->write("QUIT");
-    const auto result {process->join()};
-
-    if (!result) {
+    if (!process->write_to("QUIT\n")) {
         // TODO error
-    } else {
-        if (*result != 0) {
-            // TODO error
-        }
+    }
+
+    if (!process->wait_for()) {
+        // TODO error
     }
 }

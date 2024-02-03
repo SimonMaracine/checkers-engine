@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <cstdio>
-#include <optional>
 #include <vector>
 
 namespace subprocess {
@@ -12,16 +10,20 @@ namespace subprocess {
         Subprocess(const std::string& file_path);
         ~Subprocess();
 
-        bool read(std::string& data) const;
-        bool write(const std::string& data) const;
+        // FIXME avoid copy/move problems
+        Subprocess(const Subprocess&) = default;
+        Subprocess& operator=(const Subprocess&) = default;
+        Subprocess(Subprocess&&) = default;
+        Subprocess& operator=(Subprocess&&) = default;
 
-        std::optional<int> join();
+        bool read_from(std::string& data) const;
+        bool write_to(const std::string& data) const;
+        bool wait_for();
     private:
+        int input {};  // Read from
+        int output {};  // Write to
+        int child_pid {-1};
 
-        std::FILE* output {nullptr};
-
-        mutable struct {
-            std::vector<char> buffered;
-        } input;
+        mutable std::vector<char> buffered;
     };
 }
