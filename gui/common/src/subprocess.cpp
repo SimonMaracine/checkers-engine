@@ -6,21 +6,10 @@
 
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 
 namespace subprocess {
     Subprocess::Subprocess(const std::string& file_path) {
-        // const char* const cmd[] { file_path.c_str(), nullptr };
-
-        // subprocess = new struct subprocess_s;
-        // const int result {subprocess_create(cmd, subprocess_option_enable_async, subprocess)};
-
-        // if (result != 0) {
-        //     delete subprocess;
-        //     throw 0;
-        // }
-
-        // output = subprocess_stdin(subprocess);
-
         int fd_r[2u] {};
         if (pipe(fd_r) < 0) {
             throw 0;
@@ -36,14 +25,14 @@ namespace subprocess {
         if (pid < 0) {
             throw 0;
         } else if (pid == 0) {
-            close(fd_w[1u]);
             close(fd_r[0u]);
+            close(fd_w[1u]);
 
-            if (dup2(STDIN_FILENO, fd_w[0u]) < 0) {
+            if (dup2(fd_r[1u], STDOUT_FILENO) < 0) {
                 std::exit(1);
             }
 
-            if (dup2(STDOUT_FILENO, fd_r[1u]) < 0) {
+            if (dup2(fd_w[0u], STDIN_FILENO) < 0) {
                 std::exit(1);
             }
 
@@ -53,10 +42,10 @@ namespace subprocess {
                 std::exit(1);
             }
 
-            // Execution stops in execv
+            // Child execution stops in execv
         } else {
-            // Parent writes to fd_w[1]
             // Parent reads from fd_r[0]
+            // Parent writes to fd_w[1]
 
             input = fd_r[0u];
             output = fd_w[1u];
@@ -65,18 +54,6 @@ namespace subprocess {
     }
 
     Subprocess::~Subprocess() {
-        // if (subprocess == nullptr) {
-        //     return;
-        // }
-
-        // const int result {subprocess_destroy(subprocess)};
-
-        // if (result != 0) {
-        //     // TODO error
-        // }
-
-        // delete subprocess;
-
         if (child_pid < 0) {
             return;
         }
@@ -85,13 +62,20 @@ namespace subprocess {
     }
 
     bool Subprocess::read_from(std::string& data) const {
-        // char buffer[512u] {};
+        fd_set set;
+        FD_ZERO(&set);
 
-        // const unsigned int bytes {subprocess_read_stdout(subprocess, buffer, 512u)};
+        timeval time;
+        time.tv_sec = 0;
+        time.tv_usec = 0;
 
-        // if (bytes == 0u) {
-        //     return true;
-        // }
+        const int result {select(input + 1, &set, nullptr, nullptr, &time)};
+
+        if (result < 0) {
+            return false;
+        } else if (result != 1) {
+            return false;
+        }
 
         char buffer[512u] {};
 
@@ -149,12 +133,6 @@ namespace subprocess {
     }
 
     bool Subprocess::write_to(const std::string& data) const {
-        // if (std::fprintf(output, "%s\n", data.c_str()) < 0) {
-        //     return false;
-        // }
-
-        // return true;
-
         const ssize_t bytes {write(output, data.c_str(), data.size())};
 
         if (bytes < 0) {
@@ -166,16 +144,7 @@ namespace subprocess {
         return true;
     }
 
-    bool Subprocess::wait_for() {
-        // int process_return {};
-        // const int result {subprocess_join(subprocess, &process_return)};
-
-        // if (result != 0) {
-        //     return std::nullopt;
-        // }
-
-        // return std::make_optional(process_return);
-
+    bool Subprocess::wait_for() const {
         if (waitpid(child_pid, nullptr, 0) < 0) {
             return false;
         }

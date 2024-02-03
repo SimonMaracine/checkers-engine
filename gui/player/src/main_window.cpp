@@ -158,7 +158,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
             engine->stop();
         }
 
-        txt_engine->SetLabelText(ENGINE + dialog.GetName());
+        txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
 
         engine = std::make_unique<Engine>();
 
