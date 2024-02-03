@@ -12,6 +12,11 @@ class MainWindow : public wxFrame {
 public:
     MainWindow();
 private:
+    enum class Player {
+        Human,
+        Computer
+    };
+
     void setup_menubar();
     void setup_widgets();
 
@@ -29,7 +34,7 @@ private:
 
     int get_ideal_board_size();
     const char* game_over_text();
-    void update_board_user_input();
+    Player update_board_user_input();  // Returns the previous player role
 
     board::CheckersBoard* board {nullptr};
 
@@ -45,11 +50,6 @@ private:
 
     wxRadioButton* btn_white_human {nullptr};
     wxRadioButton* btn_white_computer {nullptr};
-
-    enum class Player {
-        Human,
-        Computer
-    };
 
     Player black {Player::Human};
     Player white {Player::Computer};

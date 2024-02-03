@@ -239,7 +239,11 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
-    update_board_user_input();
+    if (update_board_user_input() == Player::Human) {
+        engine->go();
+    } else {
+
+    }
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
@@ -267,12 +271,16 @@ const char* MainWindow::game_over_text() {
     return nullptr;
 }
 
-void MainWindow::update_board_user_input() {
+MainWindow::Player MainWindow::update_board_user_input() {
     const Player PLAYERS[2u] { black, white };
 
     if (PLAYERS[static_cast<unsigned int>(board->get_player()) - 1u] == Player::Computer) {
         board->set_user_input(false);
+
+        return Player::Human;
     } else {
         board->set_user_input(true);
+
+        return Player::Computer;
     }
 }

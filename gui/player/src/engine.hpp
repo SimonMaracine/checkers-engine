@@ -26,6 +26,8 @@ class Engine {
 public:
     void start(const std::string& file_path, const ReadCallback& callback);
     void stop();
+    void go();
+    void move();
 private:
     std::unique_ptr<subprocess::Subprocess> process;
     std::unique_ptr<EngineReader> reader;

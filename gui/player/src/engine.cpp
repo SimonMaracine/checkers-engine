@@ -49,3 +49,13 @@ void Engine::stop() {
         // TODO error
     }
 }
+
+void Engine::go() {
+    if (!process->write_to("GO\n")) {
+        // TODO error
+    }
+}
+
+void Engine::move() {
+
+}
