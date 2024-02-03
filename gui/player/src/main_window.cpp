@@ -58,8 +58,8 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-    board = new CheckersBoard(this, -1, -1, 400,
-        [this](const CheckersBoard::Move& move) {
+    board = new board::CheckersBoard(this, -1, -1, 400,
+        [this](const board::CheckersBoard::Move& move) {
             return on_piece_move(move);
         }
     );
@@ -224,18 +224,18 @@ void MainWindow::on_white_change(wxCommandEvent&) {
     }
 }
 
-void MainWindow::on_piece_move(const CheckersBoard::Move& move) {
+void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     switch (move.type) {
-        case CheckersBoard::MoveType::Normal:
+        case board::CheckersBoard::MoveType::Normal:
             std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
             break;
-        case CheckersBoard::MoveType::Capture:
+        case board::CheckersBoard::MoveType::Capture:
             std::cout << move.capture.source_index << " -> " << move.capture.destination_indices[move.capture.destination_indices_size - 1u] << '\n';
             break;
     }
 
     game.txt_status->SetLabelText(STATUS + game_over_text());
-    game.txt_player->SetLabelText(PLAYER + (board->get_player() == CheckersBoard::Player::Black ? "black" : "white"));
+    game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
@@ -254,13 +254,13 @@ int MainWindow::get_ideal_board_size() {
 
 const char* MainWindow::game_over_text() {
     switch (board->get_game_over()) {
-        case CheckersBoard::GameOver::None:
+        case board::CheckersBoard::GameOver::None:
             return "game in progress";
-        case CheckersBoard::GameOver::WinnerBlack:
+        case board::CheckersBoard::GameOver::WinnerBlack:
             return "game over (winner black)";
-        case CheckersBoard::GameOver::WinnerWhite:
+        case board::CheckersBoard::GameOver::WinnerWhite:
             return "game over (winner white)";
-        case CheckersBoard::GameOver::Tie:
+        case board::CheckersBoard::GameOver::Tie:
             return "game over (tie)";
     }
 

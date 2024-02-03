@@ -4,8 +4,8 @@
 #include <string>
 
 #include <wx/wx.h>
+#include <common/board.hpp>
 
-#include "board.hpp"
 #include "engine.hpp"
 
 class MainWindow : public wxFrame {
@@ -24,14 +24,14 @@ private:
     void on_black_change(wxCommandEvent&);
     void on_white_change(wxCommandEvent&);
 
-    void on_piece_move(const CheckersBoard::Move& move);
+    void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message);
 
     int get_ideal_board_size();
     const char* game_over_text();
     void update_board_user_input();
 
-    CheckersBoard* board {nullptr};
+    board::CheckersBoard* board {nullptr};
 
     struct {
         wxStaticText* txt_status {nullptr};
