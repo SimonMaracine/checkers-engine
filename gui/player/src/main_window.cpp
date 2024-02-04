@@ -160,7 +160,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
         txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
 
-        engine = std::make_unique<Engine>();
+        engine = std::make_unique<engine::Engine>();
 
         try {
             engine->start(dialog.GetPath().ToStdString(), [this](const auto& message) { on_engine_message(message); });
