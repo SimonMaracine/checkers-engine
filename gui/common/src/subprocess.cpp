@@ -86,7 +86,7 @@ namespace subprocess {
         }
 
         if (bytes == 0) {
-            return true;
+            return false;
         }
 
         std::size_t bytes_consuming {0u};

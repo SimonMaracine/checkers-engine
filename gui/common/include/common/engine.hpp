@@ -5,7 +5,8 @@
 #include <memory>
 
 #include <wx/timer.h>
-#include <common/subprocess.hpp>
+
+#include "subprocess.hpp"
 
 using ReadCallback = std::function<void(const std::string&)>;
 

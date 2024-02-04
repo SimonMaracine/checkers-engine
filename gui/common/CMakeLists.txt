@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 add_library(common STATIC
     "include/common/board.hpp"
+    "include/common/engine.hpp"
     "include/common/subprocess.hpp"
     "src/board.cpp"
+    "src/engine.cpp"
     "src/subprocess.cpp"
 )
 

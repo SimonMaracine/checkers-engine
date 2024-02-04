@@ -5,8 +5,7 @@
 
 #include <wx/wx.h>
 #include <common/board.hpp>
-
-#include "engine.hpp"
+#include <common/engine.hpp>
 
 class MainWindow : public wxFrame {
 public:
