@@ -124,6 +124,6 @@ namespace search {
 
         assert(!nodes.empty());
 
-        return current_node;
+        return nodes.back();
     }
 }

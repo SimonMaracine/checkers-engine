@@ -9,14 +9,14 @@ namespace messages {
 
         switch (move.type) {
             case game::MoveType::Normal:
-                stream << game::to_1_32(move.normal.source_index) << 'x' << game::to_1_32(move.normal.destination_index);
+                stream << static_cast<int>(game::to_1_32(move.normal.source_index)) << 'x' << static_cast<int>(game::to_1_32(move.normal.destination_index));
 
                 break;
             case game::MoveType::Capture:
-                stream << game::to_1_32(move.capture.source_index);
+                stream << static_cast<int>(game::to_1_32(move.capture.source_index));
 
                 for (unsigned char i {0u}; i < move.capture.destination_indices_size; i++) {
-                    stream << 'x' << game::to_1_32(move.capture.destination_indices[i]);
+                    stream << 'x' << static_cast<int>(game::to_1_32(move.capture.destination_indices[i]));
                 }
 
                 break;

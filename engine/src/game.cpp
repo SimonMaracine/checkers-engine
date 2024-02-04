@@ -276,5 +276,7 @@ namespace game {
         if (black_pieces == 0u || white_pieces == 0u) {
             return true;
         }
+
+        return false;
     }
 }
