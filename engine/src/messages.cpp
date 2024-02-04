@@ -25,15 +25,17 @@ namespace messages {
         return stream.str();
     }
 
+    // Using std::endl is crucial
+
     void warning(const std::string& message) {
         if (!message.empty()) {
-            std::cout << "WARNING " << message << '\n';
+            std::cout << "WARNING " << message << std::endl;
         } else {
-            std::cout << "WARNING\n";
+            std::cout << "WARNING" << std::endl;
         }
     }
 
     void bestmove(const game::Move& move) {  // TODO does it need synchronization?
-        std::cout << "BESTMOVE " << move_to_string(move) << '\n';
+        std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
     }
 }

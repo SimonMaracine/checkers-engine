@@ -44,6 +44,9 @@ namespace subprocess {
 
             // Child execution stops in execv
         } else {
+            close(fd_r[1u]);
+            close(fd_w[0u]);
+
             // Parent reads from fd_r[0]
             // Parent writes to fd_w[1]
 
@@ -59,11 +62,14 @@ namespace subprocess {
         }
 
         wait_for();
+
+        child_pid = -1;
     }
 
     bool Subprocess::read_from(std::string& data) const {
         fd_set set;
         FD_ZERO(&set);
+        FD_SET(input, &set);
 
         timeval time;
         time.tv_sec = 0;
@@ -77,9 +83,9 @@ namespace subprocess {
             return false;
         }
 
-        char buffer[512u] {};
+        char buffer[128u] {};
 
-        const ssize_t bytes {read(input, buffer, 512u)};
+        const ssize_t bytes {read(input, buffer, 128u)};
 
         if (bytes < 0) {
             return false;
@@ -94,7 +100,7 @@ namespace subprocess {
 
         for (ssize_t i {0}; i < bytes; i++) {
             if (buffer[i] == '\n') {
-                bytes_consuming = i;
+                bytes_consuming = i + 1;
                 found_new_line = true;
                 break;
             }
@@ -124,7 +130,7 @@ namespace subprocess {
 
         delete[] final_buffer;
 
-        if (bytes_consuming < bytes) {
+        if (static_cast<ssize_t>(bytes_consuming) < bytes) {
             buffered.resize(bytes - bytes_consuming);
             std::memcpy(buffered.data(), buffer + bytes_consuming, bytes - bytes_consuming);
         }
@@ -137,7 +143,7 @@ namespace subprocess {
 
         if (bytes < 0) {
             return false;
-        } else if (bytes < data.size()) {
+        } else if (bytes < static_cast<ssize_t>(data.size())) {
             return false;
         }
 
@@ -145,7 +151,7 @@ namespace subprocess {
     }
 
     bool Subprocess::wait_for() const {
-        if (waitpid(child_pid, nullptr, 0) < 0) {
+        if (waitpid(child_pid, nullptr, 0) < 0) {  // FIXME stuck here
             return false;
         }
 

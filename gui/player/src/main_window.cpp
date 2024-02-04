@@ -247,7 +247,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
-    std::cout << "ENGINE MESSAGE: " << message;
+    std::cout << "engine message: " << message << '\n';
 }
 
 int MainWindow::get_ideal_board_size() {
