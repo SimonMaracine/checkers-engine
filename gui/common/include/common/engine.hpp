@@ -28,10 +28,11 @@ namespace engine {
     public:
         void start(const std::string& file_path, const ReadCallback& callback);
         void stop();
+        void newgame();
         void go();
-        void move();
+        void move(const std::string& move_string);
     private:
-        std::unique_ptr<subprocess::Subprocess> process;
+        subprocess::Subprocess process;
         std::unique_ptr<EngineReader> reader;
     };
 }

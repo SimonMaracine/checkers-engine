@@ -56,16 +56,6 @@ namespace subprocess {
         }
     }
 
-    Subprocess::~Subprocess() {
-        if (child_pid < 0) {
-            return;
-        }
-
-        wait_for();
-
-        child_pid = -1;
-    }
-
     bool Subprocess::read_from(std::string& data) const {
         fd_set set;
         FD_ZERO(&set);
@@ -150,8 +140,8 @@ namespace subprocess {
         return true;
     }
 
-    bool Subprocess::wait_for() const {
-        if (waitpid(child_pid, nullptr, 0) < 0) {  // FIXME stuck here
+    bool Subprocess::wait_for() {
+        if (waitpid(child_pid, nullptr, 0) < 0) {
             return false;
         }
 

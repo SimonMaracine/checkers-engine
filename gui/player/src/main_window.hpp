@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wx.h>
 #include <common/board.hpp>
@@ -27,6 +28,7 @@ private:
     void on_window_resize(wxSizeEvent& event);
     void on_black_change(wxCommandEvent&);
     void on_white_change(wxCommandEvent&);
+    void on_close(wxCloseEvent&);
 
     void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message);
@@ -34,6 +36,8 @@ private:
     int get_ideal_board_size();
     const char* game_over_text();
     Player update_board_user_input();  // Returns the previous player role
+    void process_engine_message(const std::string& message);
+    std::vector<std::string> parse_message(const std::string& message);
 
     board::CheckersBoard* board {nullptr};
 
@@ -55,7 +59,7 @@ private:
 
     wxStaticText* txt_engine {nullptr};
 
-    std::unique_ptr<engine::Engine> engine;  // TODO remove heap allocation
+    std::unique_ptr<engine::Engine> engine;
 
     wxDECLARE_EVENT_TABLE();
 };

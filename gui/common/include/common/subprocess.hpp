@@ -8,17 +8,16 @@ namespace subprocess {
     public:
         Subprocess() = default;
         Subprocess(const std::string& file_path);
-        ~Subprocess();
+        ~Subprocess() = default;
 
-        // FIXME avoid copy/move problems
-        Subprocess(const Subprocess&) = default;
-        Subprocess& operator=(const Subprocess&) = default;
-        Subprocess(Subprocess&&) = default;
-        Subprocess& operator=(Subprocess&&) = default;
+        Subprocess(const Subprocess&) = delete;
+        Subprocess& operator=(const Subprocess&) = delete;
+        Subprocess(Subprocess&&) noexcept = default;
+        Subprocess& operator=(Subprocess&&) noexcept = default;
 
         bool read_from(std::string& data) const;
         bool write_to(const std::string& data) const;
-        bool wait_for() const;
+        bool wait_for();
     private:
         int input {};  // Read from
         int output {};  // Write to

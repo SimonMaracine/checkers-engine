@@ -18,17 +18,17 @@ namespace engine {
 
     void Engine::start(const std::string& file_path, const ReadCallback& callback) {
         try {
-            process = std::make_unique<subprocess::Subprocess>(file_path);
+            process = subprocess::Subprocess(file_path);
         } catch (int) {
             // TODO error
             throw;
         }
 
-        if (!process->write_to("INIT\n")) {
+        if (!process.write_to("INIT\n")) {
             // TODO error
         }
 
-        reader = std::make_unique<EngineReader>(process.get(), callback);
+        reader = std::make_unique<EngineReader>(&process, callback);
 
         for (unsigned int i {0u}; i < 5u; i++) {
             if (reader->Start(250)) {
@@ -42,22 +42,34 @@ namespace engine {
     void Engine::stop() {
         reader->Stop();
 
-        if (!process->write_to("QUIT\n")) {
+        if (!process.write_to("QUIT\n")) {
             // TODO error
         }
 
-        if (!process->wait_for()) {
+        if (!process.wait_for()) {
+            // TODO error
+        }
+    }
+
+    void Engine::newgame() {
+        if (!process.write_to("NEWGAME\n")) {
             // TODO error
         }
     }
 
     void Engine::go() {
-        if (!process->write_to("GO\n")) {
+        if (!process.write_to("GO\n")) {
             // TODO error
         }
     }
 
-    void Engine::move() {
+    void Engine::move(const std::string& move_string) {
+        std::string message {"MOVE "};
+        message += move_string;
+        message += '\n';
 
+        if (!process.write_to(message)) {
+            // TODO error
+        }
     }
 }

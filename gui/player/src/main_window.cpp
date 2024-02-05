@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 
 #include <wx/statline.h>
 
@@ -29,6 +30,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_SIZE(MainWindow::on_window_resize)
     EVT_RADIOBUTTON(BLACK, MainWindow::on_black_change)
     EVT_RADIOBUTTON(WHITE, MainWindow::on_white_change)
+    EVT_CLOSE(MainWindow::on_close)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow()
@@ -80,9 +82,9 @@ void MainWindow::setup_widgets() {
     game.txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
     szr_right_side->Add(game.txt_repetition_size, 1);
 
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 1);  // FIXME
-    szr_right_side->AddSpacer(10);
+    szr_right_side->AddSpacer(5);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+    szr_right_side->AddSpacer(5);
 
     wxPanel* pnl_players {new wxPanel(pnl_right_side)};
 
@@ -92,13 +94,13 @@ void MainWindow::setup_widgets() {
 
     wxBoxSizer* szr_black {new wxBoxSizer(wxVERTICAL)};
 
-    szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"));
+    szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"), 1);
 
     btn_black_human = new wxRadioButton(pnl_black, BLACK, "Human");
-    szr_black->Add(btn_black_human);
+    szr_black->Add(btn_black_human, 1);
 
     btn_black_computer = new wxRadioButton(pnl_black, BLACK, "Computer");
-    szr_black->Add(btn_black_computer);
+    szr_black->Add(btn_black_computer, 1);
 
     pnl_black->SetSizer(szr_black);
 
@@ -106,30 +108,30 @@ void MainWindow::setup_widgets() {
 
     wxBoxSizer* szr_white {new wxBoxSizer(wxVERTICAL)};
 
-    szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"));
+    szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"), 1);
 
     btn_white_human = new wxRadioButton(pnl_white, WHITE, "Human");
-    szr_white->Add(btn_white_human);
+    szr_white->Add(btn_white_human, 1);
 
     btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
     btn_white_computer->SetValue(true);
-    szr_white->Add(btn_white_computer);
+    szr_white->Add(btn_white_computer, 1);
 
     pnl_white->SetSizer(szr_white);
 
-    szr_players->Add(pnl_black);
-    szr_players->Add(pnl_white);
+    szr_players->Add(pnl_black, 1);
+    szr_players->Add(pnl_white, 1);
 
     pnl_players->SetSizer(szr_players);
 
     szr_right_side->Add(pnl_players);
 
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 1);  // FIXME
-    szr_right_side->AddSpacer(10);
+    szr_right_side->AddSpacer(5);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+    szr_right_side->AddSpacer(5);
 
     txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
-    szr_right_side->Add(txt_engine);
+    szr_right_side->Add(txt_engine, 1);
 
     pnl_right_side->SetSizer(szr_right_side);
 
@@ -176,6 +178,10 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
     game.txt_player->SetLabelText(PLAYER + "black");
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
+
+    if (engine != nullptr) {
+        engine->newgame();
+    }
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -208,9 +214,17 @@ void MainWindow::on_black_change(wxCommandEvent&) {
     if (btn_black_human->GetValue()) {
         assert(!btn_black_computer->GetValue());
         black = Player::Human;
+
+        if (board->get_player() == board::CheckersBoard::Player::Black) {
+            board->set_user_input(true);
+        }
     } else {
         assert(btn_black_computer->GetValue());
         black = Player::Computer;
+
+        if (board->get_player() == board::CheckersBoard::Player::Black) {
+            board->set_user_input(false);
+        }
     }
 }
 
@@ -218,36 +232,46 @@ void MainWindow::on_white_change(wxCommandEvent&) {
     if (btn_white_human->GetValue()) {
         assert(!btn_white_computer->GetValue());
         white = Player::Human;
+
+        if (board->get_player() == board::CheckersBoard::Player::White) {
+            board->set_user_input(true);
+        }
     } else {
         assert(btn_white_computer->GetValue());
         white = Player::Computer;
+
+        if (board->get_player() == board::CheckersBoard::Player::White) {
+            board->set_user_input(false);
+        }
     }
 }
 
-void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
-    switch (move.type) {
-        case board::CheckersBoard::MoveType::Normal:
-            std::cout << move.normal.source_index << " -> " << move.normal.destination_index << '\n';
-            break;
-        case board::CheckersBoard::MoveType::Capture:
-            std::cout << move.capture.source_index << " -> " << move.capture.destination_indices[move.capture.destination_indices_size - 1u] << '\n';
-            break;
+void MainWindow::on_close(wxCloseEvent&) {
+    if (engine != nullptr) {
+        engine->stop();
     }
 
+    wxExit();
+}
+
+void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     game.txt_status->SetLabelText(STATUS + game_over_text());
     game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
     if (update_board_user_input() == Player::Human) {
-        engine->go();
-    } else {
-
+        if (engine != nullptr) {
+            engine->move(board::CheckersBoard::move_to_string(move));
+            engine->go();
+        }
     }
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
     std::cout << "engine message: " << message << '\n';
+
+    process_engine_message(message);
 }
 
 int MainWindow::get_ideal_board_size() {
@@ -283,4 +307,43 @@ MainWindow::Player MainWindow::update_board_user_input() {
 
         return Player::Computer;
     }
+}
+
+void MainWindow::process_engine_message(const std::string& message) {
+    const auto tokens {parse_message(message)};
+
+    if (tokens.empty()) {
+        return;
+    }
+
+    if (tokens.at(0u) == "WARNING") {
+        if (tokens.size() > 1u) {
+            std::cout << "Engine warning: " << tokens.at(1u) << '\n';
+        }
+    } else if (tokens.at(0u) == "BESTMOVE") {
+        if (tokens.size() > 1u) {
+            const auto& move_string {tokens.at(1u)};
+
+            board->play_move(move_string.substr(0u, move_string.size() - 1u));
+        }
+    }
+}
+
+std::vector<std::string> MainWindow::parse_message(const std::string& message) {
+    std::vector<std::string> tokens;
+
+    char* mutable_buffer {new char[message.size()]};
+    std::memcpy(mutable_buffer, message.c_str(), message.size());
+
+    char* token {std::strtok(mutable_buffer, " ")};
+
+    while (token != nullptr) {
+        tokens.emplace_back(token);
+
+        token = std::strtok(nullptr, " ");
+    }
+
+    delete[] mutable_buffer;
+
+    return tokens;
 }

@@ -126,7 +126,7 @@ namespace game {
                 if (move_string[index] >= '0' && move_string[index] <= '9') {
                     result_number.push_back(move_string[index]);
                     index++;
-                } else if (move_string[index] == '-' || move_string[index] == 'x') {
+                } else if (move_string[index] == 'x') {
                     index++;
                     break;
                 } else {

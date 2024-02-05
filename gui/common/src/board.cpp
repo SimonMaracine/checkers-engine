@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <iterator>
+#include <sstream>
 
 /*
     branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
@@ -61,12 +62,12 @@ namespace board {
         refresh_canvas();
     }
 
-    bool CheckersBoard::set_position(const std::string& fen_string) {
+    void CheckersBoard::set_position(const std::string& fen_string) {
         // Don't validate for any stupid things the string might contain
         // Validate only the format
 
         if (!validate_fen_string(fen_string)) {
-            return false;
+            return;
         }
 
         clear();
@@ -95,8 +96,6 @@ namespace board {
         legal_moves = generate_moves();
 
         refresh_canvas();
-
-        return true;
     }
 
     void CheckersBoard::set_user_input(bool user_input) {
@@ -114,6 +113,61 @@ namespace board {
         }
 
         legal_moves = generate_moves();
+
+        refresh_canvas();
+    }
+
+    void CheckersBoard::play_move(const std::string& move_string) {
+        if (!valid_move_string(move_string)) {
+            return;
+        }
+
+        std::size_t index {0u};
+
+        // These are in range [1, 32] and need to be shifted
+        const auto source {parse_source_square(move_string, index)};
+        const auto [destinations, count] {parse_destination_squares(move_string, index)};
+
+        // Construct a move and play it
+
+        Move move;
+
+        if (is_capture_move(source, destinations, count)) {
+            move.type = MoveType::Capture;
+            move.capture.source_index = translate_index_1_32_to_0_64(source);
+            move.capture.destination_indices_size = count;
+
+            for (std::size_t i {0u}; i < count; i++) {
+                move.capture.destination_indices[i] = translate_index_1_32_to_0_64(destinations[i]);
+            }
+        } else {
+            move.type = MoveType::Normal;
+            move.normal.source_index = translate_index_1_32_to_0_64(source);
+            move.normal.destination_index = translate_index_1_32_to_0_64(destinations[0u]);
+        }
+
+        play_move(move);
+    }
+
+    std::string CheckersBoard::move_to_string(const Move& move) {
+        std::ostringstream stream;
+
+        switch (move.type) {
+            case MoveType::Normal:
+                stream << translate_index_0_64_to_1_32(move.normal.source_index) << 'x' << translate_index_0_64_to_1_32(move.normal.destination_index);
+
+                break;
+            case MoveType::Capture:
+                stream << translate_index_0_64_to_1_32(move.capture.source_index);
+
+                for (std::size_t i {0u}; i < move.capture.destination_indices_size; i++) {
+                    stream << 'x' << translate_index_0_64_to_1_32(move.capture.destination_indices[i]);
+                }
+
+                break;
+        }
+
+        return stream.str();
     }
 
     void CheckersBoard::on_paint(wxPaintEvent&) {
@@ -749,6 +803,91 @@ namespace board {
         } else {
             return (index / 2) + 1;
         }
+    }
+
+    bool CheckersBoard::valid_move_string(const std::string& move_string) {
+        const std::regex pattern {"([0-9]+x)+[0-9]+"};
+
+        return std::regex_match(move_string, pattern);
+    }
+
+    unsigned int CheckersBoard::parse_number(const std::string& move_string, std::size_t& index) {
+        std::string result_number;
+
+        while (true) {
+            if (index == move_string.size()) {
+                // Also stop scanning when going past the string
+                break;
+            }
+
+            if (move_string[index] >= '0' && move_string[index] <= '9') {
+                result_number.push_back(move_string[index]);
+                index++;
+            } else if (move_string[index] == 'x') {
+                index++;
+                break;
+            } else {
+                // FIXME error
+            }
+        }
+
+        unsigned long result {0u};
+
+        try {
+            result = std::stoul(result_number);
+        } catch (const std::invalid_argument&) {
+            // FIXME error
+        } catch (const std::out_of_range&) {
+            // FIXME error
+        }
+
+        return static_cast<Idx>(result);
+    }
+
+    CheckersBoard::Idx CheckersBoard::parse_source_square(const std::string& move_string, std::size_t& index) {
+        const auto number {parse_number(move_string, index)};
+
+        if (number > 32u) {
+            // FIXME error
+        }
+
+        return static_cast<Idx>(number);
+    }
+
+    std::pair<std::array<CheckersBoard::Idx, 9u>, std::size_t> CheckersBoard::parse_destination_squares(const std::string& move_string, std::size_t& index) {
+        std::array<Idx, 9u> indices {};
+        std::size_t count {0u};
+
+        while (true) {
+            if (index == move_string.size()) {
+                break;
+            }
+
+            const auto number {parse_number(move_string, index)};
+
+            if (number > 32u) {
+                // FIXME error
+            }
+
+            indices[count++] = static_cast<Idx>(number);
+        }
+
+        return std::make_pair(indices, count);
+    }
+
+    bool CheckersBoard::is_capture_move(Idx source, const std::array<Idx, 9u>& destinations, std::size_t count) {
+        if (count == 1u) {
+            const auto distance {std::abs(source - 1 - destinations[0u] - 1)};
+
+            if (distance >= 4 && distance <= 6) {
+                // Then it can't be a capture move
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return true;
     }
 
     void CheckersBoard::clear() {

@@ -23,6 +23,7 @@ namespace board {
 
         struct Move {
             union {
+                // Indices are in the range [0..63]
                 struct {
                     Idx source_index;
                     Idx destination_index;
@@ -56,9 +57,12 @@ namespace board {
 
         void set_board_size(int size);
         void reset();
-        bool set_position(const std::string& fen_string);
+        void set_position(const std::string& fen_string);
         void set_user_input(bool user_input);
         void play_move(const Move& move);
+        void play_move(const std::string& move_string);
+
+        static std::string move_to_string(const Move& move);
 
         GameOver get_game_over() const { return game_over; }
         Player get_player() const { return turn; }
@@ -126,6 +130,11 @@ namespace board {
         static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
         static Idx translate_index_1_32_to_0_64(Idx index);
         static Idx translate_index_0_64_to_1_32(Idx index);
+        static bool valid_move_string(const std::string& move_string);
+        static unsigned int parse_number(const std::string& move_string, std::size_t& index);
+        static Idx parse_source_square(const std::string& move_string, std::size_t& index);
+        static std::pair<std::array<Idx, 9u>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index);
+        static bool is_capture_move(Idx source, const std::array<Idx, 9u>& destinations, std::size_t count);
         void clear();
         void refresh_canvas();
         void draw(wxDC& dc);
