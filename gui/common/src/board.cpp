@@ -146,7 +146,7 @@ namespace board {
         // Construct a move and play it
         Move move;
 
-        if (is_capture_move(source, destinations, count)) {
+        if (is_capture_move(source, destinations[0u])) {
             move.type = MoveType::Capture;
             move.capture.source_index = translate_index_1_32_to_0_64(source);
             move.capture.destination_indices_size = count;
@@ -453,8 +453,7 @@ namespace board {
             ctx.destination_indices.push_back(target_index);
 
             // Remove the piece to avoid illegal jumps
-            const Square removed_enemy_piece {ctx.board[enemy_index]};
-            ctx.board[enemy_index] = Square::None;
+            const auto removed_enemy_piece {std::exchange(ctx.board[enemy_index], Square::None)};
 
             // Jump this piece to avoid other illegal jumps
             std::swap(ctx.board[square_index], ctx.board[target_index]);
@@ -889,19 +888,15 @@ namespace board {
         return std::make_pair(indices, count);
     }
 
-    bool CheckersBoard::is_capture_move(Idx source, const std::array<Idx, 9u>& destinations, std::size_t count) {
-        if (count == 1u) {
-            const auto distance {std::abs(source - 1 - destinations[0u] - 1)};
+    bool CheckersBoard::is_capture_move(Idx source, Idx destination) {
+        const auto distance {std::abs((source - 1) - (destination - 1))};
 
-            if (distance >= 4 && distance <= 6) {
-                // Then it can't be a capture move
-                return false;
-            } else {
-                return true;
-            }
+        if (distance >= 4 && distance <= 6) {
+            // Then it can't be a capture move
+            return false;
+        } else {
+            return true;
         }
-
-        return true;
     }
 
     void CheckersBoard::clear() {

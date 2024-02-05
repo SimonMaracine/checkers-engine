@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
+#include <utility>
 
 namespace moves {
     static game::Idx get_jumped_piece_index(game::Idx index1, game::Idx index2) {
@@ -11,7 +12,7 @@ namespace moves {
 
         assert(sum % 2 == 1);
 
-        if (((index1 - 1) / 4) % 2 == 0) {
+        if (((game::to_0_31(index1)) / 4) % 2 == 0) {
             return static_cast<game::Idx>((sum + 1) / 2);
         } else {
             return static_cast<game::Idx>((sum - 1) / 2);
@@ -153,8 +154,7 @@ namespace moves {
             ctx.destination_indices.push_back(target_index);
 
             // Remove the piece to avoid illegal jumps
-            const game::Square removed_enemy_piece {ctx.board[enemy_index]};
-            ctx.board[enemy_index] = game::Square::None;
+            const auto removed_enemy_piece {std::exchange(ctx.board[enemy_index], game::Square::None)};
 
             // Jump this piece to avoid other illegal jumps
             std::swap(ctx.board[square_index], ctx.board[target_index]);
@@ -250,7 +250,7 @@ namespace moves {
                     board[move.capture.source_index],
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
-                remove_jumped_pieces(position.position.board, move);
+                remove_jumped_pieces(board, move);
 
                 break;
         }

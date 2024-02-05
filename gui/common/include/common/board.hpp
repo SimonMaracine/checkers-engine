@@ -134,7 +134,7 @@ namespace board {
         static unsigned int parse_number(const std::string& move_string, std::size_t& index);
         static Idx parse_source_square(const std::string& move_string, std::size_t& index);
         static std::pair<std::array<Idx, 9u>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index);
-        static bool is_capture_move(Idx source, const std::array<Idx, 9u>& destinations, std::size_t count);
+        static bool is_capture_move(Idx source, Idx destination);
         void clear();
         void refresh_canvas();
         void draw(wxDC& dc);

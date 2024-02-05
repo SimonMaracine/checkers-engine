@@ -27,8 +27,6 @@ namespace game {
             }
 
             throw error::ERR;
-
-            return {};
         }
 
         static std::pair<game::Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index) {
@@ -178,19 +176,15 @@ namespace game {
             return std::make_pair(indices, count);
         }
 
-        static bool is_capture_move(game::Idx source, const std::array<game::Idx, 9u>& destinations, std::size_t count) {
-            if (count == 1u) {
-                const auto distance {std::abs(to_0_31(source) - to_0_31(destinations[0u]))};
+        static bool is_capture_move(game::Idx source, game::Idx destination) {
+            const auto distance {std::abs(to_0_31(source) - to_0_31(destination))};
 
-                if (distance >= 4 && distance <= 6) {
-                    // Then it can't be a capture move
-                    return false;
-                } else {
-                    return true;
-                }
+            if (distance >= 4 && distance <= 6) {
+                // Then it can't be a capture move
+                return false;
+            } else {
+                return true;
             }
-
-            return true;
         }
     }
 
@@ -235,7 +229,7 @@ namespace game {
         // Construct a move and play it
         game::Move move;
 
-        if (pdn::is_capture_move(source, destinations, count)) {
+        if (pdn::is_capture_move(source, destinations[0u])) {
             move.type = game::MoveType::Capture;
             move.capture.source_index = to_0_31(source);
             move.capture.destination_indices_size = static_cast<unsigned char>(count);
