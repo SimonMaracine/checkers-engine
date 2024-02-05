@@ -23,7 +23,7 @@ namespace board {
 
         struct Move {
             union {
-                // Indices are in the range [0..63]
+                // Indices are in the range [0, 63]
                 struct {
                     Idx source_index;
                     Idx destination_index;

@@ -27,6 +27,8 @@ namespace board {
         EVT_RIGHT_DOWN(CheckersBoard::on_mouse_right_down)
     wxEND_EVENT_TABLE()
 
+    static constexpr int ERR {0};
+
     CheckersBoard::CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
         : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
         reset();
@@ -65,33 +67,36 @@ namespace board {
     void CheckersBoard::set_position(const std::string& fen_string) {
         // Don't validate for any stupid things the string might contain
         // Validate only the format
-
         if (!validate_fen_string(fen_string)) {
             return;
         }
 
         clear();
 
-        std::size_t index {0u};
+        try {
+            std::size_t index {0u};
 
-        turn = parse_player(fen_string, index);
+            turn = parse_player(fen_string, index);
 
-        index++;
-        index++;
+            index++;
+            index++;
 
-        const Player player1 {parse_player(fen_string, index)};
+            const Player player1 {parse_player(fen_string, index)};
 
-        index++;
+            index++;
 
-        parse_pieces(fen_string, index, player1);
+            parse_pieces(fen_string, index, player1);
 
-        index++;
+            index++;
 
-        const Player player2 {parse_player(fen_string, index)};
+            const Player player2 {parse_player(fen_string, index)};
 
-        index++;
+            index++;
 
-        parse_pieces(fen_string, index, player2);
+            parse_pieces(fen_string, index, player2);
+        } catch (int) {
+            clear();
+        }
 
         legal_moves = generate_moves();
 
@@ -118,18 +123,27 @@ namespace board {
     }
 
     void CheckersBoard::play_move(const std::string& move_string) {
+        // Validate only the format
         if (!valid_move_string(move_string)) {
             return;
         }
 
         std::size_t index {0u};
+        Idx source {};
+        std::array<board::CheckersBoard::Idx, 9UL> destinations {};
+        std::size_t count {};
 
-        // These are in range [1, 32] and need to be shifted
-        const auto source {parse_source_square(move_string, index)};
-        const auto [destinations, count] {parse_destination_squares(move_string, index)};
+        try {
+            // These are in range [1, 32] and need to be shifted
+            source = parse_source_square(move_string, index);
+            const auto destination_squares {parse_destination_squares(move_string, index)};
+            destinations = destination_squares.first;
+            count = destination_squares.second;
+        } catch (int) {
+            return;
+        }
 
         // Construct a move and play it
-
         Move move;
 
         if (is_capture_move(source, destinations, count)) {
@@ -706,7 +720,7 @@ namespace board {
                 return Player::White;
         }
 
-        return {};
+        throw ERR;
     }
 
     void CheckersBoard::parse_pieces(const std::string& fen_string, std::size_t& index, Player player) {
@@ -781,9 +795,9 @@ namespace board {
         try {
             result = std::stoul(result_number);
         } catch (const std::invalid_argument&) {
-            return std::make_pair(NULL_INDEX, false);
+            throw ERR;
         } catch (const std::out_of_range&) {
-            return std::make_pair(NULL_INDEX, false);
+            throw ERR;
         }
 
         return std::make_pair(static_cast<Idx>(result), king);
@@ -827,7 +841,7 @@ namespace board {
                 index++;
                 break;
             } else {
-                // FIXME error
+                throw ERR;
             }
         }
 
@@ -836,9 +850,9 @@ namespace board {
         try {
             result = std::stoul(result_number);
         } catch (const std::invalid_argument&) {
-            // FIXME error
+            throw ERR;
         } catch (const std::out_of_range&) {
-            // FIXME error
+            throw ERR;
         }
 
         return static_cast<Idx>(result);
@@ -848,7 +862,7 @@ namespace board {
         const auto number {parse_number(move_string, index)};
 
         if (number > 32u) {
-            // FIXME error
+            throw ERR;
         }
 
         return static_cast<Idx>(number);
@@ -866,7 +880,7 @@ namespace board {
             const auto number {parse_number(move_string, index)};
 
             if (number > 32u) {
-                // FIXME error
+                throw ERR;
             }
 
             indices[count++] = static_cast<Idx>(number);

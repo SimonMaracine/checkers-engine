@@ -9,21 +9,23 @@
 #include <sys/select.h>
 
 namespace subprocess {
+    static constexpr int ERR {0};
+
     Subprocess::Subprocess(const std::string& file_path) {
         int fd_r[2u] {};
         if (pipe(fd_r) < 0) {
-            throw 0;
+            throw ERR;
         }
 
         int fd_w[2u] {};
         if (pipe(fd_w) < 0) {
-            throw 0;
+            throw ERR;
         }
 
         const pid_t pid {fork()};
 
         if (pid < 0) {
-            throw 0;
+            throw ERR;
         } else if (pid == 0) {
             close(fd_r[0u]);
             close(fd_w[1u]);

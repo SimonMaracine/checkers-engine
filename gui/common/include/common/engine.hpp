@@ -18,6 +18,11 @@ namespace engine {
         EngineReader(const subprocess::Subprocess* process, const ReadCallback& callback)
             : wxTimer(), process(process), callback(callback) {}
 
+        EngineReader(const EngineReader&) = delete;
+        EngineReader& operator=(const EngineReader&) = delete;
+        EngineReader(EngineReader&&) = default;
+        EngineReader& operator=(EngineReader&&) = default;
+
         void Notify() override;
     private:
         const subprocess::Subprocess* process {nullptr};
@@ -26,13 +31,16 @@ namespace engine {
 
     class Engine {
     public:
-        void start(const std::string& file_path, const ReadCallback& callback);
+        Engine(const ReadCallback& callback)
+            : reader(&process, callback) {}
+
+        void start(const std::string& file_path);
         void stop();
         void newgame();
         void go();
         void move(const std::string& move_string);
     private:
         subprocess::Subprocess process;
-        std::unique_ptr<EngineReader> reader;
+        EngineReader reader;
     };
 }

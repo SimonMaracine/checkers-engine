@@ -3,6 +3,8 @@
 #include <cassert>
 
 namespace engine {
+    static constexpr int ERR {0};
+
     void EngineReader::Notify() {
         assert(process != nullptr);
         assert(callback);
@@ -16,60 +18,55 @@ namespace engine {
         callback(message);
     }
 
-    void Engine::start(const std::string& file_path, const ReadCallback& callback) {
+    void Engine::start(const std::string& file_path) {
         try {
             process = subprocess::Subprocess(file_path);
         } catch (int) {
-            // TODO error
             throw;
         }
 
         if (!process.write_to("INIT\n")) {
-            // TODO error
+            throw ERR;
         }
 
-        reader = std::make_unique<EngineReader>(&process, callback);
-
         for (unsigned int i {0u}; i < 5u; i++) {
-            if (reader->Start(250)) {
+            if (reader.Start(250)) {
                 return;
             }
         }
 
-        // TODO error
+        throw ERR;
     }
 
     void Engine::stop() {
-        reader->Stop();
+        reader.Stop();
 
         if (!process.write_to("QUIT\n")) {
-            // TODO error
+            throw ERR;
         }
 
         if (!process.wait_for()) {
-            // TODO error
+            throw ERR;
         }
     }
 
     void Engine::newgame() {
         if (!process.write_to("NEWGAME\n")) {
-            // TODO error
+            throw ERR;
         }
     }
 
     void Engine::go() {
         if (!process.write_to("GO\n")) {
-            // TODO error
+            throw ERR;
         }
     }
 
     void Engine::move(const std::string& move_string) {
-        std::string message {"MOVE "};
-        message += move_string;
-        message += '\n';
+        const std::string message {"MOVE " + move_string + '\n'};
 
         if (!process.write_to(message)) {
-            // TODO error
+            throw ERR;
         }
     }
 }

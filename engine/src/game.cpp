@@ -233,7 +233,6 @@ namespace game {
         const auto [destinations, count] {pdn::parse_destination_squares(move_string, index)};
 
         // Construct a move and play it
-
         game::Move move;
 
         if (pdn::is_capture_move(source, destinations, count)) {
