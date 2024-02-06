@@ -38,6 +38,7 @@ private:
     Player update_board_user_input();  // Returns the previous player role
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
+    void clear_moves_log();
 
     board::CheckersBoard* board {nullptr};
 

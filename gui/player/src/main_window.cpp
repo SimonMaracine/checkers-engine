@@ -84,9 +84,9 @@ void MainWindow::setup_widgets() {
     game.txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
     szr_right_side->Add(game.txt_repetition_size, 1);
 
-    szr_right_side->AddSpacer(5);
+    szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(5);
+    szr_right_side->AddSpacer(10);
 
     wxPanel* pnl_players {new wxPanel(pnl_right_side)};
     wxBoxSizer* szr_players {new wxBoxSizer(wxHORIZONTAL)};
@@ -126,9 +126,9 @@ void MainWindow::setup_widgets() {
 
     szr_right_side->Add(pnl_players);
 
-    szr_right_side->AddSpacer(5);
+    szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(5);
+    szr_right_side->AddSpacer(10);
 
     txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
     szr_right_side->Add(txt_engine, 1);
@@ -144,9 +144,9 @@ void MainWindow::setup_widgets() {
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
     szr_main->Add(board, 3, wxEXPAND | wxALL);
-    szr_main->AddSpacer(20);
+    szr_main->AddSpacer(30);
     szr_main->Add(pnl_right_side, 2);
-    szr_main->AddSpacer(20);
+    szr_main->AddSpacer(30);
     szr_main->Add(pnl_moves, 1, wxEXPAND | wxDOWN);
 
     SetSizer(szr_main);
@@ -191,11 +191,7 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
         engine->newgame();
     }
 
-    szr_moves->Clear();  // For some stupid reason this is needed as well
-    pnl_moves->DestroyChildren();
-    Layout();
-
-    moves = 0u;
+    clear_moves_log();
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -361,4 +357,11 @@ std::vector<std::string> MainWindow::parse_message(const std::string& message) {
     }
 
     return tokens;
+}
+
+void MainWindow::clear_moves_log() {
+    szr_moves->Clear();  // For some stupid reason this is needed as well
+    pnl_moves->DestroyChildren();
+    Layout();
+    moves = 0u;
 }

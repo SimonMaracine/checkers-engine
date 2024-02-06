@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstring>
 #include <cstdlib>
+#include <cassert>
+#include <utility>
 
 #include <unistd.h>
 #include <sys/wait.h>
@@ -56,6 +58,32 @@ namespace subprocess {
             output = fd_w[1u];
             child_pid = pid;
         }
+    }
+
+    Subprocess::~Subprocess() {
+        assert(child_pid < 0);
+    }
+
+    Subprocess::Subprocess(Subprocess&& other) noexcept {
+        input = other.input;
+        output = other.output;
+        child_pid = other.child_pid;
+        buffered = std::move(other.buffered);
+
+        other.child_pid = -1;
+    }
+
+    Subprocess& Subprocess::operator=(Subprocess&& other) noexcept {
+        assert(child_pid < 0);
+
+        input = other.input;
+        output = other.output;
+        child_pid = other.child_pid;
+        buffered = std::move(other.buffered);
+
+        other.child_pid = -1;
+
+        return *this;
     }
 
     bool Subprocess::read_from(std::string& data) const {
@@ -142,8 +170,8 @@ namespace subprocess {
         return true;
     }
 
-    bool Subprocess::wait_for() const {
-        if (waitpid(child_pid, nullptr, 0) < 0) {
+    bool Subprocess::wait_for() {
+        if (waitpid(std::exchange(child_pid, -1), nullptr, 0) < 0) {
             return false;
         }
 

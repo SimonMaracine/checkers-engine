@@ -8,16 +8,16 @@ namespace subprocess {
     public:
         Subprocess() = default;
         Subprocess(const std::string& file_path);
-        ~Subprocess() = default;
+        ~Subprocess();
 
         Subprocess(const Subprocess&) = delete;
         Subprocess& operator=(const Subprocess&) = delete;
-        Subprocess(Subprocess&&) noexcept = default;
-        Subprocess& operator=(Subprocess&&) noexcept = default;
+        Subprocess(Subprocess&& other) noexcept;
+        Subprocess& operator=(Subprocess&& other) noexcept;
 
         bool read_from(std::string& data) const;
         bool write_to(const std::string& data) const;
-        bool wait_for() const;
+        bool wait_for();  // Sets PID to -1
     private:
         int input {};  // Read from
         int output {};  // Write to
