@@ -199,6 +199,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 
 	if (dialog.ShowModal() == wxID_OK) {
         board->set_position(dialog.get_fen_string().ToStdString());
+        game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
     }
 }
 
