@@ -70,7 +70,6 @@ void MainWindow::setup_widgets() {
     );
 
     wxPanel* pnl_right_side {new wxPanel(this)};
-
     wxBoxSizer* szr_right_side {new wxBoxSizer(wxVERTICAL)};
 
     game.txt_status = new wxStaticText(pnl_right_side, wxID_ANY, STATUS + "game in progress");
@@ -90,11 +89,9 @@ void MainWindow::setup_widgets() {
     szr_right_side->AddSpacer(5);
 
     wxPanel* pnl_players {new wxPanel(pnl_right_side)};
-
     wxBoxSizer* szr_players {new wxBoxSizer(wxHORIZONTAL)};
 
     wxPanel* pnl_black {new wxPanel(pnl_players)};
-
     wxBoxSizer* szr_black {new wxBoxSizer(wxVERTICAL)};
 
     szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"), 1);
@@ -107,8 +104,9 @@ void MainWindow::setup_widgets() {
 
     pnl_black->SetSizer(szr_black);
 
-    wxPanel* pnl_white {new wxPanel(pnl_players)};
+    szr_players->Add(pnl_black, 1);
 
+    wxPanel* pnl_white {new wxPanel(pnl_players)};
     wxBoxSizer* szr_white {new wxBoxSizer(wxVERTICAL)};
 
     szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"), 1);
@@ -122,7 +120,6 @@ void MainWindow::setup_widgets() {
 
     pnl_white->SetSizer(szr_white);
 
-    szr_players->Add(pnl_black, 1);
     szr_players->Add(pnl_white, 1);
 
     pnl_players->SetSizer(szr_players);
@@ -138,11 +135,19 @@ void MainWindow::setup_widgets() {
 
     pnl_right_side->SetSizer(szr_right_side);
 
+    pnl_moves = new wxScrolledWindow(this);
+    szr_moves = new wxBoxSizer(wxVERTICAL);
+
+    pnl_moves->SetScrollRate(0, 10);
+    pnl_moves->SetSizer(szr_moves);
+
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
-    szr_main->Add(board, 1, wxEXPAND | wxALL);
+    szr_main->Add(board, 3, wxEXPAND | wxALL);
     szr_main->AddSpacer(20);
-    szr_main->Add(pnl_right_side, 1);
+    szr_main->Add(pnl_right_side, 2);
+    szr_main->AddSpacer(20);
+    szr_main->Add(pnl_moves, 1, wxEXPAND | wxDOWN);
 
     SetSizer(szr_main);
 }
@@ -185,6 +190,12 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
     if (engine != nullptr) {
         engine->newgame();
     }
+
+    szr_moves->Clear();  // For some stupid reason this is needed as well
+    pnl_moves->DestroyChildren();
+    Layout();
+
+    moves = 0u;
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -258,6 +269,12 @@ void MainWindow::on_close(wxCloseEvent&) {
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
+    const auto label {std::to_string(++moves) + ". " + board::CheckersBoard::move_to_string(move)};
+
+    szr_moves->Add(new wxStaticText(pnl_moves, wxID_ANY, label));
+    szr_moves->AddSpacer(5);
+    Layout();  // Stupid panels; calling pnl_moves->Layout() was not working; one hour wasted
+
     game.txt_status->SetLabelText(STATUS + game_over_text());
     game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
@@ -272,8 +289,6 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
-    std::cout << "engine message: " << message << '\n';
-
     process_engine_message(message);
 }
 

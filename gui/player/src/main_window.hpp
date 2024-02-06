@@ -61,5 +61,9 @@ private:
 
     std::unique_ptr<engine::Engine> engine;
 
+    wxScrolledWindow* pnl_moves {nullptr};
+    wxBoxSizer* szr_moves {nullptr};
+    unsigned int moves {0u};
+
     wxDECLARE_EVENT_TABLE();
 };
