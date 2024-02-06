@@ -6,12 +6,13 @@ All messages received must end with a newline (the "\n" character).
 
 Messages from GUI to engine are also called commands.
 
-The string of a command can contain arbitrary whitespace around tokens.
+The string of a message can contain arbitrary whitespace around tokens.
 
-If a received command is invalid in any way, it should be ignored completely and the receiver may respond with
+If a received command is invalid in any way, it should be ignored completely and the receiver (engine) may respond with
 the message **WARNING**.
 
-Positions and moves are encoded as FEN strings using the Portable Draughts Notation format.
+Positions and moves are encoded as FEN strings using the standard
+[Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
 
 ## GUI -> Engine
 

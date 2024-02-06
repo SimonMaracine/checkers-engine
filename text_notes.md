@@ -38,7 +38,7 @@ TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
 
 - Am început scrierea AI-ului (numit "engine", fiindcă acest termen este des utilizat, ex. "chess engine") prin
   implementarea comunicării dintre acesta și joc (interfața GUI).
-- Inițial m-am gândit la un sistem destul de complex de fire de execuție task-uri, în care firul principal (main)
+- Inițial m-am gândit la un sistem destul de complex de fire de execuție cu task-uri, în care firul principal (main)
   citește într-o buclă infinită mesaje de la fișierul stdin și deleagă sarcinilie unui al doilea fir de execuție.
   Ideea este ca AI-ul tot timpul să poată citi și procesa mesaje, iar calculele de lungă durată să le facă pe
   un fir separat. Task-urile ar fi fost schimbări simple de stări sau algoritmul minimax etc.
@@ -56,6 +56,68 @@ TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
   cu blocare într-o buclă și tot ea execută toate comenzile și scrie înapoi în stdout. Iar singurul algoritm
   de lungă durată în execuție, minimax, este cel care rulează într-un fir separat. Sincronizarea trebuie făcută numai
   între acest fir și firul principal. Iar problema închiderii elegante cu Ctrl+C dispare, fiindcă nu (trebuie să)
-  tratez acest semnal. Închiderea elegantă a motorului trebuie făcută numai prin comanda quit.
+  tratez acest semnal. Închiderea elegantă a motorului trebuie făcută numai printr-o comandă.
 - Aș fi putut folosi funcții de citire fără blocare oferite de POSIX, însă acestea sunt prezente numai în Linux.
   Trebuie să folosesc numai funcții cross-platform (Linux și Windows).
+
+- Am scris restul AI-ului prin implementarea crudă și incompletă a algoritmului minimax pentru dame. Algoritmul este
+  constituit din funcția principală recursivă, din generarerea mutărilor posibile și din evaluarea statică a poziției.
+- Codul pentru generarea mutărilor l-am putut lua și adapta de la GUI, fiindcă intenționat îl scrisesem astfel încât
+  să poată fi refolosit.
+- Nu am stat mult timp ca să scriu o funcție de evaluare foarte bună, fiindcă nu acesta este scopul în această etapă.
+  De aceea am luat în calcul doar numărul de piese ale celor doi jucători astfel: fiecare piesă valorează un punct;
+  piesele celui negru fiind negative (-1), iar celui alb fiind pozitive. Astfel, la calcularea evaluării unei poziții,
+  jucătorul în avantaj este cel cu evaluarea negativă pentru negru, și pozitivă pentru alb, adică cel cu numărul cel
+  mai mare de piese.
+- Am știut de la bun început cât de important este ca datele pe care le procesez și le manipulez în algoritm să nu fie
+  redundante, să fie compacte și cât de des posibil prezente în memoria cache a procesorului. Astfel, la fiecare
+  invocare a algorimtului de căutare, aloc toate variabile necesare pe stiva firului de execuție secundar. Am folosit
+  tipuri de date de dimensiuni reduse pentru a reduce numărul de octeți necesari pentru a reprezenta aceleași
+  informații, asigurându-mă astfel că mai multe date încap în memoria cache. Mai multe optimizări voi face mai târziu,
+  într-un alt capitol.
+- Crearea unui fir de execuție pentru fiecare invocare a algoritmului nu este un lucru bun, pentru că, de regulă,
+  firele de execuție implementate în biblioteca standard C++ sunt native (engl. "native threads", "system threads").
+  Acestea sunt obiecte ale sistemului de operare și sunt administrate de către acesta. Firele de execuție verzi
+  (engl. "green threads", "managed threads") diferă de cele native prin faptul că sunt administrate de o mașină
+  virtuală sau un alt "runtime". Mai multe fire verzi pot rula concurent pe un singur fir nativ. Acestea pot fi
+  planificate după un alt sau mai mulți algoritmi, pe când firele native sunt planificate de sistemul de operare.
+  Iar motivul pentru care trebuie evitată crearea multor fire de execuție native este că această operație este "grea"
+  și cere intervenția sistemului de operare prin apeluri sistem. În comparație, firele verzi pot fi foarte ușor create
+  și distruse în număr mare.
+- Creez la început un singur fir de execuție pentru algoritmul de căutare și îl folosesc pe toată durata de viață a
+  programului AI. În execuția firului se află o buclă principală care așteaptă să primească de lucru, dacă nu are ceva
+  de făcut. Arată cam așa:
+
+  ```c++
+  while (true) {
+    wait_sleeping();
+
+    if (!running) {
+      break;
+    }
+
+    Move best_move {search()};
+
+    // Do something with best_move...
+  }
+  ```
+
+  Aș fi putut elimina apelul funcției wait_sleeping și, în schimb, să tot verific la începutul buclei dacă este ceva de
+  căutat. Însă această variantă ar fi saturat complet un nucleu al procesorului. Dar m-am folosit în schimb de anumite
+  obiecte de sincronizare din biblioteca standard pentru a face procesorul să doarmă în timp ce așteaptă și pentru
+  a-l trezi imediat când trebuie să ruleze algoritmul. Mai exact, am folosit clasele std::condition_variable și
+  std::mutex. Funcția wait_sleeping returnează doar atunci când firul de execuție trebuie terminat sau atunci când
+  trebuie să execute funcția de căutare.
+
+TODO două feluri de a implementa minimax: "normal" și cu noduri
+
+- Pentru structurarea codului motorului AI am folosit spații de nume în fiecare fișier cu cod sursă. M-am folosit
+  extensiv de clasele din biblioteca standard C++ pentru a-mi facilita implementarea lucrurilor. Am utilizat excepții
+  și am scris clase acolo unde a avut mai mult sens.
+- Am inventat un protocol de comunicare între interfața grafică (GUI) și motor, pe care aceștia să-l implementeze.
+  Ei comunică prin mesaje text prin fișierele stdin și stdout. Există două clase de mesaje: mesaje pe care le transmite
+  GUI către motor, și mesaje pe care le transmite înapoi motorul către GUI.
+
+TODO write some more about specific messages
+
+TODO write about implementing the protocol in GUI
