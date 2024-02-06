@@ -6,12 +6,11 @@ namespace engine {
     static constexpr int ERR {0};
 
     void EngineReader::Notify() {
-        assert(process != nullptr);
         assert(callback);
 
         std::string message;
 
-        if (!process->read_from(message)) {
+        if (!process.read_from(message)) {
             return;
         }
 

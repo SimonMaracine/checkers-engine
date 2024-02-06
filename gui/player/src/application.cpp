@@ -2,14 +2,6 @@
 
 wxIMPLEMENT_APP(Application);
 
-Application::Application() {
-
-}
-
-Application::~Application() {
-
-}
-
 bool Application::OnInit() {
     window = new MainWindow;
     window->Show();

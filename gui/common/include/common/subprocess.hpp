@@ -17,7 +17,7 @@ namespace subprocess {
 
         bool read_from(std::string& data) const;
         bool write_to(const std::string& data) const;
-        bool wait_for();
+        bool wait_for() const;
     private:
         int input {};  // Read from
         int output {};  // Write to

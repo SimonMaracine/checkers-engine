@@ -142,7 +142,7 @@ namespace subprocess {
         return true;
     }
 
-    bool Subprocess::wait_for() {
+    bool Subprocess::wait_for() const {
         if (waitpid(child_pid, nullptr, 0) < 0) {
             return false;
         }

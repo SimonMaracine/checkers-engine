@@ -4,16 +4,19 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
 
 #include <wx/statline.h>
 
 #include "fen_string_dialog.hpp"
 
-static constexpr int START_ENGINE {10};
-static constexpr int RESET_BOARD {11};
-static constexpr int SET_POSITION {12};
-static constexpr int BLACK {13};
-static constexpr int WHITE {14};
+enum {
+    START_ENGINE = 10,
+    RESET_BOARD,
+    SET_POSITION,
+    BLACK,
+    WHITE
+};
 
 static const wxString STATUS {"Status: "};
 static const wxString PLAYER {"Player: "};
@@ -332,18 +335,15 @@ void MainWindow::process_engine_message(const std::string& message) {
 std::vector<std::string> MainWindow::parse_message(const std::string& message) {
     std::vector<std::string> tokens;
 
-    char* mutable_buffer {new char[message.size()]};
-    std::memcpy(mutable_buffer, message.c_str(), message.size());
+    std::string mutable_buffer {message};
 
-    char* token {std::strtok(mutable_buffer, " ")};
+    char* token {std::strtok(mutable_buffer.data(), " \t")};
 
     while (token != nullptr) {
         tokens.emplace_back(token);
 
-        token = std::strtok(nullptr, " ");
+        token = std::strtok(nullptr, " \t");
     }
-
-    delete[] mutable_buffer;
 
     return tokens;
 }
