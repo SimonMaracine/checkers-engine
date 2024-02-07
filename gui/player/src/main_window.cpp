@@ -246,6 +246,10 @@ void MainWindow::on_black_change(wxCommandEvent&) {
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(false);
+
+            if (engine != nullptr) {
+                engine->go();
+            }
         }
     }
 }
@@ -264,6 +268,10 @@ void MainWindow::on_white_change(wxCommandEvent&) {
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(false);
+
+            if (engine != nullptr) {
+                engine->go();
+            }
         }
     }
 }
@@ -371,7 +379,7 @@ void MainWindow::log_move(const board::CheckersBoard::Move& move) {
     const auto label {std::to_string(++moves) + ". " + board::CheckersBoard::move_to_string(move)};
 
     szr_moves->Add(new wxStaticText(pnl_moves, wxID_ANY, label));
-    szr_moves->AddSpacer(75);
+    szr_moves->AddSpacer(5);
     szr_moves->FitInside(pnl_moves);
 
     Layout();  // Stupid panels; calling pnl_moves->Layout() was not working; one hour wasted

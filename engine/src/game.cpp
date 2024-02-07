@@ -194,6 +194,9 @@ namespace game {
             throw error::ERR;
         }
 
+        // Clear the board first
+        position.board = {};
+
         std::size_t index {0u};
 
         position.player = pdn::parse_player(fen_string, index);

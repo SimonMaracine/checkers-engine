@@ -713,7 +713,7 @@ namespace board {
 
         const auto sum {index1 + index2};
 
-        assert(sum % 2 == 1);
+        assert(sum % 2 == 1);  // FIXME this fails in endgame, when all AI pieces are stuck at the bottom as kings (another bug to fix)
 
         if (((to_0_31(index1)) / 4) % 2 == 0) {
             return (sum + 1) / 2;
