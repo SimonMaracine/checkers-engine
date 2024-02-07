@@ -277,11 +277,7 @@ void MainWindow::on_close(wxCloseEvent&) {
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
-    const auto label {std::to_string(++moves) + ". " + board::CheckersBoard::move_to_string(move)};
-
-    szr_moves->Add(new wxStaticText(pnl_moves, wxID_ANY, label));
-    szr_moves->AddSpacer(5);
-    Layout();  // Stupid panels; calling pnl_moves->Layout() was not working; one hour wasted
+    log_move(move);
 
     game.txt_status->SetLabelText(STATUS + game_over_text());
     game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
@@ -369,6 +365,16 @@ std::vector<std::string> MainWindow::parse_message(const std::string& message) {
     }
 
     return tokens;
+}
+
+void MainWindow::log_move(const board::CheckersBoard::Move& move) {
+    const auto label {std::to_string(++moves) + ". " + board::CheckersBoard::move_to_string(move)};
+
+    szr_moves->Add(new wxStaticText(pnl_moves, wxID_ANY, label));
+    szr_moves->AddSpacer(75);
+    szr_moves->FitInside(pnl_moves);
+
+    Layout();  // Stupid panels; calling pnl_moves->Layout() was not working; one hour wasted
 }
 
 void MainWindow::clear_moves_log() {
