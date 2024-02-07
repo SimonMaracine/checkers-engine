@@ -59,6 +59,7 @@ namespace board {
         void reset();
         void set_position(const std::string& fen_string);
         void set_user_input(bool user_input);
+        void set_show_inidces(bool show_indices);
         void play_move(const Move& move);
         void play_move(const std::string& move_string);
 
@@ -147,6 +148,9 @@ namespace board {
 
         // Used to differentiate between human and computer turns
         bool user_input {true};
+
+        // Used for quicker analysis
+        bool show_indices {false};
 
         // Game data
         Board board {};

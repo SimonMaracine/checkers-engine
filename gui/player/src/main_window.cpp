@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
+#include <utility>
 
 #include <wx/statline.h>
 
@@ -14,6 +15,7 @@ enum {
     START_ENGINE = 10,
     RESET_BOARD,
     SET_POSITION,
+    SHOW_INDICES,
     BLACK,
     WHITE
 };
@@ -28,6 +30,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(START_ENGINE, MainWindow::on_start_engine)
     EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
     EVT_MENU(SET_POSITION, MainWindow::on_set_position)
+    EVT_MENU(SHOW_INDICES, MainWindow::on_show_indices)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
     EVT_MENU(wxID_ABOUT, MainWindow::on_about)
     EVT_SIZE(MainWindow::on_window_resize)
@@ -50,6 +53,7 @@ void MainWindow::setup_menubar() {
     men_file->Append(START_ENGINE, "Start Engine");
     men_file->Append(RESET_BOARD, "Reset Board");
     men_file->Append(SET_POSITION, "Set Position");
+    men_file->Append(SHOW_INDICES, "Show Indices");
     men_file->Append(wxID_EXIT, "Exit");
 
     wxMenu* men_help {new wxMenu};
@@ -203,6 +207,13 @@ void MainWindow::on_set_position(wxCommandEvent&) {
     }
 }
 
+void MainWindow::on_show_indices(wxCommandEvent&) {
+    static bool show_indices {false};
+
+    board->set_show_inidces(!std::exchange(show_indices, !show_indices));
+    board->Refresh();
+}
+
 void MainWindow::on_about(wxCommandEvent&) {
     wxMessageBox(
         "Checkers Player, an implementation of the game of checkers.",
@@ -214,7 +225,7 @@ void MainWindow::on_about(wxCommandEvent&) {
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     // This function may be called before board is initialized
     if (board != nullptr) {
-        Layout();  // Force layout refresh
+        Layout();
         board->set_board_size(get_ideal_board_size());
     }
 

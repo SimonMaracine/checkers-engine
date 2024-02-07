@@ -23,6 +23,7 @@ private:
     void on_start_engine(wxCommandEvent&);
     void on_reset_board(wxCommandEvent&);
     void on_set_position(wxCommandEvent&);
+    void on_show_indices(wxCommandEvent&);
     void on_exit(wxCommandEvent&);
     void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);

@@ -107,6 +107,10 @@ namespace board {
         this->user_input = user_input;
     }
 
+    void CheckersBoard::set_show_inidces(bool show_indices) {
+        this->show_indices = show_indices;
+    }
+
     void CheckersBoard::play_move(const Move& move) {
         switch (move.type) {
             case MoveType::Normal:
@@ -134,7 +138,7 @@ namespace board {
         std::size_t count {};
 
         try {
-            // These are in range [1, 32] and need to be shifted
+            // These are in the range [1, 32]
             source = parse_source_square(move_string, index);
             const auto destination_squares {parse_destination_squares(move_string, index)};
             destinations = destination_squares.first;
@@ -889,10 +893,11 @@ namespace board {
     }
 
     bool CheckersBoard::is_capture_move(Idx source, Idx destination) {
+        // Indices must be in the range [1, 32]
+
         const auto distance {std::abs((source - 1) - (destination - 1))};
 
-        if (distance >= 4 && distance <= 6) {
-            // Then it can't be a capture move
+        if (distance >= 3 && distance <= 5) {
             return false;
         } else {
             return true;
@@ -924,17 +929,31 @@ namespace board {
         const auto BLACK {wxColour(80, 60, 40)};
         const int SQUARE_SIZE {board_size / 8};
 
-        for (int x {0}; x < 8; x++) {
-            for (int y {0}; y < 8; y++) {
-                if ((x + y) % 2 == 0) {
-                    dc.SetBrush(wxBrush(WHITE));
-                    dc.SetPen(wxPen(WHITE));
-                } else {
-                    dc.SetBrush(wxBrush(BLACK));
-                    dc.SetPen(wxPen(BLACK));
-                }
+        {
+            unsigned int index {0u};
 
-                dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+            for (int y {0}; y < 8; y++) {
+                for (int x {0}; x < 8; x++) {
+                    if ((x + y) % 2 == 0) {
+                        dc.SetBrush(wxBrush(WHITE));
+                        dc.SetPen(wxPen(WHITE));
+                    } else {
+                        dc.SetBrush(wxBrush(BLACK));
+                        dc.SetPen(wxPen(BLACK));
+                    }
+
+                    dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
+
+                    if (show_indices) {
+                        if ((x + y) % 2 != 0) {
+                            dc.DrawLabel(
+                                std::to_string(++index),
+                                wxRect(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE, SQUARE_SIZE),
+                                wxALIGN_LEFT | wxALIGN_TOP
+                            );
+                        }
+                    }
+                }
             }
         }
 

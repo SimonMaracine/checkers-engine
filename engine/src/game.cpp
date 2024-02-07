@@ -142,13 +142,13 @@ namespace game {
                 throw error::ERR;
             }
 
-            return static_cast<game::Idx>(result);
+            return static_cast<unsigned int>(result);
         }
 
         static game::Idx parse_source_square(const std::string& move_string, std::size_t& index) {
             const auto number {parse_number(move_string, index)};
 
-            if (number > 32u) {
+            if (number < 1u || number > 32u) {
                 throw error::ERR;
             }
 
@@ -166,7 +166,7 @@ namespace game {
 
                 const auto number {parse_number(move_string, index)};
 
-                if (number > 32u) {
+                if (number < 1u || number > 32u) {
                     throw error::ERR;
                 }
 
@@ -177,10 +177,11 @@ namespace game {
         }
 
         static bool is_capture_move(game::Idx source, game::Idx destination) {
+            // Indices must be in the range [1, 32]
+
             const auto distance {std::abs(to_0_31(source) - to_0_31(destination))};
 
-            if (distance >= 4 && distance <= 6) {
-                // Then it can't be a capture move
+            if (distance >= 3 && distance <= 5) {
                 return false;
             } else {
                 return true;
@@ -222,9 +223,13 @@ namespace game {
 
         std::size_t index {0u};
 
-        // These are in range [1, 32] and need to be shifted
+        // These are in the range [1, 32]
         const auto source {pdn::parse_source_square(move_string, index)};
         const auto [destinations, count] {pdn::parse_destination_squares(move_string, index)};
+
+        if (count == 0u) {
+            throw error::ERR;
+        }
 
         // Construct a move and play it
         game::Move move;
