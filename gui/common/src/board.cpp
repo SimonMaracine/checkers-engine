@@ -177,6 +177,10 @@ namespace board {
         return stream.str();
     }
 
+    CheckersBoard::Player CheckersBoard::opponent(Player player) {
+        return player == Player::Black ? Player::White : Player::Black;
+    }
+
     void CheckersBoard::on_paint(wxPaintEvent&) {
         wxPaintDC dc {this};
         draw(dc);
@@ -720,10 +724,6 @@ namespace board {
         } else {
             return (sum - 1) / 2;
         }
-    }
-
-    CheckersBoard::Player CheckersBoard::opponent(Player player) {
-        return player == Player::Black ? Player::White : Player::Black;
     }
 
     bool CheckersBoard::validate_fen_string(const std::string& fen_string) {

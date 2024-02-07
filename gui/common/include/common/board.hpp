@@ -64,6 +64,7 @@ namespace board {
         void play_move(const std::string& move_string);
 
         static std::string move_to_string(const Move& move);
+        static Player opponent(Player player);
 
         GameOver get_game_over() const { return game_over; }
         Player get_player() const { return turn; }
@@ -125,7 +126,6 @@ namespace board {
         void deselect_jump_square(Idx square_index);
         void remove_jumped_pieces(const Move& move);
         static Idx get_jumped_piece_index(Idx index1, Idx index2);
-        static Player opponent(Player player);
         static bool validate_fen_string(const std::string& fen_string);
         static Player parse_player(const std::string& fen_string, std::size_t index);
         void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);

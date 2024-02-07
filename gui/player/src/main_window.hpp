@@ -36,7 +36,8 @@ private:
 
     int get_ideal_board_size();
     const char* game_over_text();
-    Player update_board_user_input();  // Returns the previous player role
+    void update_board_user_input();
+    Player get_player_role(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
     void log_move(const board::CheckersBoard::Move& move);

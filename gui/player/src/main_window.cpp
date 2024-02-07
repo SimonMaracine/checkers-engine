@@ -292,12 +292,17 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
-    if (update_board_user_input() == Player::Human) {
+    if (get_player_role(board->get_player()) == Player::Computer) {
         if (engine != nullptr) {
-            engine->move(board::CheckersBoard::move_to_string(move));
+            if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
+                engine->move(board::CheckersBoard::move_to_string(move));
+            }
+
             engine->go();
         }
     }
+
+    update_board_user_input();
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
@@ -325,18 +330,18 @@ const char* MainWindow::game_over_text() {
     return nullptr;
 }
 
-MainWindow::Player MainWindow::update_board_user_input() {
-    const Player PLAYERS[2u] { black, white };
-
-    if (PLAYERS[static_cast<unsigned int>(board->get_player()) - 1u] == Player::Computer) {
+void MainWindow::update_board_user_input() {
+    if (get_player_role(board->get_player()) == Player::Computer) {
         board->set_user_input(false);
-
-        return Player::Human;
     } else {
         board->set_user_input(true);
-
-        return Player::Computer;
     }
+}
+
+MainWindow::Player MainWindow::get_player_role(board::CheckersBoard::Player player) {
+    const Player PLAYERS[2u] { black, white };
+
+    return PLAYERS[static_cast<unsigned int>(player) - 1u];
 }
 
 void MainWindow::process_engine_message(const std::string& message) {
@@ -386,8 +391,9 @@ void MainWindow::log_move(const board::CheckersBoard::Move& move) {
 }
 
 void MainWindow::clear_moves_log() {
+    moves = 0u;
     szr_moves->Clear();  // For some stupid reason this is needed as well
     pnl_moves->DestroyChildren();
+
     Layout();
-    moves = 0u;
 }
