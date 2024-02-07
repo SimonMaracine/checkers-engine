@@ -87,7 +87,7 @@ namespace game {
 
         static void parse_pieces(const std::string& fen_string, std::size_t& index, game::Player player, game::Board& board) {
             while (fen_string[index] != ':' && index != fen_string.size()) {
-                // Here, square is based on the formal indexing of the board: [1, 32]
+                // Squares are in the range [1, 32]
                 const auto [square, king] {parse_piece(fen_string, index)};
 
                 if (player == game::Player::Black) {

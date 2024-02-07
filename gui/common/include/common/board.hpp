@@ -22,8 +22,8 @@ namespace board {
         };
 
         struct Move {
+            // Always in the range [0, 31]
             union {
-                // Indices are in the range [0, 63]
                 struct {
                     Idx source_index;
                     Idx destination_index;
@@ -91,7 +91,7 @@ namespace board {
             WhiteKing = 0b0110u
         };
 
-        using Board = std::array<Square, 64u>;
+        using Board = std::array<Square, 32u>;
 
         struct JumpCtx {
             Board board {};  // Use a copy of the board
@@ -103,8 +103,9 @@ namespace board {
         void on_mouse_left_down(wxMouseEvent& event);
         void on_mouse_right_down(wxMouseEvent& event);
 
-        Idx get_square(wxPoint position) const;
-        std::pair<Idx, Idx> get_square(Idx square_index) const;
+        int get_square(wxPoint position) const;
+        static std::pair<int, int> get_square(int square);
+        static bool is_black_square(int square);
         bool select_piece(Idx square_index);
         std::vector<Move> generate_moves() const;
         void generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const;
@@ -129,12 +130,14 @@ namespace board {
         static Player parse_player(const std::string& fen_string, std::size_t index);
         void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);
         static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
-        static Idx translate_index_1_32_to_0_64(Idx index);
-        static Idx translate_index_0_64_to_1_32(Idx index);
+        static int translate_1_32_to_0_64(Idx index);
+        static Idx translate_0_64_to_1_32(int index);
+        static Idx to_0_31(Idx index);
+        static Idx to_1_32(Idx index);
         static bool valid_move_string(const std::string& move_string);
         static unsigned int parse_number(const std::string& move_string, std::size_t& index);
         static Idx parse_source_square(const std::string& move_string, std::size_t& index);
-        static std::pair<std::array<Idx, 9u>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index);
+        static std::vector<Idx> parse_destination_squares(const std::string& move_string, std::size_t& index);
         static bool is_capture_move(Idx source, Idx destination);
         void clear();
         void refresh_canvas();

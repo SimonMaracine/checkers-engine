@@ -44,8 +44,8 @@ namespace game {
     };
 
     struct Move {
+        // Always in the range [0, 31]
         union {
-            // Always in the range [0, 31]
             struct {
                 Idx source_index;
                 Idx destination_index;

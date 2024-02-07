@@ -8,6 +8,8 @@
 
 namespace moves {
     static game::Idx get_jumped_piece_index(game::Idx index1, game::Idx index2) {
+        // This works with indices in the range [1, 32]
+
         const int sum {index1 + index2};
 
         assert(sum % 2 == 1);
@@ -238,6 +240,8 @@ namespace moves {
     }
 
     void play_move(game::Position& position, const game::Move& move) {
+        // FIXME check piece crowning
+
         auto& board {position.position.board};
 
         switch (move.type) {
@@ -260,6 +264,8 @@ namespace moves {
     }
 
     void play_move(search::SearchNode& node, const game::Move& move) {
+        // FIXME check piece crowning
+
         switch (move.type) {
             case game::MoveType::Normal:
                 std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);

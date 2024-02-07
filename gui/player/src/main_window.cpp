@@ -190,12 +190,11 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
     game.txt_player->SetLabelText(PLAYER + "black");
     game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
     game.txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
+    clear_moves_log();
 
     if (engine != nullptr) {
         engine->newgame();
     }
-
-    clear_moves_log();
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -204,6 +203,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 	if (dialog.ShowModal() == wxID_OK) {
         board->set_position(dialog.get_fen_string().ToStdString());
         game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
+        clear_moves_log();
     }
 }
 
