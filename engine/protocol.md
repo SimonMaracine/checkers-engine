@@ -65,3 +65,7 @@ optionally contain a message.
 ### BESTMOVE \<move string\>
 
 Responds with the best move calculated after a **GO** command.
+
+### PARAMETER \<parameter name\> \<parameter value\>
+
+Responds with the name and the value of the requested parameter after a **GETPARAMETER** command.

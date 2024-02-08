@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <unordered_map>
+#include <cassert>
 
 #include "commands.hpp"
 #include "messages.hpp"
@@ -10,23 +11,23 @@
 
 namespace loop {
     static InputTokens tokenize_input(const char* input) {
-        InputTokens result;
+        std::vector<std::string> tokens;
 
         std::string mutable_buffer {input};
 
         char* token {std::strtok(mutable_buffer.data(), " \t")};  // TODO other whitespace characters?
 
         while (token != nullptr) {
-            if (result.count == InputTokens::MAX) {
+            if (tokens.size() == 8u) {
                 break;
             }
 
-            result.tokens[result.count++] = token;
+            tokens.emplace_back(token);
 
             token = std::strtok(nullptr, " \t");
         }
 
-        return result;
+        return InputTokens(std::move(tokens));
     }
 
     static bool execute_command(engine::EngineData& data, const InputTokens& input_tokens) {
@@ -39,7 +40,7 @@ namespace loop {
             { "GETPARAMETER", commands::try_getparameter }
         };
 
-        const auto& command_name {input_tokens.tokens[0u]};
+        const auto command_name {input_tokens[0u]};
 
         if (COMMANDS.find(command_name) == COMMANDS.cend()) {
             return false;
@@ -53,6 +54,16 @@ namespace loop {
         return true;
     }
 
+    bool InputTokens::find(std::size_t index) const {
+        return index < tokens.size();
+    }
+
+    const std::string& InputTokens::operator[](std::size_t index) const {
+        assert(index < tokens.size());
+
+        return tokens[index];
+    }
+
     int main_loop(engine::EngineData& data) {
         while (true) {
             char input[128u] {};
@@ -60,12 +71,12 @@ namespace loop {
 
             const InputTokens input_tokens {tokenize_input(input)};
 
-            if (input_tokens.count == 0u) {
+            if (input_tokens.size() == 0u) {
                 continue;
             }
 
             // Handle QUIT separately
-            if (input_tokens.tokens[0u] == "QUIT") {
+            if (input_tokens[0u] == "QUIT") {
                 engine::quit(data);
                 break;
             }

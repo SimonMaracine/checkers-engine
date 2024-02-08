@@ -3,16 +3,18 @@
 #include <string>
 #include <optional>
 
+// TODO refactor how messages are processed and how error is handled (or not handled)
+
 namespace commands {
-    bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {  // TODO use input tokens as arguments
+    bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {
         engine::init(data);
 
         return true;
     }
 
     bool try_newgame(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        if (input_tokens.count == 2u) {
-            engine::newgame(data, std::make_optional(input_tokens.tokens[1u]), std::nullopt);
+        if (input_tokens.find(1u)) {
+            engine::newgame(data, std::make_optional(input_tokens[1u]), std::nullopt);
         } else {
             engine::newgame(data, std::nullopt, std::nullopt);
         }
@@ -21,18 +23,18 @@ namespace commands {
     }
 
     bool try_move(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        if (input_tokens.count != 2u) {
+        if (!input_tokens.find(1u)) {
             return false;
         }
 
-        engine::move(data, input_tokens.tokens[1u]);
+        engine::move(data, input_tokens[1u]);
 
         return true;
     }
 
     bool try_go(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        if (input_tokens.count == 2u) {
-            if (input_tokens.tokens[1u] == "dontplaymove") {
+        if (input_tokens.find(1u)) {
+            if (input_tokens[1u] == "dontplaymove") {
                 engine::go(data, true);
 
                 return true;
@@ -53,7 +55,11 @@ namespace commands {
     }
 
     bool try_getparameter(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        engine::getparameter(data, "");
+        if (!input_tokens.find(1u)) {
+            return false;
+        }
+
+        engine::getparameter(data, input_tokens[1u]);
 
         return true;
     }

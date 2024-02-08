@@ -99,7 +99,7 @@ namespace engine {
     }
 
     void getparameter(engine::EngineData& data, const std::string& name) {
-
+        messages::parameter(name, data.minimax.parameters.at(name));
     }
 
     void quit(engine::EngineData& data) {

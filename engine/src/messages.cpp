@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cassert>
 
 namespace messages {
     static std::string move_to_string(const game::Move& move) {
@@ -9,7 +10,8 @@ namespace messages {
 
         switch (move.type) {
             case game::MoveType::Normal:
-                stream << static_cast<int>(game::to_1_32(move.normal.source_index)) << 'x' << static_cast<int>(game::to_1_32(move.normal.destination_index));
+                stream << static_cast<int>(game::to_1_32(move.normal.source_index)) << 'x'
+                    << static_cast<int>(game::to_1_32(move.normal.destination_index));
 
                 break;
             case game::MoveType::Capture:
@@ -37,5 +39,20 @@ namespace messages {
 
     void bestmove(const game::Move& move) {  // TODO does it need synchronization?
         std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
+    }
+
+    void parameter(const std::string& name, const engine::Param& value) {
+        std::cout << "PARAMETER " << name << ' ';
+
+        switch (value.index()) {
+            case 0u:
+                std::cout << std::get<0u>(value);
+                break;
+            default:
+                assert(false);
+                break;
+        }
+
+        std::cout << std::endl;
     }
 }
