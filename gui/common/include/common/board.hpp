@@ -56,7 +56,7 @@ namespace board {
         CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
 
         void set_board_size(int size);
-        void reset();
+        void reset_position();
         void set_position(const std::string& fen_string);
         void set_user_input(bool user_input);
         void set_show_inidces(bool show_indices);

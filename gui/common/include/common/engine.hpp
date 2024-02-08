@@ -44,5 +44,6 @@ namespace engine {
     private:
         subprocess::Subprocess process;
         EngineReader reader;
+        bool started {false};
     };
 }

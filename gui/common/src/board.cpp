@@ -31,7 +31,7 @@ namespace board {
 
     CheckersBoard::CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
         : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
-        reset();
+        reset_position();
     }
 
     void CheckersBoard::set_board_size(int size) {
@@ -40,7 +40,7 @@ namespace board {
         refresh_canvas();
     }
 
-    void CheckersBoard::reset() {
+    void CheckersBoard::reset_position() {
         clear();
 
         for (Idx i {0}; i < 12; i++) {
@@ -1106,5 +1106,5 @@ namespace board {
                 dc.DrawCircle(position, PIECE_SIZE / 3);
             }
         }
-}
+    }
 }

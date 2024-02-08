@@ -21,7 +21,7 @@ private:
     void setup_widgets();
 
     void on_start_engine(wxCommandEvent&);
-    void on_reset_board(wxCommandEvent&);
+    void on_reset_position(wxCommandEvent&);
     void on_set_position(wxCommandEvent&);
     void on_show_indices(wxCommandEvent&);
     void on_exit(wxCommandEvent&);

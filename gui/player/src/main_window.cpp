@@ -1,7 +1,6 @@
 #include "main_window.hpp"
 
 #include <iostream>
-#include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
@@ -11,9 +10,11 @@
 
 #include "fen_string_dialog.hpp"
 
+// FIXME need to make a stop and continue button for the engine and to also update the protocol; engine no longer automatically plays moves
+
 enum {
     START_ENGINE = 10,
-    RESET_BOARD,
+    RESET_POSITION,
     SET_POSITION,
     SHOW_INDICES,
     BLACK,
@@ -28,7 +29,7 @@ static const wxString ENGINE {"Engine: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(START_ENGINE, MainWindow::on_start_engine)
-    EVT_MENU(RESET_BOARD, MainWindow::on_reset_board)
+    EVT_MENU(RESET_POSITION, MainWindow::on_reset_position)
     EVT_MENU(SET_POSITION, MainWindow::on_set_position)
     EVT_MENU(SHOW_INDICES, MainWindow::on_show_indices)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
@@ -41,17 +42,18 @@ wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow()
     : wxFrame(nullptr, wxID_ANY, "Checkers Player") {
-    setup_menubar();
-
     SetMinSize(wxSize(896, 504));  // Set minimum size here to trigger a resize event after widgets creation
+    setup_menubar();
     setup_widgets();
     Center();
+
+    engine = std::make_unique<engine::Engine>([this](const auto& message) { on_engine_message(message); });
 }
 
 void MainWindow::setup_menubar() {
     wxMenu* men_file {new wxMenu};
     men_file->Append(START_ENGINE, "Start Engine");
-    men_file->Append(RESET_BOARD, "Reset Board");
+    men_file->Append(RESET_POSITION, "Reset Position");
     men_file->Append(SET_POSITION, "Set Position");
     men_file->Append(SHOW_INDICES, "Show Indices");
     men_file->Append(wxID_EXIT, "Exit");
@@ -157,9 +159,7 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    if (engine != nullptr) {
-        engine->stop();
-    }
+    engine->stop();
 
     wxExit();
 }
@@ -168,24 +168,28 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
     if (dialog.ShowModal() == wxID_OK) {
-        if (engine != nullptr) {
-            engine->stop();
-        }
+        engine->stop();
 
         txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
-
-        engine = std::make_unique<engine::Engine>([this](const auto& message) { on_engine_message(message); });
 
         try {
             engine->start(dialog.GetPath().ToStdString());
         } catch (int) {
             std::cout << "Error creating process\n";
         }
+
+        // FIXME call newgame with the current position
+
+        if (get_player_role(board->get_player()) == Player::Computer) {
+            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
+                engine->go();
+            }
+        }
     }
 }
 
-void MainWindow::on_reset_board(wxCommandEvent&) {
-    board->reset();
+void MainWindow::on_reset_position(wxCommandEvent&) {
+    board->reset_position();
     clear_moves_log();
 
     txt_status->SetLabelText(STATUS + "game in progress");
@@ -193,9 +197,16 @@ void MainWindow::on_reset_board(wxCommandEvent&) {
     txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
     txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
 
-    if (engine != nullptr) {
-        engine->newgame();
+    engine->newgame();
+
+    if (get_player_role(board->get_player()) == Player::Computer) {
+        engine->go();
     }
+
+    btn_black_human->Enable();
+    btn_black_computer->Enable();
+    btn_white_human->Enable();
+    btn_white_computer->Enable();
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
@@ -210,9 +221,16 @@ void MainWindow::on_set_position(wxCommandEvent&) {
         txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
         txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
 
-        if (engine != nullptr) {
-            engine->newgame();  // FIXME send position
+        engine->newgame();  // FIXME send position
+
+        if (get_player_role(board->get_player()) == Player::Computer) {
+            engine->go();
         }
+
+        btn_black_human->Enable();
+        btn_black_computer->Enable();
+        btn_white_human->Enable();
+        btn_white_computer->Enable();
     }
 }
 
@@ -242,20 +260,18 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
 
 void MainWindow::on_black_change(wxCommandEvent&) {
     if (btn_black_human->GetValue()) {
-        assert(!btn_black_computer->GetValue());
         black = Player::Human;
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(true);
         }
     } else {
-        assert(btn_black_computer->GetValue());
         black = Player::Computer;
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(false);
 
-            if (engine != nullptr) {
+            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
                 engine->go();
             }
         }
@@ -264,20 +280,18 @@ void MainWindow::on_black_change(wxCommandEvent&) {
 
 void MainWindow::on_white_change(wxCommandEvent&) {
     if (btn_white_human->GetValue()) {
-        assert(!btn_white_computer->GetValue());
         white = Player::Human;
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(true);
         }
     } else {
-        assert(btn_white_computer->GetValue());
         white = Player::Computer;
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(false);
 
-            if (engine != nullptr) {
+            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
                 engine->go();
             }
         }
@@ -285,9 +299,7 @@ void MainWindow::on_white_change(wxCommandEvent&) {
 }
 
 void MainWindow::on_close(wxCloseEvent&) {
-    if (engine != nullptr) {
-        engine->stop();
-    }
+    engine->stop();
 
     wxExit();
 }
@@ -301,10 +313,8 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
     if (get_player_role(board->get_player()) == Player::Computer) {
-        if (engine != nullptr) {
-            if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
-                engine->move(board::CheckersBoard::move_to_string(move));
-            }
+        if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
+            engine->move(board::CheckersBoard::move_to_string(move));
         }
     }
 
@@ -313,14 +323,17 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     }
 
     if (get_player_role(board->get_player()) == Player::Computer) {
-        if (engine != nullptr) {
-            engine->go();
-        }
+        engine->go();
 
         board->set_user_input(false);
     } else {
         board->set_user_input(true);
     }
+
+    btn_black_human->Disable();
+    btn_black_computer->Disable();
+    btn_white_human->Disable();
+    btn_white_computer->Disable();
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
