@@ -101,6 +101,8 @@ namespace board {
 
     void CheckersBoard::set_show_inidces(bool show_indices) {
         this->show_indices = show_indices;
+
+        refresh_canvas();
     }
 
     void CheckersBoard::play_move(const Move& move) {
@@ -646,6 +648,8 @@ namespace board {
     void CheckersBoard::play_normal_move(const Move& move) {
         assert(move.type == MoveType::Normal);
 
+        assert(board[move.normal.destination_index] == Square::None);
+
         std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
         const bool advancement {
@@ -667,9 +671,10 @@ namespace board {
 
         const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1u]};
 
-        std::swap(board[move.capture.source_index], board[destination_index]);
+        assert(board[destination_index] == Square::None);
 
         remove_jumped_pieces(move);
+        std::swap(board[move.capture.source_index], board[destination_index]);
 
         check_piece_crowning(destination_index);
         change_turn();
@@ -697,17 +702,27 @@ namespace board {
     }
 
     void CheckersBoard::remove_jumped_pieces(const Move& move) {
+        assert(board[move.capture.destination_indices[0u]] == Square::None);
+
         const Idx index {get_jumped_piece_index(
             to_1_32(move.capture.source_index),
-            to_1_32(move.capture.destination_indices[0])
+            to_1_32(move.capture.destination_indices[0u])
         )};
+
+        assert(board[to_0_31(index)] != Square::None);
+
         board[to_0_31(index)] = Square::None;
 
         for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+            assert(board[move.capture.destination_indices[i + 1u]] == Square::None);
+
             const Idx index {get_jumped_piece_index(
                 to_1_32(move.capture.destination_indices[i]),
                 to_1_32(move.capture.destination_indices[i + 1u])
             )};
+
+            assert(board[to_0_31(index)] != Square::None);
+
             board[to_0_31(index)] = Square::None;
         }
     }
@@ -717,7 +732,7 @@ namespace board {
 
         const auto sum {index1 + index2};
 
-        assert(sum % 2 == 1);  // FIXME this fails in endgame, when all AI pieces are stuck at the bottom as kings (another bug to fix)
+        assert(sum % 2 == 1);
 
         if (((to_0_31(index1)) / 4) % 2 == 0) {
             return (sum + 1) / 2;
@@ -920,8 +935,10 @@ namespace board {
 
         if (distance >= 3 && distance <= 5) {
             return false;
-        } else {
+        } else if (distance == 7 || distance == 9) {
             return true;
+        } else {
+            assert(false);
         }
     }
 

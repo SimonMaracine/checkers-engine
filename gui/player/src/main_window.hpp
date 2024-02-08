@@ -36,7 +36,6 @@ private:
 
     int get_ideal_board_size();
     const char* game_over_text();
-    void update_board_user_input();
     Player get_player_role(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
@@ -45,12 +44,10 @@ private:
 
     board::CheckersBoard* board {nullptr};
 
-    struct {
-        wxStaticText* txt_status {nullptr};
-        wxStaticText* txt_player {nullptr};
-        wxStaticText* txt_plies_without_advancement {nullptr};
-        wxStaticText* txt_repetition_size {nullptr};
-    } game;
+    wxStaticText* txt_status {nullptr};
+    wxStaticText* txt_player {nullptr};
+    wxStaticText* txt_plies_without_advancement {nullptr};
+    wxStaticText* txt_repetition_size {nullptr};
 
     wxRadioButton* btn_black_human {nullptr};
     wxRadioButton* btn_black_computer {nullptr};

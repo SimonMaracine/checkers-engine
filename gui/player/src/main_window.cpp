@@ -76,17 +76,17 @@ void MainWindow::setup_widgets() {
     wxPanel* pnl_right_side {new wxPanel(this)};
     wxBoxSizer* szr_right_side {new wxBoxSizer(wxVERTICAL)};
 
-    game.txt_status = new wxStaticText(pnl_right_side, wxID_ANY, STATUS + "game in progress");
-    szr_right_side->Add(game.txt_status, 1);
+    txt_status = new wxStaticText(pnl_right_side, wxID_ANY, STATUS + "game in progress");
+    szr_right_side->Add(txt_status, 1);
 
-    game.txt_player = new wxStaticText(pnl_right_side, wxID_ANY, PLAYER + "black");
-    szr_right_side->Add(game.txt_player, 1);
+    txt_player = new wxStaticText(pnl_right_side, wxID_ANY, PLAYER + "black");
+    szr_right_side->Add(txt_player, 1);
 
-    game.txt_plies_without_advancement = new wxStaticText(pnl_right_side, wxID_ANY, PLIES_WITHOUT_ADVANCEMENT + "0");
-    szr_right_side->Add(game.txt_plies_without_advancement, 1);
+    txt_plies_without_advancement = new wxStaticText(pnl_right_side, wxID_ANY, PLIES_WITHOUT_ADVANCEMENT + "0");
+    szr_right_side->Add(txt_plies_without_advancement, 1);
 
-    game.txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
-    szr_right_side->Add(game.txt_repetition_size, 1);
+    txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
+    szr_right_side->Add(txt_repetition_size, 1);
 
     szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
@@ -186,11 +186,12 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
 void MainWindow::on_reset_board(wxCommandEvent&) {
     board->reset();
-    game.txt_status->SetLabelText(STATUS + "game in progress");
-    game.txt_player->SetLabelText(PLAYER + "black");
-    game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
-    game.txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
     clear_moves_log();
+
+    txt_status->SetLabelText(STATUS + "game in progress");
+    txt_player->SetLabelText(PLAYER + "black");
+    txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
+    txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
 
     if (engine != nullptr) {
         engine->newgame();
@@ -202,8 +203,16 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 
 	if (dialog.ShowModal() == wxID_OK) {
         board->set_position(dialog.get_fen_string().ToStdString());
-        game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
         clear_moves_log();
+
+        txt_status->SetLabelText(STATUS + "game in progress");
+        txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
+        txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
+        txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
+
+        if (engine != nullptr) {
+            engine->newgame();  // FIXME send position
+        }
     }
 }
 
@@ -211,7 +220,6 @@ void MainWindow::on_show_indices(wxCommandEvent&) {
     static bool show_indices {false};
 
     board->set_show_inidces(!std::exchange(show_indices, !show_indices));
-    board->Refresh();
 }
 
 void MainWindow::on_about(wxCommandEvent&) {
@@ -287,22 +295,32 @@ void MainWindow::on_close(wxCloseEvent&) {
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     log_move(move);
 
-    game.txt_status->SetLabelText(STATUS + game_over_text());
-    game.txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
-    game.txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
-    game.txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
+    txt_status->SetLabelText(STATUS + game_over_text());
+    txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
+    txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
+    txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
 
     if (get_player_role(board->get_player()) == Player::Computer) {
         if (engine != nullptr) {
             if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
                 engine->move(board::CheckersBoard::move_to_string(move));
             }
-
-            engine->go();
         }
     }
 
-    update_board_user_input();
+    if (board->get_game_over() != board::CheckersBoard::GameOver::None) {
+        return;
+    }
+
+    if (get_player_role(board->get_player()) == Player::Computer) {
+        if (engine != nullptr) {
+            engine->go();
+        }
+
+        board->set_user_input(false);
+    } else {
+        board->set_user_input(true);
+    }
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
@@ -328,14 +346,6 @@ const char* MainWindow::game_over_text() {
     }
 
     return nullptr;
-}
-
-void MainWindow::update_board_user_input() {
-    if (get_player_role(board->get_player()) == Player::Computer) {
-        board->set_user_input(false);
-    } else {
-        board->set_user_input(true);
-    }
 }
 
 MainWindow::Player MainWindow::get_player_role(board::CheckersBoard::Player player) {

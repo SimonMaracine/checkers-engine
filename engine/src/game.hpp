@@ -73,4 +73,12 @@ namespace game {
     constexpr Idx to_1_32(Idx index) {
         return index + 1;
     }
+
+    constexpr bool is_black_piece(Square square) {
+        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 0);
+    }
+
+    constexpr bool is_white_piece(Square square) {
+        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 1);
+    }
 }

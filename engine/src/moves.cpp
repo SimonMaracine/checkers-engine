@@ -24,17 +24,27 @@ namespace moves {
     static void remove_jumped_pieces(game::Board& board, const game::Move& move) {
         assert(move.type == game::MoveType::Capture);
 
+        assert(board[move.capture.destination_indices[0u]] == game::Square::None);
+
         const auto index {get_jumped_piece_index(
             game::to_1_32(move.capture.source_index),
             game::to_1_32(move.capture.destination_indices[0u])
         )};
+
+        assert(board[game::to_0_31(index)] != game::Square::None);
+
         board[game::to_0_31(index)] = game::Square::None;
 
         for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+            assert(board[move.capture.destination_indices[i + 1u]] == game::Square::None);
+
             const auto index {get_jumped_piece_index(
                 game::to_1_32(move.capture.destination_indices[i]),
                 game::to_1_32(move.capture.destination_indices[i + 1u])
             )};
+
+            assert(board[game::to_0_31(index)] != game::Square::None);
+
             board[game::to_0_31(index)] = game::Square::None;
         }
     }
@@ -239,22 +249,42 @@ namespace moves {
         }
     }
 
-    void play_move(game::Position& position, const game::Move& move) {
-        // FIXME check piece crowning
+    static void check_piece_crowning(game::Board& board, game::Idx square_index) {
+        const int row {square_index / 4};
 
+        if (game::is_black_piece(board[square_index])) {
+            if (row == 0) {
+                board[square_index] = game::Square::BlackKing;
+            }
+        } else {  // Assume it's white
+            if (row == 7) {
+                board[square_index] = game::Square::WhiteKing;
+            }
+        }
+    }
+
+    void play_move(game::Position& position, const game::Move& move) {
         auto& board {position.position.board};
 
         switch (move.type) {
             case game::MoveType::Normal:
+                assert(board[move.normal.destination_index] == game::Square::None);  // FIXME this failed in endgame when I switched from computer to human
+
                 std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+
+                check_piece_crowning(board, move.normal.destination_index);
 
                 break;
             case game::MoveType::Capture:
+                assert(board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);
+
+                remove_jumped_pieces(board, move);
                 std::swap(
                     board[move.capture.source_index],
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
-                remove_jumped_pieces(board, move);
+
+                check_piece_crowning(board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
 
                 break;
         }
@@ -264,19 +294,25 @@ namespace moves {
     }
 
     void play_move(search::SearchNode& node, const game::Move& move) {
-        // FIXME check piece crowning
-
         switch (move.type) {
             case game::MoveType::Normal:
+                assert(node.board[move.normal.destination_index] == game::Square::None);
+
                 std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);
+
+                check_piece_crowning(node.board, move.normal.destination_index);
 
                 break;
             case game::MoveType::Capture:
+                assert(node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);
+
+                remove_jumped_pieces(node.board, move);
                 std::swap(
                     node.board[move.capture.source_index],
                     node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
-                remove_jumped_pieces(node.board, move);
+
+                check_piece_crowning(node.board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
 
                 break;
         }
