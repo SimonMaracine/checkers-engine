@@ -7,10 +7,15 @@
 #include <mutex>
 #include <unordered_map>
 #include <variant>
+#include <optional>
+#include <utility>
 
 #include "game.hpp"
 
 namespace engine {
+    using Param = std::variant<int>;
+    using SearchResult = std::pair<game::Move, bool>;
+
     struct EngineData {
         /* TODO
             transposition table
@@ -18,11 +23,9 @@ namespace engine {
             other
         */
 
-       using Param = std::variant<int>;
-
        struct {
             std::thread thread;
-            std::function<game::Move()> search;
+            std::function<SearchResult()> search;
             std::condition_variable cv;
             std::mutex mutex;
             std::unordered_map<std::string, Param> parameters;
@@ -40,7 +43,11 @@ namespace engine {
     // Arguments to these aren't checked
     // May throw errors
     void init(engine::EngineData& data);
-    void newgame(engine::EngineData& data);
+    void newgame(
+        engine::EngineData& data,
+        const std::optional<std::string>& position,
+        const std::optional<std::vector<std::string>>& moves
+    );
     void move(engine::EngineData& data, const std::string& move);
     void go(engine::EngineData& data, bool dont_play_move);
     void setparameter(engine::EngineData& data, const std::string& name, const std::string& value);

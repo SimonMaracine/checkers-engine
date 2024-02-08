@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <string>
+#include <optional>
 
 #include <wx/timer.h>
 
@@ -38,8 +39,8 @@ namespace engine {
 
         void start(const std::string& file_path);
         void stop();
-        void newgame();
-        void go();
+        void newgame(const std::optional<std::string>& fen_string);
+        void go(bool dont_play_move);
         void move(const std::string& move_string);
     private:
         subprocess::Subprocess process;

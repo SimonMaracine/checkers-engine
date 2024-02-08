@@ -38,7 +38,7 @@ does check for invalid move commands, it should immediately respond with the mes
 ### GO [don't play move]
 
 Tells the engine to think and return the best move of its current internal position. It should optionally not play
-the resulted move on its internal board.
+the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
 ### SETPARAMETER \<parameter name\> \<parameter value\>
 

@@ -34,7 +34,7 @@ namespace game {
 
     struct Position {
         FenPosition position;
-        unsigned int plies {0u};
+        unsigned int plies {0u};  // TODO might not be needed
         unsigned int plies_without_advancement {0u};
     };
 

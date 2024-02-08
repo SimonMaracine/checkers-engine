@@ -7,8 +7,8 @@
 #include "search.hpp"
 
 namespace engine {
-    static void reset(EngineData& data) {
-        game::set_position(data.game.position.position, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
+    static void reset_position(EngineData& data, const std::string& fen_string) {
+        game::set_position(data.game.position.position, fen_string);
 
         data.game.position.plies = 0u;
         data.game.position.plies_without_advancement = 0u;
@@ -40,24 +40,34 @@ namespace engine {
                     break;
                 }
 
-                const game::Move best_move {data.minimax.search()};
+                const auto [best_move, dont_play] {data.minimax.search()};
 
                 messages::bestmove(best_move);
 
-                moves::play_move(data.game.position, best_move);
-                // TODO store move and store position
+                if (!dont_play) {
+                    moves::play_move(data.game.position, best_move);
+                    // TODO store move and store position
+                }
 
                 // Reset the function as a signal for the cv
                 data.minimax.search = {};
             }
         });
 
-        reset(data);
+        reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
         initialize_parameters(data);
     }
 
-    void newgame(engine::EngineData& data) {
-        reset(data);
+    void newgame(
+        engine::EngineData& data,
+        const std::optional<std::string>& position,
+        const std::optional<std::vector<std::string>>& moves
+    ) {
+        if (position) {
+            reset_position(data, *position);
+        } else {
+            reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
+        }
     }
 
     void move(engine::EngineData& data, const std::string& move) {
@@ -78,7 +88,7 @@ namespace engine {
                 instance.search(data.game.position, data.game.previous_positions, data.game.moves_played)
             };
 
-            return best_move;
+            return std::make_pair(best_move, dont_play_move);
         };
 
         data.minimax.cv.notify_one();
@@ -97,7 +107,7 @@ namespace engine {
         assert(!data.minimax.search);
 
         // Set dummy work to wake up the thread from sleeping
-        data.minimax.search = []() -> game::Move { return {}; };
+        data.minimax.search = []() -> SearchResult { return {}; };
         data.minimax.running = false;
 
         data.minimax.cv.notify_one();

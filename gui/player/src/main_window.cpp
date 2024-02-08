@@ -5,6 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include <utility>
+#include <optional>
 
 #include <wx/statline.h>
 
@@ -182,7 +183,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
         if (get_player_role(board->get_player()) == Player::Computer) {
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go();
+                engine->go(false);
             }
         }
     }
@@ -197,10 +198,10 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
     txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
     txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
 
-    engine->newgame();
+    engine->newgame(std::nullopt);
 
     if (get_player_role(board->get_player()) == Player::Computer) {
-        engine->go();
+        engine->go(false);
     }
 
     btn_black_human->Enable();
@@ -221,10 +222,10 @@ void MainWindow::on_set_position(wxCommandEvent&) {
         txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
         txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
 
-        engine->newgame();  // FIXME send position
+        engine->newgame(std::make_optional(dialog.get_fen_string().ToStdString()));
 
         if (get_player_role(board->get_player()) == Player::Computer) {
-            engine->go();
+            engine->go(false);
         }
 
         btn_black_human->Enable();
@@ -272,7 +273,7 @@ void MainWindow::on_black_change(wxCommandEvent&) {
             board->set_user_input(false);
 
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go();
+                engine->go(false);
             }
         }
     }
@@ -292,7 +293,7 @@ void MainWindow::on_white_change(wxCommandEvent&) {
             board->set_user_input(false);
 
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go();
+                engine->go(false);
             }
         }
     }
@@ -323,7 +324,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     }
 
     if (get_player_role(board->get_player()) == Player::Computer) {
-        engine->go();
+        engine->go(false);
 
         board->set_user_input(false);
     } else {

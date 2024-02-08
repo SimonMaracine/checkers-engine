@@ -60,22 +60,38 @@ namespace engine {
         started = false;
     }
 
-    void Engine::newgame() {
+    void Engine::newgame(const std::optional<std::string>& fen_string) {
         if (!started) {
             return;
         }
 
-        if (!process.write_to("NEWGAME\n")) {
+        std::string message;
+
+        if (fen_string) {
+            message = "NEWGAME " + *fen_string + '\n';
+        } else {
+            message = "NEWGAME\n";
+        }
+
+        if (!process.write_to(message)) {
             throw ERR;
         }
     }
 
-    void Engine::go() {
+    void Engine::go(bool dont_play_move) {
         if (!started) {
             return;
         }
 
-        if (!process.write_to("GO\n")) {
+        std::string message;
+
+        if (dont_play_move) {
+            message = "GO dontplaymove\n";
+        } else {
+            message = "GO\n";
+        }
+
+        if (!process.write_to(message)) {
             throw ERR;
         }
     }
@@ -85,9 +101,7 @@ namespace engine {
             return;
         }
 
-        const std::string message {"MOVE " + move_string + '\n'};
-
-        if (!process.write_to(message)) {
+        if (!process.write_to("MOVE " + move_string + '\n')) {
             throw ERR;
         }
     }
