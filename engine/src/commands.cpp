@@ -6,7 +6,7 @@
 // TODO refactor how messages are processed and how error is handled (or not handled)
 
 namespace commands {
-    bool try_init(engine::EngineData& data, const loop::InputTokens& input_tokens) {
+    bool try_init(engine::EngineData& data, const loop::InputTokens&) {
         engine::init(data);
 
         return true;
@@ -48,8 +48,18 @@ namespace commands {
         return false;
     }
 
+    bool try_getparameters(engine::EngineData& data, const loop::InputTokens&) {
+        engine::getparameters(data);
+
+        return true;
+    }
+
     bool try_setparameter(engine::EngineData& data, const loop::InputTokens& input_tokens) {
-        engine::setparameter(data, "", "");
+        if (!input_tokens.find(1u) || !input_tokens.find(2u)) {
+            return false;
+        }
+
+        engine::setparameter(data, input_tokens[1u], input_tokens[2u]);
 
         return true;
     }

@@ -40,16 +40,28 @@ does check for invalid move commands, it should immediately respond with the mes
 Tells the engine to think and return the best move of its current internal position. It should optionally not play
 the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
-### SETPARAMETER \<parameter name\> \<parameter value\>
-
-Tells the engine to set the parameter to that value.
-
 <!-- TODO what parameters must exist? -->
 <!-- FIXME specify messages more rigorously -->
 
+### GETPARAMETERS
+
+Asks the engine about what its configurable parameters are. Possible types are:
+
+- **int**, a signed 32-bit integer
+<!-- - **bool**, a boolean with values *true* or *false* -->
+
+The types must be spelled just like above.
+
+<!-- TODO maybe string and float types -->
+
 ### GETPARAMETER \<parameter name\>
 
-Asks the engine for that parameter value.
+Asks the engine for that parameter value and type.
+
+### SETPARAMETER \<parameter name\> \<parameter value\>
+
+Tells the engine to set the parameter to that value. The value should pe parsed by the engine according to its type.
+The GUI should first ask the engine about its parameters and their types.
 
 ### QUIT
 
@@ -66,6 +78,10 @@ optionally contain a message.
 
 Responds with the best move calculated after a **GO** command.
 
-### PARAMETER \<parameter name\> \<parameter value\>
+### PARAMETERS \<name 1\> \<type 1\> \<name 2\> \<type 2\>...
 
-Responds with the name and the value of the requested parameter after a **GETPARAMETER** command.
+Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command.
+
+### PARAMETER \<parameter name\> \<parameter value\> \<parameter type\>
+
+Responds with the name, value and type of the requested parameter after a **GETPARAMETER** command.

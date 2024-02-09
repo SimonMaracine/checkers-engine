@@ -36,6 +36,7 @@ namespace loop {
             { "NEWGAME", commands::try_newgame },
             { "MOVE", commands::try_move },
             { "GO", commands::try_go },
+            { "GETPARAMETERS", commands::try_getparameters },
             { "SETPARAMETER", commands::try_setparameter },
             { "GETPARAMETER", commands::try_getparameter }
         };

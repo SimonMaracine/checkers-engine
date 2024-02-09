@@ -213,7 +213,7 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
 void MainWindow::on_set_position(wxCommandEvent&) {
     FenStringDialog dialog {this, wxID_ANY};
 
-	if (dialog.ShowModal() == wxID_OK) {
+    if (dialog.ShowModal() == wxID_OK) {
         board->set_position(dialog.get_fen_string().ToStdString());
         clear_moves_log();
 

@@ -41,12 +41,31 @@ namespace messages {
         std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
     }
 
+    void parameters(const std::unordered_map<std::string, engine::Param>& parameters) {
+        std::cout << "PARAMETERS";
+
+        for (const auto& [name, value] : parameters) {
+            std::cout << ' ' << name << ' ';
+
+            switch (value.index()) {
+                case 0u:
+                    std::cout << "int";  // Too bad that I can't just use typeid
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+        }
+
+        std::cout << std::endl;
+    }
+
     void parameter(const std::string& name, const engine::Param& value) {
         std::cout << "PARAMETER " << name << ' ';
 
         switch (value.index()) {
             case 0u:
-                std::cout << std::get<0u>(value);
+                std::cout << std::get<0u>(value) << ' ' << "int";
                 break;
             default:
                 assert(false);

@@ -1,10 +1,12 @@
 #include "engine.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 #include "moves.hpp"
 #include "messages.hpp"
 #include "search.hpp"
+#include "error.hpp"
 
 namespace engine {
     static void reset_position(EngineData& data, const std::string& fen_string) {
@@ -24,6 +26,20 @@ namespace engine {
 
     static void initialize_parameters(EngineData& data) {
         data.minimax.parameters["piece"] = 10;
+    }
+
+    static int parse_int(const std::string& string) {
+        int result {0};
+
+        try {
+            result = std::stoi(string);
+        } catch (const std::invalid_argument&) {
+            throw error::ERR;
+        } catch (const std::out_of_range&) {
+            throw error::ERR;
+        }
+
+        return result;
     }
 
     void init(engine::EngineData& data) {
@@ -94,12 +110,25 @@ namespace engine {
         data.minimax.cv.notify_one();
     }
 
-    void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {
-
+    void getparameters(engine::EngineData& data) {
+        messages::parameters(data.minimax.parameters);
     }
 
     void getparameter(engine::EngineData& data, const std::string& name) {
         messages::parameter(name, data.minimax.parameters.at(name));
+    }
+
+    void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {
+        const Param& parameter {data.minimax.parameters.at(name)};
+
+        switch (parameter.index()) {
+            case 0u:
+                data.minimax.parameters[name] = parse_int(value);
+                break;
+            default:
+                assert(false);
+                break;
+        }
     }
 
     void quit(engine::EngineData& data) {
