@@ -3,7 +3,7 @@
 #include <string>
 #include <optional>
 
-// TODO refactor how messages are processed and how error is handled (or not handled)
+// TODO refactor how messages are processed and how errors are handled (or not handled)
 
 namespace commands {
     bool try_init(engine::EngineData& data, const loop::InputTokens&) {

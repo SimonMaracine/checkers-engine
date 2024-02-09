@@ -18,17 +18,17 @@ Positions and moves are encoded as FEN strings using the standard
 
 ### INIT
 
-Tells the engine to get ready to play.
+Tells the engine to initialize itself and get ready to play.
 
-Must be called at the beginning and only once.
+Must be sent at the beginning and only once.
 
-### NEWGAME [start position] [setup moves]
+### NEWGAME [start position] [(setup move 1) (setup move 2) ...]
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
-(right after **INIT**), as if **INIT** automatically calls **NEWGAME**. Optionally tells it to start from a specific
-position and then play the setup moves.
+(right after **INIT**), as if **INIT** automatically calls **NEWGAME**. Optionally tells it to start from a
+specific position and then play the setup moves.
 
-### MOVE \<move string\>
+### MOVE \<move\>
 
 Tells the engine to play the move on the internal board.
 
@@ -40,12 +40,12 @@ does check for invalid move commands, it should immediately respond with the mes
 Tells the engine to think and return the best move of its current internal position. It should optionally not play
 the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
-<!-- TODO what parameters must exist? -->
-<!-- FIXME specify messages more rigorously -->
-
 ### GETPARAMETERS
 
-Asks the engine about what its configurable parameters are. Possible types are:
+Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero. They must
+be initialized by the time the **INIT** command finishes processing.
+
+Possible types are:
 
 - **int**, a signed 32-bit integer
 <!-- - **bool**, a boolean with values *true* or *false* -->
@@ -54,14 +54,15 @@ The types must be spelled just like above.
 
 <!-- TODO maybe string and float types -->
 
-### GETPARAMETER \<parameter name\>
+### GETPARAMETER \<name\>
 
 Asks the engine for that parameter value and type.
 
-### SETPARAMETER \<parameter name\> \<parameter value\>
+### SETPARAMETER \<name\> \<value\>
 
 Tells the engine to set the parameter to that value. The value should pe parsed by the engine according to its type.
-The GUI should first ask the engine about its parameters and their types.
+
+The GUI may first ask the engine about its parameters and their types.
 
 ### QUIT
 
@@ -74,14 +75,14 @@ Tells the engine to shut down and exit gracefully.
 Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It can
 optionally contain a message.
 
-### BESTMOVE \<move string\>
+### BESTMOVE \<move\>
 
 Responds with the best move calculated after a **GO** command.
 
-### PARAMETERS \<name 1\> \<type 1\> \<name 2\> \<type 2\>...
+### PARAMETERS \<(name 1) (type 1) (name 2) (type 2) ...\>
 
 Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command.
 
-### PARAMETER \<parameter name\> \<parameter value\> \<parameter type\>
+### PARAMETER \<name\> \<value\> \<type\>
 
 Responds with the name, value and type of the requested parameter after a **GETPARAMETER** command.

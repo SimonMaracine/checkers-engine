@@ -11,7 +11,7 @@
 
 #include "fen_string_dialog.hpp"
 
-// FIXME need to make a stop and continue button for the engine and to also update the protocol; engine no longer automatically plays moves
+// FIXME need to make a stop and continue button for the engine and to also update the protocol; engine should no longer automatically play moves
 
 enum {
     START_ENGINE = 10,
@@ -160,7 +160,13 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    engine->stop();
+    engine->quit();
+
+    wxExit();
+}
+
+void MainWindow::on_close(wxCloseEvent&) {
+    engine->quit();
 
     wxExit();
 }
@@ -169,12 +175,12 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
     if (dialog.ShowModal() == wxID_OK) {
-        engine->stop();
+        engine->quit();
 
         txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
 
         try {
-            engine->start(dialog.GetPath().ToStdString());
+            engine->init(dialog.GetPath().ToStdString());
         } catch (int) {
             std::cout << "Error creating process\n";
         }
@@ -297,12 +303,6 @@ void MainWindow::on_white_change(wxCommandEvent&) {
             }
         }
     }
-}
-
-void MainWindow::on_close(wxCloseEvent&) {
-    engine->stop();
-
-    wxExit();
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {

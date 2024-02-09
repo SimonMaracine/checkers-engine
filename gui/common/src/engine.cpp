@@ -17,7 +17,7 @@ namespace engine {
         callback(message);
     }
 
-    void Engine::start(const std::string& file_path) {
+    void Engine::init(const std::string& file_path) {
         if (started) {
             return;
         }
@@ -42,24 +42,6 @@ namespace engine {
         throw ERR;
     }
 
-    void Engine::stop() {
-        if (!started) {
-            return;
-        }
-
-        reader.Stop();
-
-        if (!process.write_to("QUIT\n")) {
-            throw ERR;
-        }
-
-        if (!process.wait_for()) {
-            throw ERR;
-        }
-
-        started = false;
-    }
-
     void Engine::newgame(const std::optional<std::string>& fen_string) {
         if (!started) {
             return;
@@ -74,6 +56,16 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
+            throw ERR;
+        }
+    }
+
+    void Engine::move(const std::string& move_string) {
+        if (!started) {
+            return;
+        }
+
+        if (!process.write_to("MOVE " + move_string + '\n')) {
             throw ERR;
         }
     }
@@ -96,13 +88,21 @@ namespace engine {
         }
     }
 
-    void Engine::move(const std::string& move_string) {
+    void Engine::quit() {
         if (!started) {
             return;
         }
 
-        if (!process.write_to("MOVE " + move_string + '\n')) {
+        reader.Stop();
+
+        if (!process.write_to("QUIT\n")) {
             throw ERR;
         }
+
+        if (!process.wait_for()) {
+            throw ERR;
+        }
+
+        started = false;
     }
 }

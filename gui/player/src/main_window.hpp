@@ -25,11 +25,11 @@ private:
     void on_set_position(wxCommandEvent&);
     void on_show_indices(wxCommandEvent&);
     void on_exit(wxCommandEvent&);
+    void on_close(wxCloseEvent&);
     void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);
     void on_black_change(wxCommandEvent&);
     void on_white_change(wxCommandEvent&);
-    void on_close(wxCloseEvent&);
 
     void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message);

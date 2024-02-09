@@ -37,11 +37,11 @@ namespace engine {
         Engine(Engine&&) = delete;
         Engine& operator=(Engine&&) = delete;
 
-        void start(const std::string& file_path);
-        void stop();
+        void init(const std::string& file_path);
         void newgame(const std::optional<std::string>& fen_string);
-        void go(bool dont_play_move);
         void move(const std::string& move_string);
+        void go(bool dont_play_move);
+        void quit();
     private:
         subprocess::Subprocess process;
         EngineReader reader;
