@@ -12,7 +12,7 @@
 namespace loop {
     // Doesn't return the new line
     static std::string read_input() {
-        static constexpr std::size_t CHUNK {4u};
+        static constexpr std::size_t CHUNK {256u};
 
         std::string result;
 
@@ -36,12 +36,10 @@ namespace loop {
         }
     }
 
-    static InputTokens tokenize_input(const std::string& input) {
+    static InputTokens tokenize_input(std::string&& input) {
         std::vector<std::string> tokens;
 
-        std::string mutable_buffer {input};
-
-        char* token {std::strtok(mutable_buffer.data(), " \t")};  // TODO other whitespace characters?
+        char* token {std::strtok(input.data(), " \t")};  // TODO other whitespace characters?
 
         while (token != nullptr) {
             tokens.emplace_back(token);
@@ -89,9 +87,9 @@ namespace loop {
 
     int main_loop(engine::EngineData& data) {
         while (true) {
-            const auto input {read_input()};
+            auto input {read_input()};
 
-            const InputTokens input_tokens {tokenize_input(input)};
+            const InputTokens input_tokens {tokenize_input(std::move(input))};
 
             if (input_tokens.empty()) {
                 continue;
