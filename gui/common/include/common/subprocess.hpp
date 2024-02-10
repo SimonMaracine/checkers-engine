@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 namespace subprocess {
     class Subprocess {
@@ -23,6 +22,6 @@ namespace subprocess {
         int output {};  // Write to
         int child_pid {-1};
 
-        mutable std::vector<char> buffered;
+        mutable std::string buffered;
     };
 }

@@ -14,6 +14,7 @@ namespace loop {
             : tokens(std::move(tokens)) {}
 
         std::size_t size() const { return tokens.size(); }
+        bool empty() const { return tokens.empty(); }
 
         bool find(std::size_t index) const;
         const std::string& operator[](std::size_t index) const;

@@ -2,14 +2,17 @@
 
 Communication is done through IO streams on stdin and stdout files, through ASCII text messages.
 
-All messages received must end with a newline (the "\n" character).
+All messages received must end with a new line ("\n" character).
 
 Messages from GUI to engine are also called commands.
 
 The string of a message can contain arbitrary whitespace around tokens.
 
-If a received command is invalid in any way, it should be ignored completely and the receiver (engine) may respond with
-the message **WARNING**.
+If a received command is invalid in any way, it should be ignored completely and the receiver (engine) may respond
+with the message **WARNING**.
+
+Messages can consist of any number of characters and, as a consequence, any number of tokens. Both the GUI and the
+engine should account for messages of any size.
 
 Positions and moves are encoded as FEN strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
@@ -45,14 +48,14 @@ the resulted move on its internal board, if the second token is equal to the str
 Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero. They must
 be initialized by the time the **INIT** command finishes processing.
 
-Possible types are:
+The possible types are:
 
 - **int**, a signed 32-bit integer
-<!-- - **bool**, a boolean with values *true* or *false* -->
+- **float**, a 32-bit floating point number
+- **bool**, a boolean with values *true* or *false*
+- **string**, a string of maximum 64 characters
 
 The types must be spelled just like above.
-
-<!-- TODO maybe string and float types -->
 
 ### GETPARAMETER \<name\>
 

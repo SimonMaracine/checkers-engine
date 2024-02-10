@@ -10,7 +10,33 @@
 #include "error.hpp"
 
 namespace loop {
-    static InputTokens tokenize_input(const char* input) {
+    // Doesn't return the new line
+    static std::string read_input() {
+        static constexpr std::size_t CHUNK {4u};
+
+        std::string result;
+
+        while (true) {
+            char buffer[CHUNK] {};
+            std::cin.getline(buffer, static_cast<std::streamsize>(CHUNK));
+
+            result += buffer;
+
+            if (std::cin.bad()) {
+                std::cin.clear();
+
+                return result;
+            }
+
+            if (std::cin.good()) {
+                return result;
+            } else {
+                std::cin.clear();
+            }
+        }
+    }
+
+    static InputTokens tokenize_input(const std::string& input) {
         std::vector<std::string> tokens;
 
         std::string mutable_buffer {input};
@@ -18,10 +44,6 @@ namespace loop {
         char* token {std::strtok(mutable_buffer.data(), " \t")};  // TODO other whitespace characters?
 
         while (token != nullptr) {
-            if (tokens.size() == 8u) {
-                break;
-            }
-
             tokens.emplace_back(token);
 
             token = std::strtok(nullptr, " \t");
@@ -67,12 +89,11 @@ namespace loop {
 
     int main_loop(engine::EngineData& data) {
         while (true) {
-            char input[128u] {};
-            std::cin.getline(input, 128);
+            const auto input {read_input()};
 
             const InputTokens input_tokens {tokenize_input(input)};
 
-            if (input_tokens.size() == 0u) {
+            if (input_tokens.empty()) {
                 continue;
             }
 

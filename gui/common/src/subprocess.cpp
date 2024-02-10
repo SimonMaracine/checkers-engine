@@ -1,7 +1,6 @@
 #include "common/subprocess.hpp"
 
 #include <cstddef>
-#include <cstring>
 #include <cstdlib>
 #include <cassert>
 #include <utility>
@@ -12,6 +11,19 @@
 
 namespace subprocess {
     static constexpr int ERR {0};
+
+    template<std::size_t Size>
+    static bool newline_in_buffer(const char* buffer, std::size_t& bytes_up_to_newline) {
+        for (std::size_t i {0u}; i < Size; i++) {
+            if (buffer[i] == '\n') {
+                bytes_up_to_newline = i + 1u;  // Including newline
+                return true;
+            }
+        }
+
+        bytes_up_to_newline = 0u;
+        return false;
+    }
 
     Subprocess::Subprocess(const std::string& file_path) {
         int fd_r[2u] {};
@@ -103,59 +115,43 @@ namespace subprocess {
             return false;
         }
 
-        char buffer[128u] {};
+        // 1   Read a bunch of bytes
+        // 2   Scan for newline in buffer
+        // 3a  If a newline is found, concatenate the buffer up to the newline with the contents of the buffered buffer and return it as the result
+        // 3b  Save the rest of the extracted characters (from newline + 1 up to the end) into the buffered buffer
+        // 4   If a newline is not found, save the buffer and goto #1
 
-        const ssize_t bytes {read(input, buffer, 128u)};
+        static constexpr std::size_t CHUNK {256u};
 
-        if (bytes < 0) {
-            return false;
-        }
+        std::string current;
 
-        if (bytes == 0) {
-            return false;
-        }
+        while (true) {
+            char buffer[CHUNK] {};
+            const ssize_t bytes {read(input, buffer, CHUNK)};
 
-        std::size_t bytes_consuming {0u};
-        bool found_new_line {false};
+            if (bytes < 0) {
+                return false;
+            }
 
-        for (ssize_t i {0}; i < bytes; i++) {
-            if (buffer[i] == '\n') {
-                bytes_consuming = i + 1;
-                found_new_line = true;
-                break;
+            if (bytes == 0) {
+                return false;
+            }
+
+            std::size_t bytes_up_to_newline {};
+
+            if (newline_in_buffer<CHUNK>(buffer, bytes_up_to_newline)) {
+                current += std::string(buffer, bytes_up_to_newline);
+
+                data = (
+                    std::exchange(buffered, std::string(buffer, bytes_up_to_newline, static_cast<std::size_t>(bytes)))
+                    + current
+                );
+
+                return true;
+            } else {
+                current += buffer;
             }
         }
-
-        if (!found_new_line) {
-            bytes_consuming = bytes;
-        }
-
-        char* final_buffer {nullptr};
-        std::size_t final_bytes_consuming {};
-
-        if (!buffered.empty()) {
-            final_bytes_consuming = buffered.size() + bytes_consuming;
-            final_buffer = new char[final_bytes_consuming];
-
-            std::memcpy(final_buffer, buffered.data(), buffered.size());
-            std::memcpy(final_buffer + buffered.size(), buffer, bytes_consuming);
-        } else {
-            final_bytes_consuming = bytes_consuming;
-            final_buffer = new char[final_bytes_consuming];
-
-            std::memcpy(final_buffer, buffer, bytes_consuming);
-        }
-
-        data = std::string(final_buffer, final_bytes_consuming);
-
-        delete[] final_buffer;
-
-        if (static_cast<ssize_t>(bytes_consuming) < bytes) {
-            buffered.resize(bytes - bytes_consuming);
-            std::memcpy(buffered.data(), buffer + bytes_consuming, bytes - bytes_consuming);
-        }
-
-        return true;
     }
 
     bool Subprocess::write_to(const std::string& data) const {
