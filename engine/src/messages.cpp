@@ -66,7 +66,7 @@ namespace messages {
 
         switch (value.index()) {
             case 0u:
-                std::cout << std::get<0u>(value) << ' ' << "int";
+                std::cout << std::get<0u>(value);
                 break;
             default:
                 assert(false);

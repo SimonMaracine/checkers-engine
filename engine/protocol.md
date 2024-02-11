@@ -1,10 +1,10 @@
-# Protocol
+# Checkers Protocol
 
 Communication is done through IO streams on stdin and stdout files, through ASCII text messages.
 
 All messages received must end with a new line ("\n" character).
 
-Messages from GUI to engine are also called commands.
+Messages from GUI to engine are also called *commands*.
 
 The string of a message can contain arbitrary whitespace around tokens.
 
@@ -29,7 +29,7 @@ Must be sent at the beginning and only once.
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
 (right after **INIT**), as if **INIT** automatically calls **NEWGAME**. Optionally tells it to start from a
-specific position and then play the setup moves.
+specific position or/and play the setup moves.
 
 ### MOVE \<move\>
 
@@ -59,13 +59,13 @@ The types must be spelled just like above.
 
 ### GETPARAMETER \<name\>
 
-Asks the engine for that parameter value and type.
+Asks the engine for that parameter value.
 
 ### SETPARAMETER \<name\> \<value\>
 
 Tells the engine to set the parameter to that value. The value should pe parsed by the engine according to its type.
 
-The GUI may first ask the engine about its parameters and their types.
+The GUI may first ask the engine about its parameters and their types in order to know which are available.
 
 ### QUIT
 
@@ -84,8 +84,9 @@ Responds with the best move calculated after a **GO** command.
 
 ### PARAMETERS \<(name 1) (type 1) (name 2) (type 2) ...\>
 
-Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command.
+Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command. Each entry
+consists of the parameter name and its type.
 
-### PARAMETER \<name\> \<value\> \<type\>
+### PARAMETER \<name\> \<value\>
 
-Responds with the name, value and type of the requested parameter after a **GETPARAMETER** command.
+Responds with the name and value of the requested parameter after a **GETPARAMETER** command.
