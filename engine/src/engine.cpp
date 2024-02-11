@@ -100,7 +100,7 @@ namespace engine {
 
             search::Search instance {parameter_piece};
 
-            const auto best_move {
+            const game::Move best_move {
                 instance.search(data.game.position, data.game.previous_positions, data.game.moves_played)
             };
 

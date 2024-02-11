@@ -3,8 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <mutex>
 
 namespace messages {
+    static std::mutex g_mutex;
+
     static std::string move_to_string(const game::Move& move) {
         std::ostringstream stream;
 
@@ -27,10 +30,16 @@ namespace messages {
         return stream.str();
     }
 
-    // Using std::endl is crucial
-    // There should be no need for synchronization, even though messages can be printed from other threads
+    /*
+        Using std::endl is crucial
+
+        Because multiple threads may print messages and because these are split between multiple << calls,
+        every message function needs to be protected
+    */
 
     void warning(const std::string& message) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
         if (!message.empty()) {
             std::cout << "WARNING " << message << std::endl;
         } else {
@@ -39,10 +48,14 @@ namespace messages {
     }
 
     void bestmove(const game::Move& move) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
         std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
     }
 
     void parameters(const std::unordered_map<std::string, engine::Param>& parameters) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
         std::cout << "PARAMETERS";
 
         for (const auto& [name, value] : parameters) {
@@ -62,6 +75,8 @@ namespace messages {
     }
 
     void parameter(const std::string& name, const engine::Param& value) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
         std::cout << "PARAMETER " << name << ' ';
 
         switch (value.index()) {
