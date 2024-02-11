@@ -10,6 +10,7 @@ namespace search {
     class Search {
     public:
         Search(int parameter_piece);
+        ~Search() = default;
 
         Search(const Search&) = delete;
         Search& operator=(const Search&) = delete;

@@ -10,8 +10,8 @@ namespace messages {
 
         switch (move.type) {
             case game::MoveType::Normal:
-                stream << static_cast<int>(game::to_1_32(move.normal.source_index)) << 'x'
-                    << static_cast<int>(game::to_1_32(move.normal.destination_index));
+                stream << static_cast<int>(game::to_1_32(move.normal.source_index))
+                    << 'x' << static_cast<int>(game::to_1_32(move.normal.destination_index));
 
                 break;
             case game::MoveType::Capture:
@@ -28,6 +28,7 @@ namespace messages {
     }
 
     // Using std::endl is crucial
+    // There should be no need for synchronization, even though messages can be printed from other threads
 
     void warning(const std::string& message) {
         if (!message.empty()) {
@@ -37,7 +38,7 @@ namespace messages {
         }
     }
 
-    void bestmove(const game::Move& move) {  // TODO does it need synchronization?
+    void bestmove(const game::Move& move) {
         std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
     }
 
