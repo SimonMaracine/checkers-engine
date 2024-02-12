@@ -63,22 +63,27 @@ namespace game {
 
     void set_position(FenPosition& position, const std::string& fen_string);
     void make_move(Position& position, const std::string& move_string);
+    Move parse_move(const std::string& move_string);
     Player opponent(Player player);
     bool is_game_over(const search::SearchNode& node);
 
-    constexpr Idx to_0_31(Idx index) {
+    constexpr Idx to_0_31(const Idx index) {
         return index - 1;
     }
 
-    constexpr Idx to_1_32(Idx index) {
+    constexpr Idx to_1_32(const Idx index) {
         return index + 1;
     }
 
-    constexpr bool is_black_piece(Square square) {
+    constexpr bool is_black_piece(const Square square) {
         return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 0);
     }
 
-    constexpr bool is_white_piece(Square square) {
+    constexpr bool is_white_piece(const Square square) {
         return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 1);
+    }
+
+    constexpr bool is_king_piece(const Square square) {
+        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 2);
     }
 }

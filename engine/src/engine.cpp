@@ -62,7 +62,9 @@ namespace engine {
 
                 if (!dont_play) {
                     moves::play_move(data.game.position, best_move);
-                    // TODO store move and store position
+
+                    data.game.previous_positions.push_back(data.game.position);
+                    data.game.moves_played.push_back(best_move);
                 }
 
                 // Reset the function as a signal for the cv
@@ -71,6 +73,10 @@ namespace engine {
         });
 
         reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
+
+        // Store the initial position too
+        data.game.previous_positions.push_back(data.game.position);
+
         initialize_parameters(data);
     }
 
@@ -84,11 +90,26 @@ namespace engine {
         } else {
             reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
         }
+
+        // Store the initial position too, as it can be any specific position
+        data.game.previous_positions.push_back(data.game.position);
+
+        if (moves) {
+            // Play the moves and store the positions and moves for threefold repetition
+            for (const std::string& move : *moves) {
+                game::make_move(data.game.position, move);
+
+                data.game.previous_positions.push_back(data.game.position);
+                data.game.moves_played.push_back(game::parse_move(move));
+            }
+        }
     }
 
     void move(engine::EngineData& data, const std::string& move) {
         game::make_move(data.game.position, move);
-        // TODO store move and store position
+
+        data.game.previous_positions.push_back(data.game.position);
+        data.game.moves_played.push_back(game::parse_move(move));
     }
 
     void go(engine::EngineData& data, bool dont_play_move) {
@@ -100,8 +121,11 @@ namespace engine {
 
             search::Search instance {parameter_piece};
 
+            auto previous_positions {data.game.previous_positions};
+            previous_positions.pop_back();
+
             const game::Move best_move {
-                instance.search(data.game.position, data.game.previous_positions, data.game.moves_played)
+                instance.search(data.game.position, previous_positions, data.game.moves_played)
             };
 
             return std::make_pair(best_move, dont_play_move);

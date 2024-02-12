@@ -207,7 +207,10 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
     engine->newgame(std::nullopt);
 
     if (get_player_role(board->get_player()) == Player::Computer) {
+        board->set_user_input(false);
         engine->go(false);
+    } else {
+        board->set_user_input(true);
     }
 
     btn_black_human->Enable();
@@ -231,7 +234,10 @@ void MainWindow::on_set_position(wxCommandEvent&) {
         engine->newgame(std::make_optional(dialog.get_fen_string().ToStdString()));
 
         if (get_player_role(board->get_player()) == Player::Computer) {
+            board->set_user_input(false);
             engine->go(false);
+        } else {
+            board->set_user_input(true);
         }
 
         btn_black_human->Enable();

@@ -225,6 +225,13 @@ namespace game {
             throw error::ERR;
         }
 
+        // Construct a move and play it
+        game::Move move {parse_move(move_string)};
+
+        moves::play_move(position, move);
+    }
+
+    Move parse_move(const std::string& move_string) {
         std::size_t index {0u};
 
         // These are in the range [1, 32]
@@ -235,7 +242,6 @@ namespace game {
             throw error::ERR;
         }
 
-        // Construct a move and play it
         game::Move move;
 
         if (is_capture_move(source, destinations[0u])) {
@@ -252,7 +258,7 @@ namespace game {
             move.normal.destination_index = to_0_31(destinations[0u]);
         }
 
-        moves::play_move(position, move);
+        return move;
     }
 
     Player opponent(Player player) {

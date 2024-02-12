@@ -34,8 +34,14 @@ namespace engine {
        } minimax;
 
         struct {
-            game::Position position;  // Internal position
+            // Internal position
+            game::Position position;
+
+            // position0, position1, position2, ..., positionN (current)
+            // This always stores the current position, which needs to be dropped when passed to the search function
             std::vector<game::Position> previous_positions;
+
+            // move0, move1, move2, ..., moveN (most recent)
             std::vector<game::Move> moves_played;
         } game;
     };

@@ -272,6 +272,12 @@ namespace moves {
 
                 std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
+                if (!game::is_king_piece(board[move.normal.destination_index])) {
+                    position.plies_without_advancement = 0u;
+                } else {
+                    position.plies_without_advancement++;
+                }
+
                 check_piece_crowning(board, move.normal.destination_index);
 
                 break;
@@ -283,6 +289,8 @@ namespace moves {
                     board[move.capture.source_index],
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
+
+                position.plies_without_advancement = 0u;
 
                 check_piece_crowning(board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
 
@@ -300,6 +308,13 @@ namespace moves {
 
                 std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);
 
+                if (!game::is_king_piece(node.board[move.normal.destination_index])) {
+                    node.plies_without_advancement = 0u;
+                    node.previous = nullptr;
+                } else {
+                    node.plies_without_advancement++;
+                }
+
                 check_piece_crowning(node.board, move.normal.destination_index);
 
                 break;
@@ -312,11 +327,15 @@ namespace moves {
                     node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
                 );
 
+                node.plies_without_advancement = 0u;
+                node.previous = nullptr;
+
                 check_piece_crowning(node.board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
 
                 break;
         }
 
+        node.player = game::opponent(node.player);
         node.plies++;
     }
 

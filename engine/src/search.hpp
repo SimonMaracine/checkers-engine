@@ -24,7 +24,6 @@ namespace search {
         );
     private:
         evaluation::Eval minimax(
-            game::Player player,
             unsigned int depth,
             unsigned int plies_from_root,
             SearchNode& current_node
@@ -35,6 +34,8 @@ namespace search {
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played
         );
+
+        bool is_advancement(const game::Position& position, const game::Move& move);
 
         game::Move best_move {};
         unsigned int nodes_evaluated {};

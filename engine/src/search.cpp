@@ -3,6 +3,7 @@
 #include <limits>
 #include <chrono>
 #include <cassert>
+#include <cstddef>
 
 #include "moves.hpp"
 
@@ -20,7 +21,7 @@ namespace search {
 
         const auto start {std::chrono::steady_clock::now()};
 
-        const evaluation::Eval evaluation {minimax(position.position.player, 4u, 0u, current_node)};
+        const evaluation::Eval evaluation {minimax(4u, 0u, current_node)};
 
         const auto end {std::chrono::steady_clock::now()};
 
@@ -31,7 +32,6 @@ namespace search {
     }
 
     evaluation::Eval Search::minimax(
-        game::Player player,
         unsigned int depth,
         unsigned int plies_from_root,
         SearchNode& current_node
@@ -41,12 +41,20 @@ namespace search {
             return evaluation::static_evaluation(current_node, parameters);
         }
 
-        // TODO threefold repetition, eighty move rule
+        if (eighty_move_rule(current_node)) {
+            nodes_evaluated++;
+            return 0;
+        }
 
-        if (player == game::Player::Black) {
+        if (threefold_repetition_rule(current_node)) {
+            nodes_evaluated++;
+            return 0;
+        }
+
+        if (current_node.player == game::Player::Black) {
             evaluation::Eval min_evaluation {std::numeric_limits<evaluation::Eval>::max()};
 
-            const auto moves {moves::generate_moves(current_node.board, player)};
+            const auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
             if (moves.empty()) {
                 nodes_evaluated++;
@@ -60,7 +68,7 @@ namespace search {
                 moves::play_move(new_node, move);
 
                 const evaluation::Eval evaluation {
-                    minimax(game::Player::White, depth - 1u, plies_from_root + 1u, new_node)
+                    minimax(depth - 1u, plies_from_root + 1u, new_node)
                 };
 
                 if (evaluation < min_evaluation) {
@@ -76,7 +84,7 @@ namespace search {
         } else {
             evaluation::Eval max_evaluation {std::numeric_limits<evaluation::Eval>::min()};
 
-            const auto moves {moves::generate_moves(current_node.board, player)};
+            const auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
             if (moves.empty()) {
                 nodes_evaluated++;
@@ -90,7 +98,7 @@ namespace search {
                 moves::play_move(new_node, move);
 
                 const evaluation::Eval evaluation {
-                    minimax(game::Player::Black, depth - 1u, plies_from_root + 1u, new_node)
+                    minimax(depth - 1u, plies_from_root + 1u, new_node)
                 };
 
                 if (evaluation > max_evaluation) {
@@ -113,17 +121,46 @@ namespace search {
     ) {
         assert(previous_positions.size() == moves_played.size());
 
-        // TODO insert previous positions into nodes
+        for (std::size_t i {0u}; i < previous_positions.size(); i++) {
+            const game::Position& position {previous_positions[i]};
+            const game::Move& move {moves_played[i]};
+
+            if (is_advancement(position, move)) {
+                nodes.clear();
+            } else {
+                SearchNode node;
+                node.board = position.position.board;
+                node.player = position.position.player;
+                node.plies = position.plies;
+                node.plies_without_advancement = position.plies_without_advancement;
+
+                nodes.push_back(node);
+            }
+        }
 
         SearchNode current_node;
         current_node.board = position.position.board;
+        current_node.player = position.position.player;
         current_node.plies = position.plies;
         current_node.plies_without_advancement = position.plies_without_advancement;
 
         nodes.push_back(current_node);
 
+        // Go backwards and link the nodes
+        for (std::size_t i {nodes.size() - 1u}; i > 0u; i--) {
+            nodes[i].previous = &nodes[i - 1u];
+        }
+
         assert(!nodes.empty());
 
         return nodes.back();
+    }
+
+    bool Search::is_advancement(const game::Position& position, const game::Move& move) {
+        if (move.type == game::MoveType::Normal) {
+            return !game::is_king_piece(position.position.board[move.normal.destination_index]);
+        } else {
+            return true;
+        }
     }
 }
