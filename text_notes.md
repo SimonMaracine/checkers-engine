@@ -34,7 +34,7 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   fel de situație din joc, orice poziție. Pentru validarea șirurilor de caractere "FEN" am folosit expresiile regulate
   (engl. "regular expressions") implementate în biblioteca standard C++.
 
-TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
+<!-- TODO structura și organizarea proiectului pe module, versiunea de wxWidgets -->
 
 - Am început scrierea AI-ului (numit "engine", fiindcă acest termen este des utilizat, ex. "chess engine") prin
   implementarea comunicării dintre acesta și joc (interfața GUI).
@@ -86,7 +86,7 @@ TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
   și distruse în număr mare.
 - Creez la început un singur fir de execuție pentru algoritmul de căutare și îl folosesc pe toată durata de viață a
   programului AI. În execuția firului se află o buclă principală care așteaptă să primească de lucru, dacă nu are ceva
-  de făcut. Arată cam așa:
+  de făcut. Codul arată cam așa (pseudocod):
 
   ```c++
   while (true) {
@@ -109,8 +109,6 @@ TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
   std::mutex. Funcția wait_sleeping returnează doar atunci când firul de execuție trebuie terminat sau atunci când
   trebuie să execute funcția de căutare.
 
-TODO două feluri de a implementa minimax: "normal" și cu noduri
-
 - Pentru structurarea codului motorului AI am folosit spații de nume în fiecare fișier de cod sursă. M-am folosit
   extensiv de clasele din biblioteca standard C++ pentru a-mi facilita implementarea tuturor lucrurilor. Am utilizat
   excepții și am scris clase acolo unde am considerat că a avut mai mult sens.
@@ -127,7 +125,7 @@ TODO două feluri de a implementa minimax: "normal" și cu noduri
   ulterior înapoi motorului prin comanda MOVE, ca s-o joace și el pe tabla sa. În acest fel, se poate desfășura jocul
   dame între un calculator și o ființă umană sau între calculator și calculator, prin intermediul acestui protocol.
 - Intenționat am specificat protocolul cât mai simplu, lăsând cât mai multă libertate programatorului să o implementeze
-  cum dorește acesta. Există cazuri de comportament nedefinit, dar protocolul este destul de simplu pentru a fi
+  cum dorește acesta. Există cazuri de comportament nedefinit, dar protocolul este destul de simplu de a fi
   utilizat corect, evitându-se astfel probleme de comportament nedefinit.
 - A fost nevoie ca protocolul să nu specifice o limită asupra dimensiunii mesajelor, fiindcă comanda NEWGAME poate
   specifica un număr foarte mare de mutări jucate inițial, iar impunând o limită mare de 16384 de octeți, spre exemplu,
@@ -147,3 +145,167 @@ TODO două feluri de a implementa minimax: "normal" și cu noduri
   funcții sunt definite și în standardul POSIX, însă acest fapt nu ajută la nimic. Singura consecință este
   că aplicația GUI nu mai este cross-platform și că trebuie rescrisă porțiunea aceasta de cod cu apelurile
   sistem din Windows.
+
+- Motorul de joc dame primește comenzi de la interfața grafică GUI și le execută fie setând o anumită stare, fie
+  trimițând înapoi mesaje interfeței grafice.
+- Algoritmul minimax este singurul proces, singura comandă care rulează într-un fir de execuție separat. Fiindcă
+  în acest fi trebuie trimise mesaje, scriindu-se în fișierul stdout, și fiindcă între timp și firul principal poate
+  trimite mesaje, operație aceasta de scriere trebuie protejată de un simplu mutex.
+
+<!-- TODO cum denumesc array? -->
+- Inițial am scris algoritmul minimax într-un fel foarte simplu. De date am avut nevoie doar de un array de
+  treizeci și două de elemente reprezentând tabla cu piesele ei. Fiecare pătrățel negru al tablei poate avea una
+  din cinci stări: poate fi gol, poate avea o piesă neagră simplă, o piesă neagră rege, o piesă albă simplă sau
+  o piesă albă rege.
+- Algoritmul arăta cam așa (pseudocod):
+
+  ```c++
+  Eval minimax(Player player, int depth, int plies_from_root) {
+    if (depth == 0 || is_game_over(board)) {
+      return static_evaluation(board);
+    }
+
+    if (player == Player::Black) {
+      Eval min_evaluation {MAX_EVALUATION};
+
+      auto moves {generate_moves(board, player)};
+
+      if (moves.empty()) {
+        return static_evaluation(board);
+      }
+
+      for (Move& move : moves) {
+        make_move(board, move);
+
+        Eval evaluation {minimax(Player::White, depth - 1, plies_from_root + 1)};
+
+        unmake_move(board, move);
+
+        if (evaluation < min_evaluation) {
+          min_evaluation = evaluation;
+
+          if (plies_from_root == 0) {
+            best_move = move;
+          }
+        }
+      }
+
+      return min_evaluation;
+    } else {
+      Eval max_evaluation {MIN_EVALUATION};
+
+      auto moves {generate_moves(board, player)};
+
+      if (moves.empty()) {
+        return static_evaluation(board);
+      }
+
+      for (Move& move : moves) {
+        make_move(board, move);
+
+        Eval evaluation {minimax(Player::Black, depth - 1, plies_from_root + 1)};
+
+        unmake_move(board, move);
+
+        if (evaluation > max_evaluation) {
+          max_evaluation = evaluation;
+
+          if (plies_from_root == 0) {
+            best_move = move;
+          }
+        }
+      }
+
+      return max_evaluation;
+    }
+  }
+  ```
+
+- Se observă că toate operațiile se fac pe variabila board, dintre care cele care modifică starea sunt make_move și
+  unmake_move. Funcția unmake_move anulează modificarea făcută de make_move. Momentan nu este nicio problemă cu
+  această abordare, însă dificultăți apar în momentul în care vreau să implementez regula (engl.) threefold
+  repetition, care necesită să rețin istoricul jocului.
+- Threefold repetition implică compararea poziției curente cu toate pozițiile precedente pentru a confirma dacă această
+  poziție a apărut sau nu pentru a treia oară.
+- Fiindcă nu a existat niciun mod simplu sau cel puțin eficient de a implementa threefold repetition în codul de
+  minimax curent, am decis să merg în altă direcție.
+- Am legat conceptul de poziție în jocul dame cu conceptul de nod din arborele apărut în algoritmul minimax.
+
+  ```c++
+  Eval minimax(Player player, int depth, int plies_from_root, SearchNode& current_node) {
+    if (depth == 0 || is_game_over(current_node)) {
+      return static_evaluation(current_node);
+    }
+
+    if (player == Player::Black) {
+      Eval min_evaluation {MAX_EVALUATION};
+
+      auto moves {generate_moves(current_node, player)};
+
+      if (moves.empty()) {
+        return static_evaluation(current_node);
+      }
+
+      for (Move& move : moves) {
+        SearchNode new_node;
+        fill_node(new_node, current_node);
+
+        play_move(new_node, move);
+
+        Eval evaluation {minimax(Player::White, depth - 1, plies_from_root + 1, new_node)};
+
+        if (evaluation < min_evaluation) {
+          min_evaluation = evaluation;
+
+          if (plies_from_root == 0) {
+            best_move = move;
+          }
+        }
+      }
+
+      return min_evaluation;
+    } else {
+      Eval max_evaluation {MIN_EVALUATION};
+
+      auto moves {generate_moves(current_node, player)};
+
+      if (moves.empty()) {
+        return static_evaluation(current_node);
+      }
+
+      for (Move& move : moves) {
+        SearchNode new_node;
+        fill_node(new_node, current_node);
+
+        play_move(new_node, move);
+
+        Eval evaluation {minimax(Player::Black, depth - 1, plies_from_root + 1, new_node)};
+
+        if (evaluation > max_evaluation) {
+          max_evaluation = evaluation;
+
+          if (plies_from_root == 0) {
+            best_move = move;
+          }
+        }
+      }
+
+      return max_evaluation;
+    }
+  }
+
+  struct SearchNode {
+    Board board;
+    const SearchNode* previous;
+  };
+  ```
+
+- De data aceasta, starea este reținută în structura SearchNode, unde se află tabla. Algoritmul începe cu un nod
+  inițial cu poziția pentru care să returneze o evaluare și o mutare. Apoi, pentru fiecare mutare generată se crează
+  un nou nod cu o copie a poziției precedente și cu un pointer către nodul precedent. Mutările jucate nu sunt anulate.
+  Se formează astfel un arbore cu noduri legate între ele prin pointeri. Memoria nu este gestionată prea ineficient,
+  întrucât nodurile sunt alocate pe stiva cadrului curent al algoritmului recursiv.
+- În acest mod este mult mai ușor să implementez threefold repetition.
+- Această idee de abordare mi-a venit atunci când mă uitam în mare la codul motorului de șah Stockfish.
+
+<!-- TODO de asemenea, este posibilă rularea algoritmului pe mai multe fire de execuție -->

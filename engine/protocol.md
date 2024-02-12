@@ -53,7 +53,7 @@ The possible types are:
 - **int**, a signed 32-bit integer
 - **float**, a 32-bit floating point number
 - **bool**, a boolean with values *true* or *false*
-- **string**, a string of maximum 64 characters
+- **string**, an ASCII string of maximum 64 characters
 
 The types must be spelled just like above.
 
