@@ -1,8 +1,8 @@
 # Checkers Protocol
 
-Communication is done through IO streams on stdin and stdout files, through ASCII text messages.
+Communication is done through IO streams, usually stdin and stdout, through ASCII text messages.
 
-All messages received must end with a new line ("\n" character).
+All messages must end with a new line ("\n" character).
 
 Messages from GUI to engine are also called *commands*.
 
@@ -40,8 +40,8 @@ does check for invalid move commands, it should immediately respond with the mes
 
 ### GO [don't play move]
 
-Tells the engine to think and return the best move of its current internal position. It should optionally not play
-the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
+Tells the engine to think, play and return the best move of its current internal position. It should optionally not
+play the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
 ### GETPARAMETERS
 
@@ -56,6 +56,8 @@ The possible types are:
 - **string**, a string of maximum 64 characters
 
 The types must be spelled just like above.
+
+Parameter names must be no longer than 64 ASCII characters.
 
 ### GETPARAMETER \<name\>
 
@@ -77,6 +79,10 @@ Tells the engine to shut down and exit gracefully.
 
 Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It can
 optionally contain a message.
+
+The engine is free to never send this message to GUI. It exists solely as a debug facility. It can, however, send it
+at any time, for any sensible reason. For example: it couldn't process a command, the requested parameter
+doesn't exist, the parameter value is invalid etc.
 
 ### BESTMOVE \<move\>
 

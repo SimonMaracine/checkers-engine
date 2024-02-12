@@ -34,7 +34,7 @@ namespace messages {
         Using std::endl is crucial
 
         Because multiple threads may print messages and because these are split between multiple << calls,
-        every message function needs to be protected
+        every message function needs to be protected by a mutex
     */
 
     void warning(const std::string& message) {

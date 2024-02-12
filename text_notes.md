@@ -102,22 +102,48 @@ TODO structura și organizarea proiectului pe module, versiunea de wxWidgets
   }
   ```
 
-  Aș fi putut elimina apelul funcției wait_sleeping și, în schimb, să tot verific la începutul buclei dacă este ceva de
-  căutat. Însă această variantă ar fi saturat complet un nucleu al procesorului. Dar m-am folosit în schimb de anumite
+  Aș fi putut elimina apelul funcției wait_sleeping și, în schimb, să tot verifice la începutul buclei dacă este ceva de
+  căutat. Însă această variantă ar fi saturat complet un nucleu al procesorului. M-am folosit în schimb de anumite
   obiecte de sincronizare din biblioteca standard pentru a face procesorul să doarmă în timp ce așteaptă și pentru
-  a-l trezi imediat când trebuie să ruleze algoritmul. Mai exact, am folosit clasele std::condition_variable și
+  a-l trezi imediat când trebuie să ruleze algoritmul. Mai exact, am utilizat clasele std::condition_variable și
   std::mutex. Funcția wait_sleeping returnează doar atunci când firul de execuție trebuie terminat sau atunci când
   trebuie să execute funcția de căutare.
 
 TODO două feluri de a implementa minimax: "normal" și cu noduri
 
-- Pentru structurarea codului motorului AI am folosit spații de nume în fiecare fișier cu cod sursă. M-am folosit
-  extensiv de clasele din biblioteca standard C++ pentru a-mi facilita implementarea lucrurilor. Am utilizat excepții
-  și am scris clase acolo unde a avut mai mult sens.
+- Pentru structurarea codului motorului AI am folosit spații de nume în fiecare fișier de cod sursă. M-am folosit
+  extensiv de clasele din biblioteca standard C++ pentru a-mi facilita implementarea tuturor lucrurilor. Am utilizat
+  excepții și am scris clase acolo unde am considerat că a avut mai mult sens.
 - Am inventat un protocol de comunicare între interfața grafică (GUI) și motor, pe care aceștia să-l implementeze.
-  Ei comunică prin mesaje text prin fișierele stdin și stdout. Există două clase de mesaje: mesaje pe care le transmite
-  GUI către motor, și mesaje pe care le transmite înapoi motorul către GUI.
+  Ei comunică prin mesaje text, prin fișierele stdin și stdout ale motorului. Există două clase de mesaje: mesaje pe
+  care le transmite GUI către motor, și mesaje pe care le transmite înapoi motorul către GUI.
+- Un scenariu de comunicare dintre GUI și motor arată cam așa: GUI creează subprocesul motor și îi transmite primul
+  mesaj, numit și comandă: INIT, după care înteroghează motorul despre parametrii configurabili pe care îi oferă acesta
+  prin comanda GETPARAMETERS. Motorul răspunde interfeței grafice cu mesajul PARAMETERS, care conține o listă de
+  parametri, fiecare cu tipul acestuia. Interfața grafică poate configura oricare parametru setându-i o altă valoare
+  decât cea prestabilită prin comanda SETPARAMETER. Interfața grafică vrea acum să înceapă jocul și trimite comanda
+  GO motorului ca să facă prima mutare. Motorul răspunde înapoi cu mesajul BESTMOVE care conține mutarea pe care tocmai
+  a jucat-o pe tablă. Interfața grafică joacă pe tabla sa mutarea motorului, după care face ea o mutare, transmițând-o
+  ulterior înapoi motorului prin comanda MOVE, ca s-o joace și el pe tabla sa. În acest fel, se poate desfășura jocul
+  dame între un calculator și o ființă umană sau între calculator și calculator, prin intermediul acestui protocol.
+- Intenționat am specificat protocolul cât mai simplu, lăsând cât mai multă libertate programatorului să o implementeze
+  cum dorește acesta. Există cazuri de comportament nedefinit, dar protocolul este destul de simplu pentru a fi
+  utilizat corect, evitându-se astfel probleme de comportament nedefinit.
+- A fost nevoie ca protocolul să nu specifice o limită asupra dimensiunii mesajelor, fiindcă comanda NEWGAME poate
+  specifica un număr foarte mare de mutări jucate inițial, iar impunând o limită mare de 16384 de octeți, spre exemplu,
+  nu ajută prea mult.
+- Am specificat mesajul WARNING, pe care îl poate trimite motorul oricând interfeței grafice pentru cazuri
+  excepționale. Însă nu este obligat să îl folosească vreodată. Folosirea acestei facilități de debugging este la
+  alegerea celui care scrie motorul folosind acest protocol.
 
-TODO write some more about specific messages
-
-TODO write about implementing the protocol in GUI
+- Aplicația Checkers Player are sarcina de a crea un subproces, care să fie motorul și să comunice cu acesta. Inițial
+  am vrut să utilizez o bibliotecă cross-platform pentru a-mi facilita această funcționalitate în limbajul C++
+  pentru platformele Linux și Windows. Am găsit o bibliotecă pe GitHub care făcea exact ce-mi trebuia, dar am avut
+  ulterior problema că citirea de la proces era cu blocare, însă îmi trebuia neapărat să fie fără blocare. Am
+  semnalat acest lucru dezvoltatorilor, însă între timp am decis să scriu direct apelurile sistem necesare pentru
+  crearea suprocesului și comunicarea cu acesta. Nu am putut folosi funcțiile standard popen și pclose, fiindcă
+  popen îmi crea o singură cale de comunicare, însă aveam nevoie de comunicare bidirecțională. De aceea a trebuit
+  să utilizez apelurile sistem pipe, fork, dup2, execv, select, read, write, waitpid, close. Câteva dintre aceste
+  funcții sunt definite și în standardul POSIX, însă acest fapt nu ajută la nimic. Singura consecință este
+  că aplicația GUI nu mai este cross-platform și că trebuie rescrisă porțiunea aceasta de cod cu apelurile
+  sistem din Windows.
