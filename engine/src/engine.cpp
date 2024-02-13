@@ -45,6 +45,7 @@ namespace engine {
 
         data.minimax.thread = std::thread([&data]() {
             while (true) {
+                // Wait for work to do or to exit the loop
                 std::unique_lock<std::mutex> lock {data.minimax.mutex};
                 data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
 
@@ -53,8 +54,6 @@ namespace engine {
                 }
 
                 const auto [best_move, dont_play] {data.minimax.search(lock)};
-
-                messages::bestmove(best_move);
 
                 if (!dont_play) {
                     moves::play_move(data.game.position, best_move);
@@ -65,6 +64,8 @@ namespace engine {
 
                 // Reset the function as a signal for the cv
                 data.minimax.search = {};
+
+                messages::bestmove(best_move);
             }
         });
 
@@ -136,7 +137,7 @@ namespace engine {
 
                 assert(!game::is_move_invalid(best_move));
 
-                // Must reset these back to null
+                // Must reset this back to null
                 data.minimax.should_stop = nullptr;
 
                 return std::make_pair(best_move, dont_play_move);
