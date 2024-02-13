@@ -26,10 +26,15 @@ namespace engine {
 
        struct {
             std::thread thread;
-            std::function<SearchResult()> search;
+            std::function<SearchResult(std::unique_lock<std::mutex>&)> search;
             std::condition_variable cv;
             std::mutex mutex;
             std::unordered_map<std::string, Param> parameters;
+
+            // Setup at every instance invocation
+            bool* should_stop {nullptr};
+
+            // Thread flag
             bool running {false};
        } minimax;
 
@@ -57,8 +62,9 @@ namespace engine {
     );
     void move(engine::EngineData& data, const std::string& move);
     void go(engine::EngineData& data, bool dont_play_move);
-    void getparameters(engine::EngineData& data);
-    void getparameter(engine::EngineData& data, const std::string& name);
+    void stop(engine::EngineData& data);
+    void getparameters(const engine::EngineData& data);
+    void getparameter(const engine::EngineData& data, const std::string& name);
     void setparameter(engine::EngineData& data, const std::string& name, const std::string& value);
     void quit(engine::EngineData& data);
 }

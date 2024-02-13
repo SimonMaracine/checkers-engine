@@ -7,6 +7,7 @@ namespace evaluation {
 
     struct Parameters {
         int PIECE {};
+        int DEPTH {};
     };
 
     Eval static_evaluation(const search::SearchNode& node, const evaluation::Parameters& parameters);

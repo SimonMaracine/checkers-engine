@@ -269,6 +269,19 @@ namespace game {
         }
     }
 
+    bool is_move_invalid(const Move& move) {
+        static constexpr Move INVALID_MOVE {};
+
+        if (move.type == game::MoveType::Normal) {
+            return (
+                move.normal.source_index == INVALID_MOVE.normal.source_index &&
+                move.normal.destination_index == INVALID_MOVE.normal.destination_index
+            );
+        }
+
+        return false;
+    }
+
     bool is_game_over(const search::SearchNode& node) {
         unsigned int black_pieces {0u};
         unsigned int white_pieces {0u};

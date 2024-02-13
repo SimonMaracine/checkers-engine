@@ -65,6 +65,7 @@ namespace game {
     void make_move(Position& position, const std::string& move_string);
     Move parse_move(const std::string& move_string);
     Player opponent(Player player);
+    bool is_move_invalid(const Move& move);
     bool is_game_over(const search::SearchNode& node);
 
     constexpr Idx to_0_31(const Idx index) {

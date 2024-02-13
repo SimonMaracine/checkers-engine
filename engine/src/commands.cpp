@@ -69,6 +69,12 @@ namespace commands {
         return false;
     }
 
+    bool try_stop(engine::EngineData& data, const loop::InputTokens& input_tokens) {
+        engine::stop(data);
+
+        return true;
+    }
+
     bool try_getparameters(engine::EngineData& data, const loop::InputTokens&) {
         engine::getparameters(data);
 

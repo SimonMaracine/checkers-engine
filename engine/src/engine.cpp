@@ -19,13 +19,9 @@ namespace engine {
         data.game.moves_played.clear();
     }
 
-    static void wait_sleeping(EngineData& data) {
-        std::unique_lock<std::mutex> lock {data.minimax.mutex};
-        data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
-    }
-
     static void initialize_parameters(EngineData& data) {
         data.minimax.parameters["piece"] = 10;
+        data.minimax.parameters["depth"] = 4;
     }
 
     static int parse_int(const std::string& string) {
@@ -49,14 +45,14 @@ namespace engine {
 
         data.minimax.thread = std::thread([&data]() {
             while (true) {
-                // Returning from this only happens when there is work to do or when it should stop running
-                wait_sleeping(data);
+                std::unique_lock<std::mutex> lock {data.minimax.mutex};
+                data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
 
                 if (!data.minimax.running) {
                     break;
                 }
 
-                const auto [best_move, dont_play] {data.minimax.search()};
+                const auto [best_move, dont_play] {data.minimax.search(lock)};
 
                 messages::bestmove(best_move);
 
@@ -116,29 +112,62 @@ namespace engine {
         assert(data.minimax.running);  // TODO maybe use exceptions instead
         assert(!data.minimax.search);
 
-        data.minimax.search = [&data, dont_play_move]() {
-            const int parameter_piece {std::get<0u>(data.minimax.parameters.at("piece"))};
+        // Set to true when a best move is set
+        bool result_available {false};
 
-            search::Search instance {parameter_piece};
+        const auto search {
+            [&data, dont_play_move, &result_available](auto& lock) {
+                search::Search instance {
+                    data.minimax.cv,
+                    lock,
+                    result_available,
+                    std::get<0u>(data.minimax.parameters.at("piece")),
+                    std::get<0u>(data.minimax.parameters.at("depth"))
+                };
 
-            auto previous_positions {data.game.previous_positions};
-            previous_positions.pop_back();
+                data.minimax.should_stop = instance.get_should_stop();
 
-            const game::Move best_move {
-                instance.search(data.game.position, previous_positions, data.game.moves_played)
-            };
+                auto previous_positions {data.game.previous_positions};
+                previous_positions.pop_back();
 
-            return std::make_pair(best_move, dont_play_move);
+                const game::Move best_move {
+                    instance.search(data.game.position, previous_positions, data.game.moves_played)
+                };
+
+                assert(!game::is_move_invalid(best_move));
+
+                // Must reset these back to null
+                data.minimax.should_stop = nullptr;
+
+                return std::make_pair(best_move, dont_play_move);
+            }
         };
 
+        // Set the search fuction
+        {
+            std::lock_guard<std::mutex> lock {data.minimax.mutex};
+            data.minimax.search = search;
+        }
         data.minimax.cv.notify_one();
+
+        // Wait for the first result to become available
+        {
+            std::unique_lock<std::mutex> lock {data.minimax.mutex};
+            data.minimax.cv.wait(lock, [&result_available]() { return result_available; });
+        }
     }
 
-    void getparameters(engine::EngineData& data) {
+    void stop(engine::EngineData& data) {
+        if (data.minimax.should_stop != nullptr) {
+            *data.minimax.should_stop = true;
+        }
+    }
+
+    void getparameters(const engine::EngineData& data) {
         messages::parameters(data.minimax.parameters);
     }
 
-    void getparameter(engine::EngineData& data, const std::string& name) {
+    void getparameter(const engine::EngineData& data, const std::string& name) {
         messages::parameter(name, data.minimax.parameters.at(name));
     }
 
@@ -160,7 +189,7 @@ namespace engine {
         assert(!data.minimax.search);
 
         // Set dummy work to wake up the thread from sleeping
-        data.minimax.search = []() -> SearchResult { return {}; };
+        data.minimax.search = [](auto&) -> SearchResult { return {}; };
         data.minimax.running = false;
 
         data.minimax.cv.notify_one();

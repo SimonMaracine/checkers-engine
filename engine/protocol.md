@@ -17,6 +17,8 @@ engine should account for messages of any size.
 Positions and moves are encoded as FEN strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
 
+The engine must process the commands synchronously, in the order that they are read from the stream.
+
 ## GUI -> Engine
 
 ### INIT
@@ -43,6 +45,19 @@ does check for invalid move commands, it should immediately respond with the mes
 Tells the engine to think, play and return the best move of its current internal position. It should optionally not
 play the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
+The GUI is not permitted to send the **GO** command while the engine is still thinking. It can only send another **GO**
+command after it received a **BESTMOVE** message from engine.
+
+The engine must not return from processing the **GO** command until it has a valid best move result.
+
+### STOP
+
+Tells the engine to stop thinking and return its best result calculated so far.
+
+This command should do nothing, if the engine is not in the process of thinking.
+
+The engine is obligated to have a valid result even if it was stopped from thinking very early.
+
 ### GETPARAMETERS
 
 Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero. They must
@@ -58,6 +73,9 @@ The possible types are:
 The types must be spelled just like above.
 
 Parameter names must be no longer than 64 ASCII characters.
+
+The engine is encouraged to come with a small documentation that describes all of its parameters and their valid or
+their recommended values.
 
 ### GETPARAMETER \<name\>
 

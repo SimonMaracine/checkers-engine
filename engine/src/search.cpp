@@ -8,8 +8,15 @@
 #include "moves.hpp"
 
 namespace search {
-    Search::Search(int parameter_piece) {
+    Search::Search(
+        std::condition_variable& cv,
+        std::unique_lock<std::mutex>& lock,
+        bool& result_available,
+        int parameter_piece,
+        int parameter_depth
+    ) : cv(cv), lock(lock), result_available(result_available) {
         parameters.PIECE = parameter_piece;
+        parameters.DEPTH = parameter_depth;
     }
 
     game::Move Search::search(
@@ -21,7 +28,7 @@ namespace search {
 
         const auto start {std::chrono::steady_clock::now()};
 
-        const evaluation::Eval evaluation {minimax(4u, 0u, current_node)};
+        const evaluation::Eval evaluation {minimax(static_cast<unsigned int>(parameters.DEPTH), 0u, current_node)};
 
         const auto end {std::chrono::steady_clock::now()};
 
@@ -36,6 +43,10 @@ namespace search {
         unsigned int plies_from_root,
         SearchNode& current_node
     ) {
+        if (should_stop) {
+            return 0;
+        }
+
         if (depth == 0u || game::is_game_over(current_node)) {
             nodes_evaluated++;
             return evaluation::static_evaluation(current_node, parameters);
@@ -76,6 +87,7 @@ namespace search {
 
                     if (plies_from_root == 0u) {
                         best_move = move;
+                        notify_result_available();
                     }
                 }
             }
@@ -106,6 +118,7 @@ namespace search {
 
                     if (plies_from_root == 0u) {
                         best_move = move;
+                        notify_result_available();
                     }
                 }
             }
@@ -161,6 +174,16 @@ namespace search {
             return !game::is_king_piece(position.position.board[move.normal.destination_index]);
         } else {
             return true;
+        }
+    }
+
+    void Search::notify_result_available() {
+        if (!notified_result_available) {
+            result_available = true;
+            lock.unlock();
+            cv.notify_one();
+
+            notified_result_available = true;
         }
     }
 }
