@@ -146,7 +146,7 @@ void MainWindow::setup_widgets() {
 
     btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
     szr_control_buttons->Add(btn_stop, 1);
-c
+
     szr_control_buttons->AddSpacer(10);
 
     btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
