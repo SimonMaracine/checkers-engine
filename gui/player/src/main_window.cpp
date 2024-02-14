@@ -19,7 +19,9 @@ enum {
     SET_POSITION,
     SHOW_INDICES,
     BLACK,
-    WHITE
+    WHITE,
+    STOP,
+    CONTINUE
 };
 
 static const wxString STATUS {"Status: "};
@@ -38,6 +40,8 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_SIZE(MainWindow::on_window_resize)
     EVT_RADIOBUTTON(BLACK, MainWindow::on_black_change)
     EVT_RADIOBUTTON(WHITE, MainWindow::on_white_change)
+    EVT_BUTTON(STOP, MainWindow::on_stop)
+    EVT_BUTTON(CONTINUE, MainWindow::on_continue)
     EVT_CLOSE(MainWindow::on_close)
 wxEND_EVENT_TABLE()
 
@@ -132,6 +136,25 @@ void MainWindow::setup_widgets() {
     pnl_players->SetSizer(szr_players);
 
     szr_right_side->Add(pnl_players);
+
+    szr_right_side->AddSpacer(10);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+    szr_right_side->AddSpacer(10);
+
+    wxPanel* pnl_control_buttons {new wxPanel(pnl_right_side)};
+    wxBoxSizer* szr_control_buttons {new wxBoxSizer(wxHORIZONTAL)};
+
+    btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
+    szr_control_buttons->Add(btn_stop, 1);
+c
+    szr_control_buttons->AddSpacer(10);
+
+    btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
+    szr_control_buttons->Add(btn_continue, 1);
+
+    pnl_control_buttons->SetSizer(szr_control_buttons);
+
+    szr_right_side->Add(pnl_control_buttons);
 
     szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
@@ -309,6 +332,14 @@ void MainWindow::on_white_change(wxCommandEvent&) {
             }
         }
     }
+}
+
+void MainWindow::on_stop(wxCommandEvent&) {
+
+}
+
+void MainWindow::on_continue(wxCommandEvent&) {
+
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {

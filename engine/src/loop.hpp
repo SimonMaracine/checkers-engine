@@ -10,7 +10,7 @@
 namespace loop {
     class InputTokens {
     public:
-        InputTokens(std::vector<std::string>&& tokens)
+        explicit InputTokens(std::vector<std::string>&& tokens)
             : tokens(std::move(tokens)) {}
 
         std::size_t size() const { return tokens.size(); }

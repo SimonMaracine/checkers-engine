@@ -30,6 +30,8 @@ private:
     void on_window_resize(wxSizeEvent& event);
     void on_black_change(wxCommandEvent&);
     void on_white_change(wxCommandEvent&);
+    void on_stop(wxCommandEvent&);
+    void on_continue(wxCommandEvent&);
 
     void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message);
@@ -54,6 +56,9 @@ private:
 
     wxRadioButton* btn_white_human {nullptr};
     wxRadioButton* btn_white_computer {nullptr};
+
+    wxButton* btn_stop {nullptr};
+    wxButton* btn_continue {nullptr};
 
     Player black {Player::Human};
     Player white {Player::Computer};
