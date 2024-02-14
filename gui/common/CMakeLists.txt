@@ -13,5 +13,9 @@ target_include_directories(common PUBLIC "include")
 
 target_link_libraries(common PRIVATE wxmono)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_sanitizers(common)
+endif()
+
 set_compile_options(common)
 set_linux_defines(common)

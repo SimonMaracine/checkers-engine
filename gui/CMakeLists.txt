@@ -7,8 +7,10 @@ function(set_linux_defines TARGET)
     endif()
 endfunction()
 
-add_library(subprocess INTERFACE)
-target_include_directories(subprocess INTERFACE "extern/subprocess")
+function(set_sanitizers TARGET)
+    target_compile_options(${TARGET} PRIVATE "-fsanitize=undefined" "-g")
+    target_link_options(${TARGET} PRIVATE "-static-libasan" "-fsanitize=undefined")
+endfunction()
 
 set(wxBUILD_SHARED ON)
 set(wxBUILD_MONOLITHIC ON)

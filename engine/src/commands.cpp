@@ -69,7 +69,7 @@ namespace commands {
         return false;
     }
 
-    bool try_stop(engine::EngineData& data, const loop::InputTokens& input_tokens) {
+    bool try_stop(engine::EngineData& data, const loop::InputTokens&) {
         engine::stop(data);
 
         return true;

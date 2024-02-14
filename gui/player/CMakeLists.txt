@@ -9,12 +9,13 @@ add_executable(player ${WINDOWS_APP}
     "src/main_window.hpp"
 )
 
-target_link_libraries(player PRIVATE wxmono common subprocess)
+target_link_libraries(player PRIVATE wxmono common)
 
 target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
-target_compile_options(player PRIVATE "-fsanitize=undefined" "-g")
-target_link_options(player PRIVATE "-static-libasan" "-fsanitize=undefined")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_sanitizers(player)
+endif()
 
 set_compile_options(player)
 set_linux_defines(player)

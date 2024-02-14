@@ -12,7 +12,7 @@ namespace commands {
     bool try_newgame(engine::EngineData& data, const loop::InputTokens& input_tokens);
     bool try_move(engine::EngineData& data, const loop::InputTokens& input_tokens);
     bool try_go(engine::EngineData& data, const loop::InputTokens& input_tokens);
-    bool try_stop(engine::EngineData& data, const loop::InputTokens& input_tokens);
+    bool try_stop(engine::EngineData& data, const loop::InputTokens&);
     bool try_getparameters(engine::EngineData& data, const loop::InputTokens&);
     bool try_setparameter(engine::EngineData& data, const loop::InputTokens& input_tokens);
     bool try_getparameter(engine::EngineData& data, const loop::InputTokens& input_tokens);
