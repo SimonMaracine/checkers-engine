@@ -45,7 +45,7 @@ namespace engine {
 
         data.minimax.thread = std::thread([&data]() {
             while (true) {
-                // Wait for work to do or to exit the loop
+                // Wait for some work to do or to exit the loop
                 std::unique_lock<std::mutex> lock {data.minimax.mutex};
                 data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
 
@@ -65,6 +65,7 @@ namespace engine {
                 // Reset the function as a signal for the cv
                 data.minimax.search = {};
 
+                // Message the GUI only now, to indicate that we are ready for another GO
                 messages::bestmove(best_move);
             }
         });
@@ -74,6 +75,7 @@ namespace engine {
         // Store the initial position too
         data.game.previous_positions.push_back(data.game.position);
 
+        // Parameters must have default values at this stage
         initialize_parameters(data);
     }
 
@@ -92,7 +94,7 @@ namespace engine {
         data.game.previous_positions.push_back(data.game.position);
 
         if (moves) {
-            // Play the moves and store the positions and moves for threefold repetition
+            // Play the moves and store the positions and moves (for threefold repetition)
             for (const std::string& move : *moves) {
                 game::make_move(data.game.position, move);
 

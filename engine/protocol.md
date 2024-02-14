@@ -38,7 +38,7 @@ specific position or/and play the setup moves.
 Tells the engine to play the move on the internal board.
 
 It is GUI's responsability to send correct move commands. The engine is not obligated to do error checking. If it
-does check for invalid move commands, it should immediately respond with the message **WARNING**.
+does check for invalid move commands, it is encouraged to immediately respond with the message **WARNING**.
 
 ### GO [don't play move]
 
@@ -56,7 +56,7 @@ Tells the engine to stop thinking and return its best result calculated so far.
 
 This command should do nothing, if the engine is not in the process of thinking.
 
-The engine is obligated to have a valid result even if it was stopped from thinking very early.
+The engine must have a valid result even if it was stopped from thinking very early.
 
 ### GETPARAMETERS
 
@@ -109,7 +109,7 @@ Responds with the best move calculated after a **GO** command.
 ### PARAMETERS \<(name 1) (type 1) (name 2) (type 2) ...\>
 
 Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command. Each entry
-consists of the parameter name and its type.
+consists of the parameter name and its type. The list can be empty, if the engine has no parameters.
 
 ### PARAMETER \<name\> \<value\>
 

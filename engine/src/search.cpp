@@ -179,7 +179,7 @@ namespace search {
 
     void Search::notify_result_available() {
         if (!notified_result_available) {
-            result_available = true;
+            result_available = true;  // The lock is still being held
             lock.unlock();
             cv.notify_one();
 
