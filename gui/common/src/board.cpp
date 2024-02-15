@@ -99,7 +99,7 @@ namespace board {
         this->user_input = user_input;
     }
 
-    void CheckersBoard::set_show_inidces(bool show_indices) {
+    void CheckersBoard::set_show_indices(bool show_indices) {
         this->show_indices = show_indices;
 
         refresh_canvas();

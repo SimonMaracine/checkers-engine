@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+// FIXME these functions throw and the exceptions must be caught and wait_for() must be called
+
 namespace engine {
     static constexpr int ERR {0};
 
@@ -84,6 +86,16 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
+            throw ERR;
+        }
+    }
+
+    void Engine::stop() {
+        if (!started) {
+            return;
+        }
+
+        if (!process.write_to("STOP\n")) {
             throw ERR;
         }
     }

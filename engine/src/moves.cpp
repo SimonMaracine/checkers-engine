@@ -36,7 +36,7 @@ namespace moves {
         board[game::to_0_31(index)] = game::Square::None;
 
         for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
-            assert(board[move.capture.destination_indices[i + 1u]] == game::Square::None);
+            assert(board[move.capture.destination_indices[i + 1u]] == game::Square::None);  // FIXME this failed randomly
 
             const auto index {get_jumped_piece_index(
                 game::to_1_32(move.capture.destination_indices[i]),

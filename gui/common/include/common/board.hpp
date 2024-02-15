@@ -59,7 +59,7 @@ namespace board {
         void reset_position();
         void set_position(const std::string& fen_string);
         void set_user_input(bool user_input);
-        void set_show_inidces(bool show_indices);
+        void set_show_indices(bool show_indices);
         void play_move(const Move& move);
         void play_move(const std::string& move_string);
 

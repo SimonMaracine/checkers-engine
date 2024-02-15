@@ -41,6 +41,7 @@ namespace engine {
         void newgame(const std::optional<std::string>& fen_string);
         void move(const std::string& move_string);
         void go(bool dont_play_move);
+        void stop();
         void quit();
     private:
         subprocess::Subprocess process;
