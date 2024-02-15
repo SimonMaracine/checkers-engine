@@ -273,7 +273,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 void MainWindow::on_show_indices(wxCommandEvent&) {
     static bool show_indices {false};
 
-    board->set_show_inidces(!std::exchange(show_indices, !show_indices));
+    board->set_show_indices(!std::exchange(show_indices, !show_indices));
 }
 
 void MainWindow::on_about(wxCommandEvent&) {
