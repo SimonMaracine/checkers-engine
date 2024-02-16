@@ -42,6 +42,9 @@ namespace engine {
         void move(const std::string& move_string);
         void go(bool dont_play_move);
         void stop();
+        void getparameters();
+        void getparameter(const std::string& name);
+        void setparameter(const std::string& name, const std::string& value);
         void quit();
     private:
         subprocess::Subprocess process;

@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
-#include <utility>
 #include <optional>
 
 #include <wx/statline.h>
@@ -206,9 +205,12 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
             engine->init(dialog.GetPath().ToStdString());
         } catch (int) {
             std::cout << "Error creating process\n";
+            return;
         }
 
         // FIXME call newgame with the current position
+
+        engine->getparameters();
 
         if (get_player_role(board->get_player()) == Player::Computer) {
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
@@ -422,6 +424,18 @@ void MainWindow::process_engine_message(const std::string& message) {
 
             board->play_move(move_string.substr(0u, move_string.size() - 1u));
         }
+    } else if (tokens.at(0u) == "PARAMETERS") {
+        std::vector<std::pair<std::string, std::string>> parameters;
+        auto i {tokens.size() - 1u};
+
+        while (i > 0u) {
+            const auto name = tokens.at(tokens.size() - i--);
+            const auto type = tokens.at(tokens.size() - i--);
+
+            parameters.push_back(std::make_pair(name, type));
+        }
+
+        get_engine_parameters(std::move(parameters));
     }
 }
 
@@ -457,4 +471,12 @@ void MainWindow::clear_moves_log() {
     pnl_moves->DestroyChildren();
 
     Layout();
+}
+
+void MainWindow::get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters) {
+    // TODO
+}
+
+void MainWindow::setup_engine_parameter_widgets() {
+    // TODO
 }

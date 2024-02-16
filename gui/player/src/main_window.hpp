@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <variant>
+#include <utility>
 
 #include <wx/wx.h>
 #include <common/board.hpp>
@@ -43,6 +46,8 @@ private:
     std::vector<std::string> parse_message(const std::string& message);
     void log_move(const board::CheckersBoard::Move& move);
     void clear_moves_log();
+    void get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters);
+    void setup_engine_parameter_widgets();
 
     board::CheckersBoard* board {nullptr};
 
@@ -70,6 +75,10 @@ private:
     wxScrolledWindow* pnl_moves {nullptr};
     wxBoxSizer* szr_moves {nullptr};
     unsigned int moves {0u};
+
+    using ParameterValue = std::variant<int>;
+
+    std::unordered_map<std::string, ParameterValue> parameters;
 
     wxDECLARE_EVENT_TABLE();
 };

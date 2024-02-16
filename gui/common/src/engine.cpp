@@ -100,6 +100,36 @@ namespace engine {
         }
     }
 
+    void Engine::getparameters() {
+        if (!started) {
+            return;
+        }
+
+        if (!process.write_to("GETPARAMETERS\n")) {
+            throw ERR;
+        }
+    }
+
+    void Engine::getparameter(const std::string& name) {
+        if (!started) {
+            return;
+        }
+
+        if (!process.write_to("GETPARAMETER " + name + '\n')) {
+            throw ERR;
+        }
+    }
+
+    void Engine::setparameter(const std::string& name, const std::string& value) {
+        if (!started) {
+            return;
+        }
+
+        if (!process.write_to("SETPARAMETER " + name + ' ' + value + '\n')) {
+            throw ERR;
+        }
+    }
+
     void Engine::quit() {
         if (!started) {
             return;
