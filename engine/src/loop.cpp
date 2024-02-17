@@ -39,7 +39,7 @@ namespace loop {
     static InputTokens tokenize_input(std::string&& input) {
         std::vector<std::string> tokens;
 
-        char* token {std::strtok(input.data(), " \t")};  // TODO other whitespace characters?
+        char* token {std::strtok(input.data(), " \t")};
 
         while (token != nullptr) {
             tokens.emplace_back(token);

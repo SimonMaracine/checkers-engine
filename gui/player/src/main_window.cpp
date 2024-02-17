@@ -8,7 +8,6 @@
 #include <cassert>
 
 #include <wx/statline.h>
-#include <wx/spinctrl.h>
 
 #include "fen_string_dialog.hpp"
 
@@ -168,10 +167,9 @@ void MainWindow::setup_widgets() {
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
     szr_right_side->AddSpacer(10);
 
-    pnl_parameters = new wxScrolledWindow(pnl_right_side);
-    szr_parameters = new wxBoxSizer(wxVERTICAL);
+    pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
 
-    pnl_parameters->SetSizer(szr_parameters);
+    pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
 
     szr_right_side->Add(pnl_parameters);
 
@@ -222,6 +220,8 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
         }
 
         // FIXME call newgame with the current position
+
+        pnl_parameters->set_engine(engine.get());
 
         engine->getparameters();
 
@@ -449,15 +449,11 @@ void MainWindow::process_engine_message(const std::string& message) {
             parameters.push_back(std::make_pair(name, type));
         }
 
-        get_engine_parameters(std::move(parameters));
+        pnl_parameters->get_engine_parameters(std::move(parameters));
     } else if (tokens.at(0u) == "PARAMETER") {
-        static int id {30};
+        pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
 
-        switch (parameters.at(tokens.at(1u))) {
-            case ParameterType::Int:
-                setup_integer_parameter_widget(tokens.at(1u), tokens.at(2u), id++);
-                break;
-        }
+        Layout();
     }
 }
 
@@ -491,41 +487,6 @@ void MainWindow::clear_moves_log() {
     moves = 0u;
     szr_moves->Clear();  // For some stupid reason this is needed as well
     pnl_moves->DestroyChildren();
-
-    Layout();
-}
-
-void MainWindow::get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters) {
-    for (const auto& [name, type] : parameters) {
-        if (type == "int") {
-            this->parameters[name] = ParameterType::Int;
-            engine->getparameter(name);
-        }
-    }
-}
-
-void MainWindow::setup_integer_parameter_widget(const std::string& name, const std::string& value, int id) {
-    wxPanel* pnl_parameter {new wxPanel(pnl_parameters)};
-    wxBoxSizer* szr_parameter {new wxBoxSizer(wxHORIZONTAL)};
-
-    szr_parameter->Add(new wxStaticText(pnl_parameter, wxID_ANY, name), 1);
-
-    wxSpinCtrl* spn_parameter {new wxSpinCtrl(pnl_parameter, id, value)};
-
-    spn_parameter->Bind(
-        wxEVT_SPINCTRL,
-        [this, name](wxSpinEvent& event) {
-            engine->setparameter(name, std::to_string(event.GetValue()));
-            std::cout << event.GetValue() << '\n';
-        },
-        id
-    );
-
-    szr_parameter->Add(spn_parameter, 1);
-
-    pnl_parameter->SetSizer(szr_parameter);
-
-    szr_parameters->Add(pnl_parameter, 1);
 
     Layout();
 }

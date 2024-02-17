@@ -3,13 +3,12 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <variant>
 #include <utility>
 
 #include <wx/wx.h>
 #include <common/board.hpp>
 #include <common/engine.hpp>
+#include <common/parameters.hpp>
 
 class MainWindow : public wxFrame {
 public:
@@ -46,8 +45,6 @@ private:
     std::vector<std::string> parse_message(const std::string& message);
     void log_move(const board::CheckersBoard::Move& move);
     void clear_moves_log();
-    void get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters);
-    void setup_integer_parameter_widget(const std::string& name, const std::string& value, int id);
 
     board::CheckersBoard* board {nullptr};
 
@@ -76,14 +73,7 @@ private:
     wxBoxSizer* szr_moves {nullptr};
     unsigned int moves {0u};
 
-    wxScrolledWindow* pnl_parameters {nullptr};
-    wxBoxSizer* szr_parameters {nullptr};
-
-    enum class ParameterType {
-        Int
-    };
-
-    std::unordered_map<std::string, ParameterType> parameters;
+    parameters::ParametersPanel* pnl_parameters {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };
