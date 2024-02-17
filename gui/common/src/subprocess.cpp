@@ -10,7 +10,7 @@
 #include <sys/select.h>
 
 namespace subprocess {
-    static constexpr int ERR {0};
+    using Error = int;
 
     template<std::size_t Size>
     static bool newline_in_buffer(const char* buffer, std::size_t& bytes_up_to_newline) {
@@ -25,21 +25,33 @@ namespace subprocess {
         return false;
     }
 
+    static bool newline_in_buffer(const std::string& buffer, std::size_t& bytes_up_to_newline) {
+        for (std::size_t i {0u}; i < buffer.size(); i++) {
+            if (buffer[i] == '\n') {
+                bytes_up_to_newline = i + 1u;  // Including newline
+                return true;
+            }
+        }
+
+        bytes_up_to_newline = 0u;
+        return false;
+    }
+
     Subprocess::Subprocess(const std::string& file_path) {
         int fd_r[2u] {};
         if (pipe(fd_r) < 0) {
-            throw ERR;
+            throw Error();
         }
 
         int fd_w[2u] {};
         if (pipe(fd_w) < 0) {
-            throw ERR;
+            throw Error();
         }
 
         const pid_t pid {fork()};
 
         if (pid < 0) {
-            throw ERR;
+            throw Error();
         } else if (pid == 0) {
             close(fd_r[0u]);
             close(fd_w[1u]);
@@ -99,6 +111,19 @@ namespace subprocess {
     }
 
     bool Subprocess::read_from(std::string& data) const {
+        {
+            std::size_t bytes_up_to_newline {};
+
+            if (newline_in_buffer(buffered, bytes_up_to_newline)) {
+                const std::string current = std::string(buffered, 0u, bytes_up_to_newline);
+
+                buffered = std::string(buffered, bytes_up_to_newline, static_cast<std::size_t>(buffered.size()));
+                data = current;
+
+                return true;
+            }
+        }
+
         fd_set set;
         FD_ZERO(&set);
         FD_SET(input, &set);

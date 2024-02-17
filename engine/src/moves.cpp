@@ -319,7 +319,7 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
-                assert(node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);
+                assert(node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);  // FIXME this failed randomly
 
                 remove_jumped_pieces(node.board, move);
                 std::swap(

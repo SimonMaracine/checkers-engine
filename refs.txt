@@ -11,6 +11,7 @@ future references
 https://en.wikipedia.org/wiki/Portable_Draughts_Notation
 https://boardgames.stackexchange.com/questions/18949/checkers-draughts-capture-all-pieces-in-1-move
 https://www.chess.com/blog/the_real_greco/evolution-of-a-chess-fish-what-is-nnue-anyway
+https://www.youtube.com/watch?v=jT-L-iEVElM
 
 to read more
 https://en.wikipedia.org/wiki/Board_game

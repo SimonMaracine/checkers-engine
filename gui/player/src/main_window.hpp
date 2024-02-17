@@ -47,7 +47,7 @@ private:
     void log_move(const board::CheckersBoard::Move& move);
     void clear_moves_log();
     void get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters);
-    void setup_engine_parameter_widgets();
+    void setup_integer_parameter_widget(const std::string& name, const std::string& value, int id);
 
     board::CheckersBoard* board {nullptr};
 
@@ -76,9 +76,14 @@ private:
     wxBoxSizer* szr_moves {nullptr};
     unsigned int moves {0u};
 
-    using ParameterValue = std::variant<int>;
+    wxScrolledWindow* pnl_parameters {nullptr};
+    wxBoxSizer* szr_parameters {nullptr};
 
-    std::unordered_map<std::string, ParameterValue> parameters;
+    enum class ParameterType {
+        Int
+    };
+
+    std::unordered_map<std::string, ParameterType> parameters;
 
     wxDECLARE_EVENT_TABLE();
 };

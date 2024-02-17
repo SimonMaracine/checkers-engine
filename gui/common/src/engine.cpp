@@ -5,7 +5,7 @@
 // FIXME these functions throw and the exceptions must be caught and wait_for() must be called
 
 namespace engine {
-    static constexpr int ERR {0};
+    using Error = int;
 
     void EngineReader::Notify() {
         assert(callback);
@@ -31,7 +31,7 @@ namespace engine {
         }
 
         if (!process.write_to("INIT\n")) {
-            throw ERR;
+            throw Error();
         }
 
         for (unsigned int i {0u}; i < 5u; i++) {
@@ -41,7 +41,7 @@ namespace engine {
             }
         }
 
-        throw ERR;
+        throw Error();
     }
 
     void Engine::newgame(const std::optional<std::string>& fen_string) {
@@ -58,7 +58,7 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -68,7 +68,7 @@ namespace engine {
         }
 
         if (!process.write_to("MOVE " + move_string + '\n')) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -86,7 +86,7 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -96,7 +96,7 @@ namespace engine {
         }
 
         if (!process.write_to("STOP\n")) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -106,7 +106,7 @@ namespace engine {
         }
 
         if (!process.write_to("GETPARAMETERS\n")) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -116,7 +116,7 @@ namespace engine {
         }
 
         if (!process.write_to("GETPARAMETER " + name + '\n')) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -126,7 +126,7 @@ namespace engine {
         }
 
         if (!process.write_to("SETPARAMETER " + name + ' ' + value + '\n')) {
-            throw ERR;
+            throw Error();
         }
     }
 
@@ -138,11 +138,11 @@ namespace engine {
         reader.Stop();
 
         if (!process.write_to("QUIT\n")) {
-            throw ERR;
+            throw Error();
         }
 
         if (!process.wait_for()) {
-            throw ERR;
+            throw Error();
         }
 
         started = false;

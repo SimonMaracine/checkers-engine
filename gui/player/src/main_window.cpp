@@ -5,8 +5,10 @@
 #include <cstring>
 #include <algorithm>
 #include <optional>
+#include <cassert>
 
 #include <wx/statline.h>
+#include <wx/spinctrl.h>
 
 #include "fen_string_dialog.hpp"
 
@@ -161,6 +163,17 @@ void MainWindow::setup_widgets() {
 
     txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
     szr_right_side->Add(txt_engine, 1);
+
+    szr_right_side->AddSpacer(10);
+    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+    szr_right_side->AddSpacer(10);
+
+    pnl_parameters = new wxScrolledWindow(pnl_right_side);
+    szr_parameters = new wxBoxSizer(wxVERTICAL);
+
+    pnl_parameters->SetSizer(szr_parameters);
+
+    szr_right_side->Add(pnl_parameters);
 
     pnl_right_side->SetSizer(szr_right_side);
 
@@ -408,11 +421,14 @@ MainWindow::Player MainWindow::get_player_role(board::CheckersBoard::Player play
 }
 
 void MainWindow::process_engine_message(const std::string& message) {
-    const auto tokens {parse_message(message)};
+    auto tokens {parse_message(message)};
 
     if (tokens.empty()) {
         return;
     }
+
+    // Remove new line from the last token
+    tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
 
     if (tokens.at(0u) == "WARNING") {
         if (tokens.size() > 1u) {
@@ -420,9 +436,7 @@ void MainWindow::process_engine_message(const std::string& message) {
         }
     } else if (tokens.at(0u) == "BESTMOVE") {
         if (tokens.size() > 1u) {
-            const auto& move_string {tokens.at(1u)};
-
-            board->play_move(move_string.substr(0u, move_string.size() - 1u));
+            board->play_move(tokens.at(1u));
         }
     } else if (tokens.at(0u) == "PARAMETERS") {
         std::vector<std::pair<std::string, std::string>> parameters;
@@ -436,6 +450,14 @@ void MainWindow::process_engine_message(const std::string& message) {
         }
 
         get_engine_parameters(std::move(parameters));
+    } else if (tokens.at(0u) == "PARAMETER") {
+        static int id {30};
+
+        switch (parameters.at(tokens.at(1u))) {
+            case ParameterType::Int:
+                setup_integer_parameter_widget(tokens.at(1u), tokens.at(2u), id++);
+                break;
+        }
     }
 }
 
@@ -474,9 +496,36 @@ void MainWindow::clear_moves_log() {
 }
 
 void MainWindow::get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters) {
-    // TODO
+    for (const auto& [name, type] : parameters) {
+        if (type == "int") {
+            this->parameters[name] = ParameterType::Int;
+            engine->getparameter(name);
+        }
+    }
 }
 
-void MainWindow::setup_engine_parameter_widgets() {
-    // TODO
+void MainWindow::setup_integer_parameter_widget(const std::string& name, const std::string& value, int id) {
+    wxPanel* pnl_parameter {new wxPanel(pnl_parameters)};
+    wxBoxSizer* szr_parameter {new wxBoxSizer(wxHORIZONTAL)};
+
+    szr_parameter->Add(new wxStaticText(pnl_parameter, wxID_ANY, name), 1);
+
+    wxSpinCtrl* spn_parameter {new wxSpinCtrl(pnl_parameter, id, value)};
+
+    spn_parameter->Bind(
+        wxEVT_SPINCTRL,
+        [this, name](wxSpinEvent& event) {
+            engine->setparameter(name, std::to_string(event.GetValue()));
+            std::cout << event.GetValue() << '\n';
+        },
+        id
+    );
+
+    szr_parameter->Add(spn_parameter, 1);
+
+    pnl_parameter->SetSizer(szr_parameter);
+
+    szr_parameters->Add(pnl_parameter, 1);
+
+    Layout();
 }
