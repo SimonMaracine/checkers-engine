@@ -84,16 +84,16 @@ void MainWindow::setup_widgets() {
     wxBoxSizer* szr_right_side {new wxBoxSizer(wxVERTICAL)};
 
     txt_status = new wxStaticText(pnl_right_side, wxID_ANY, STATUS + "game in progress");
-    szr_right_side->Add(txt_status, 1);
+    szr_right_side->Add(txt_status, 0);
 
     txt_player = new wxStaticText(pnl_right_side, wxID_ANY, PLAYER + "black");
-    szr_right_side->Add(txt_player, 1);
+    szr_right_side->Add(txt_player, 0);
 
     txt_plies_without_advancement = new wxStaticText(pnl_right_side, wxID_ANY, PLIES_WITHOUT_ADVANCEMENT + "0");
-    szr_right_side->Add(txt_plies_without_advancement, 1);
+    szr_right_side->Add(txt_plies_without_advancement, 0);
 
     txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
-    szr_right_side->Add(txt_repetition_size, 1);
+    szr_right_side->Add(txt_repetition_size, 0);
 
     szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
@@ -161,7 +161,7 @@ void MainWindow::setup_widgets() {
     szr_right_side->AddSpacer(10);
 
     txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
-    szr_right_side->Add(txt_engine, 1);
+    szr_right_side->Add(txt_engine, 0);
 
     szr_right_side->AddSpacer(10);
     szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
@@ -171,13 +171,14 @@ void MainWindow::setup_widgets() {
 
     pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
 
-    szr_right_side->Add(pnl_parameters);
+    szr_right_side->Add(pnl_parameters, 1, wxEXPAND | wxALL);
 
     pnl_right_side->SetSizer(szr_right_side);
 
     pnl_moves = new wxScrolledWindow(this);
     szr_moves = new wxBoxSizer(wxVERTICAL);
 
+    pnl_moves->FitInside();
     pnl_moves->SetScrollRate(0, 10);
     pnl_moves->SetSizer(szr_moves);
 
@@ -185,7 +186,7 @@ void MainWindow::setup_widgets() {
 
     szr_main->Add(board, 3, wxEXPAND | wxALL);
     szr_main->AddSpacer(30);
-    szr_main->Add(pnl_right_side, 2);
+    szr_main->Add(pnl_right_side, 2, wxEXPAND | wxRIGHT);
     szr_main->AddSpacer(30);
     szr_main->Add(pnl_moves, 1, wxEXPAND | wxDOWN);
 

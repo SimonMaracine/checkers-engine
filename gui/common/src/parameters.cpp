@@ -48,7 +48,9 @@ namespace parameters {
 
         pnl_parameter->SetSizer(szr_parameter);
 
-        szr_parameters->Add(pnl_parameter, 1);
+        szr_parameters->Add(pnl_parameter);
+        szr_parameters->AddSpacer(5);
+        szr_parameters->FitInside(this);
 
         Layout();  // Not enough...
     }
