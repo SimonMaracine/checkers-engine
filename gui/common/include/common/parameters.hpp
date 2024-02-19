@@ -12,11 +12,7 @@
 namespace parameters {
     class ParametersPanel : public wxScrolledWindow {
     public:
-        ParametersPanel(wxWindow* parent, int id_start)
-            : wxScrolledWindow(parent), id(id_start) {
-            FitInside();
-            SetScrollRate(0, 10);
-        }
+        ParametersPanel(wxWindow* parent, int id_start);
 
         void get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters);
         void add_parameter(const std::string& name, const std::string& value);
@@ -32,7 +28,7 @@ namespace parameters {
 
         std::unordered_map<std::string, ParameterType> parameters;
 
-        wxSizer* szr_parameters {nullptr};
+        wxSizer* sizer {nullptr};
         engine::Engine* engine {nullptr};
         int id {};
     };

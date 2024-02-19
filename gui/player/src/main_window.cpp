@@ -175,12 +175,9 @@ void MainWindow::setup_widgets() {
 
     pnl_right_side->SetSizer(szr_right_side);
 
-    pnl_moves = new wxScrolledWindow(this);
-    szr_moves = new wxBoxSizer(wxVERTICAL);
+    pnl_moves_log = new moves_log::MovesLog(this);
 
-    pnl_moves->FitInside();
-    pnl_moves->SetScrollRate(0, 10);
-    pnl_moves->SetSizer(szr_moves);
+    pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
 
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
@@ -188,7 +185,7 @@ void MainWindow::setup_widgets() {
     szr_main->AddSpacer(30);
     szr_main->Add(pnl_right_side, 2, wxEXPAND | wxRIGHT);
     szr_main->AddSpacer(30);
-    szr_main->Add(pnl_moves, 1, wxEXPAND | wxDOWN);
+    szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
 
     SetSizer(szr_main);
 }
@@ -236,7 +233,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
 void MainWindow::on_reset_position(wxCommandEvent&) {
     board->reset_position();
-    clear_moves_log();
+    pnl_moves_log->clear_log();
 
     txt_status->SetLabelText(STATUS + "game in progress");
     txt_player->SetLabelText(PLAYER + "black");
@@ -263,7 +260,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 
     if (dialog.ShowModal() == wxID_OK) {
         board->set_position(dialog.get_fen_string().ToStdString());
-        clear_moves_log();
+        pnl_moves_log->clear_log();
 
         txt_status->SetLabelText(STATUS + "game in progress");
         txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
@@ -359,7 +356,7 @@ void MainWindow::on_continue(wxCommandEvent&) {
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
-    log_move(move);
+    pnl_moves_log->log_move(move);
 
     txt_status->SetLabelText(STATUS + game_over_text());
     txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
@@ -472,22 +469,4 @@ std::vector<std::string> MainWindow::parse_message(const std::string& message) {
     }
 
     return tokens;
-}
-
-void MainWindow::log_move(const board::CheckersBoard::Move& move) {
-    const auto label {std::to_string(++moves) + ". " + board::CheckersBoard::move_to_string(move)};
-
-    szr_moves->Add(new wxStaticText(pnl_moves, wxID_ANY, label));
-    szr_moves->AddSpacer(5);
-    szr_moves->FitInside(pnl_moves);
-
-    Layout();  // Stupid panels; calling pnl_moves->Layout() was not working; one hour wasted
-}
-
-void MainWindow::clear_moves_log() {
-    moves = 0u;
-    szr_moves->Clear();  // For some stupid reason this is needed as well
-    pnl_moves->DestroyChildren();
-
-    Layout();
 }

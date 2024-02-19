@@ -5,6 +5,12 @@
 #include <wx/spinctrl.h>
 
 namespace parameters {
+    ParametersPanel::ParametersPanel(wxWindow* parent, int id_start)
+        : wxScrolledWindow(parent), id(id_start) {
+        FitInside();
+        SetScrollRate(0, 10);
+    }
+
     void ParametersPanel::get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters) {
         for (const auto& [name, type] : parameters) {
             if (type == "int") {
@@ -24,7 +30,7 @@ namespace parameters {
 
     void ParametersPanel::set_sizer(wxSizer* sizer) {
         SetSizer(sizer);
-        szr_parameters = sizer;
+        this->sizer = sizer;
     }
 
     void ParametersPanel::setup_integer_parameter_widget(const std::string& name, const std::string& value, int id) {
@@ -48,9 +54,9 @@ namespace parameters {
 
         pnl_parameter->SetSizer(szr_parameter);
 
-        szr_parameters->Add(pnl_parameter);
-        szr_parameters->AddSpacer(5);
-        szr_parameters->FitInside(this);
+        sizer->Add(pnl_parameter);
+        sizer->AddSpacer(5);
+        sizer->FitInside(this);
 
         Layout();  // Not enough...
     }

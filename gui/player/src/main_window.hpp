@@ -9,6 +9,7 @@
 #include <common/board.hpp>
 #include <common/engine.hpp>
 #include <common/parameters.hpp>
+#include <common/moves_log.hpp>
 
 class MainWindow : public wxFrame {
 public:
@@ -43,8 +44,6 @@ private:
     Player get_player_role(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
-    void log_move(const board::CheckersBoard::Move& move);
-    void clear_moves_log();
 
     board::CheckersBoard* board {nullptr};
 
@@ -69,10 +68,7 @@ private:
 
     std::unique_ptr<engine::Engine> engine;
 
-    wxScrolledWindow* pnl_moves {nullptr};
-    wxBoxSizer* szr_moves {nullptr};
-    unsigned int moves {0u};
-
+    moves_log::MovesLog* pnl_moves_log {nullptr};
     parameters::ParametersPanel* pnl_parameters {nullptr};
 
     wxDECLARE_EVENT_TABLE();
