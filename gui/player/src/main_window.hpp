@@ -10,6 +10,7 @@
 #include <common/engine.hpp>
 #include <common/parameters.hpp>
 #include <common/moves_log.hpp>
+#include <common/game_state.hpp>
 
 class MainWindow : public wxFrame {
 public:
@@ -40,17 +41,11 @@ private:
     void on_engine_message(const std::string& message);
 
     int get_ideal_board_size();
-    const char* game_over_text();
     Player get_player_role(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
 
     board::CheckersBoard* board {nullptr};
-
-    wxStaticText* txt_status {nullptr};
-    wxStaticText* txt_player {nullptr};
-    wxStaticText* txt_plies_without_advancement {nullptr};
-    wxStaticText* txt_repetition_size {nullptr};
 
     wxRadioButton* btn_black_human {nullptr};
     wxRadioButton* btn_black_computer {nullptr};
@@ -68,6 +63,7 @@ private:
 
     std::unique_ptr<engine::Engine> engine;
 
+    game_state::GameStatePanel* pnl_game_state {nullptr};
     moves_log::MovesLog* pnl_moves_log {nullptr};
     parameters::ParametersPanel* pnl_parameters {nullptr};
 

@@ -24,10 +24,6 @@ enum {
     CONTINUE
 };
 
-static const wxString STATUS {"Status: "};
-static const wxString PLAYER {"Player: "};
-static const wxString PLIES_WITHOUT_ADVANCEMENT {"Plies without advancement: "};
-static const wxString REPETITION_SIZE {"Repetition size: "};
 static const wxString ENGINE {"Engine: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
@@ -74,118 +70,138 @@ void MainWindow::setup_menubar() {
 }
 
 void MainWindow::setup_widgets() {
-    board = new board::CheckersBoard(this, -1, -1, 400,
-        [this](const board::CheckersBoard::Move& move) {
-            return on_piece_move(move);
-        }
-    );
-
-    wxPanel* pnl_right_side {new wxPanel(this)};
-    wxBoxSizer* szr_right_side {new wxBoxSizer(wxVERTICAL)};
-
-    txt_status = new wxStaticText(pnl_right_side, wxID_ANY, STATUS + "game in progress");
-    szr_right_side->Add(txt_status, 0);
-
-    txt_player = new wxStaticText(pnl_right_side, wxID_ANY, PLAYER + "black");
-    szr_right_side->Add(txt_player, 0);
-
-    txt_plies_without_advancement = new wxStaticText(pnl_right_side, wxID_ANY, PLIES_WITHOUT_ADVANCEMENT + "0");
-    szr_right_side->Add(txt_plies_without_advancement, 0);
-
-    txt_repetition_size = new wxStaticText(pnl_right_side, wxID_ANY, REPETITION_SIZE + "0");
-    szr_right_side->Add(txt_repetition_size, 0);
-
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(10);
-
-    wxPanel* pnl_players {new wxPanel(pnl_right_side)};
-    wxBoxSizer* szr_players {new wxBoxSizer(wxHORIZONTAL)};
-
-    wxPanel* pnl_black {new wxPanel(pnl_players)};
-    wxBoxSizer* szr_black {new wxBoxSizer(wxVERTICAL)};
-
-    szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"), 1);
-
-    btn_black_human = new wxRadioButton(pnl_black, BLACK, "Human");
-    szr_black->Add(btn_black_human, 1);
-
-    btn_black_computer = new wxRadioButton(pnl_black, BLACK, "Computer");
-    szr_black->Add(btn_black_computer, 1);
-
-    pnl_black->SetSizer(szr_black);
-
-    szr_players->Add(pnl_black, 1);
-
-    wxPanel* pnl_white {new wxPanel(pnl_players)};
-    wxBoxSizer* szr_white {new wxBoxSizer(wxVERTICAL)};
-
-    szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"), 1);
-
-    btn_white_human = new wxRadioButton(pnl_white, WHITE, "Human");
-    szr_white->Add(btn_white_human, 1);
-
-    btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
-    btn_white_computer->SetValue(true);
-    szr_white->Add(btn_white_computer, 1);
-
-    pnl_white->SetSizer(szr_white);
-
-    szr_players->Add(pnl_white, 1);
-
-    pnl_players->SetSizer(szr_players);
-
-    szr_right_side->Add(pnl_players);
-
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(10);
-
-    wxPanel* pnl_control_buttons {new wxPanel(pnl_right_side)};
-    wxBoxSizer* szr_control_buttons {new wxBoxSizer(wxHORIZONTAL)};
-
-    btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
-    szr_control_buttons->Add(btn_stop, 1);
-
-    szr_control_buttons->AddSpacer(10);
-
-    btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
-    szr_control_buttons->Add(btn_continue, 1);
-
-    pnl_control_buttons->SetSizer(szr_control_buttons);
-
-    szr_right_side->Add(pnl_control_buttons);
-
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(10);
-
-    txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
-    szr_right_side->Add(txt_engine, 0);
-
-    szr_right_side->AddSpacer(10);
-    szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-    szr_right_side->AddSpacer(10);
-
-    pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
-
-    pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
-
-    szr_right_side->Add(pnl_parameters, 1, wxEXPAND | wxALL);
-
-    pnl_right_side->SetSizer(szr_right_side);
-
-    pnl_moves_log = new moves_log::MovesLog(this);
-
-    pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
-
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
-    szr_main->Add(board, 3, wxEXPAND | wxALL);
+    {
+        board = new board::CheckersBoard(this, -1, -1, 400,
+            [this](const board::CheckersBoard::Move& move) {
+                return on_piece_move(move);
+            }
+        );
+
+        szr_main->Add(board, 3, wxEXPAND | wxALL);
+    }
+
     szr_main->AddSpacer(30);
-    szr_main->Add(pnl_right_side, 2, wxEXPAND | wxRIGHT);
+
+    {
+        wxPanel* pnl_right_side {new wxPanel(this)};
+        wxBoxSizer* szr_right_side {new wxBoxSizer(wxVERTICAL)};
+
+        {
+            wxBoxSizer* szr_game_state {new wxBoxSizer(wxVERTICAL)};
+            pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
+
+            pnl_game_state->SetSizer(szr_game_state);
+
+            szr_right_side->Add(pnl_game_state);
+        }
+
+        szr_right_side->AddSpacer(10);
+        szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+        szr_right_side->AddSpacer(10);
+
+        {
+            wxPanel* pnl_players {new wxPanel(pnl_right_side)};
+            wxBoxSizer* szr_players {new wxBoxSizer(wxHORIZONTAL)};
+
+            {
+                wxPanel* pnl_black {new wxPanel(pnl_players)};
+                wxBoxSizer* szr_black {new wxBoxSizer(wxVERTICAL)};
+
+                szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"), 1);
+
+                btn_black_human = new wxRadioButton(pnl_black, BLACK, "Human");
+                szr_black->Add(btn_black_human, 1);
+
+                btn_black_computer = new wxRadioButton(pnl_black, BLACK, "Computer");
+                szr_black->Add(btn_black_computer, 1);
+
+                pnl_black->SetSizer(szr_black);
+
+                szr_players->Add(pnl_black, 1);
+            }
+
+            {
+                wxPanel* pnl_white {new wxPanel(pnl_players)};
+                wxBoxSizer* szr_white {new wxBoxSizer(wxVERTICAL)};
+
+                szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"), 1);
+
+                btn_white_human = new wxRadioButton(pnl_white, WHITE, "Human");
+                szr_white->Add(btn_white_human, 1);
+
+                btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
+                btn_white_computer->SetValue(true);
+                szr_white->Add(btn_white_computer, 1);
+
+                pnl_white->SetSizer(szr_white);
+
+                szr_players->Add(pnl_white, 1);
+            }
+
+            pnl_players->SetSizer(szr_players);
+
+            szr_right_side->Add(pnl_players);
+        }
+
+
+        szr_right_side->AddSpacer(10);
+        szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+        szr_right_side->AddSpacer(10);
+
+        {
+            wxPanel* pnl_control_buttons {new wxPanel(pnl_right_side)};
+            wxBoxSizer* szr_control_buttons {new wxBoxSizer(wxHORIZONTAL)};
+
+            btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
+            szr_control_buttons->Add(btn_stop, 1);
+
+            szr_control_buttons->AddSpacer(10);
+
+            btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
+            szr_control_buttons->Add(btn_continue, 1);
+
+            pnl_control_buttons->SetSizer(szr_control_buttons);
+
+            szr_right_side->Add(pnl_control_buttons);
+        }
+
+        szr_right_side->AddSpacer(10);
+        szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+        szr_right_side->AddSpacer(10);
+
+        {
+            txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
+            szr_right_side->Add(txt_engine);
+        }
+
+        szr_right_side->AddSpacer(10);
+        szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
+        szr_right_side->AddSpacer(10);
+
+        {
+            pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
+
+            pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
+
+            szr_right_side->Add(pnl_parameters, 1, wxEXPAND | wxALL);
+        }
+
+        pnl_right_side->SetSizer(szr_right_side);
+
+        szr_main->Add(pnl_right_side, 2, wxEXPAND | wxRIGHT);
+    }
+
     szr_main->AddSpacer(30);
-    szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
+
+    {
+        pnl_moves_log = new moves_log::MovesLog(this);
+
+        pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
+
+        szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
+    }
 
     SetSizer(szr_main);
 }
@@ -235,10 +251,7 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
     board->reset_position();
     pnl_moves_log->clear_log();
 
-    txt_status->SetLabelText(STATUS + "game in progress");
-    txt_player->SetLabelText(PLAYER + "black");
-    txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
-    txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
+    pnl_game_state->reset(board);
 
     engine->newgame(std::nullopt);
 
@@ -262,10 +275,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
         board->set_position(dialog.get_fen_string().ToStdString());
         pnl_moves_log->clear_log();
 
-        txt_status->SetLabelText(STATUS + "game in progress");
-        txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
-        txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
-        txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");
+        pnl_game_state->reset(board);
 
         engine->newgame(std::make_optional(dialog.get_fen_string().ToStdString()));
 
@@ -352,16 +362,13 @@ void MainWindow::on_stop(wxCommandEvent&) {
 }
 
 void MainWindow::on_continue(wxCommandEvent&) {
-
+    // TODO
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     pnl_moves_log->log_move(move);
 
-    txt_status->SetLabelText(STATUS + game_over_text());
-    txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
-    txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + wxString::Format("%u", board->get_plies_without_advancement()));
-    txt_repetition_size->SetLabelText(REPETITION_SIZE + wxString::Format("%zu", board->get_repetition_size()));
+    pnl_game_state->update(board);
 
     if (get_player_role(board->get_player()) == Player::Computer) {
         if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
@@ -395,21 +402,6 @@ int MainWindow::get_ideal_board_size() {
     const wxSize size {board->GetSize()};
 
     return std::min(size.GetHeight(), size.GetWidth());
-}
-
-const char* MainWindow::game_over_text() {
-    switch (board->get_game_over()) {
-        case board::CheckersBoard::GameOver::None:
-            return "game in progress";
-        case board::CheckersBoard::GameOver::WinnerBlack:
-            return "game over (winner black)";
-        case board::CheckersBoard::GameOver::WinnerWhite:
-            return "game over (winner white)";
-        case board::CheckersBoard::GameOver::Tie:
-            return "game over (tie)";
-    }
-
-    return nullptr;
 }
 
 MainWindow::Player MainWindow::get_player_role(board::CheckersBoard::Player player) {
