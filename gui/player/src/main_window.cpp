@@ -239,7 +239,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
         engine->getparameters();
 
-        if (get_player_role(board->get_player()) == Player::Computer) {
+        if (get_player_type(board->get_player()) == PlayerType::Computer) {
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
                 engine->go(false);
             }
@@ -255,7 +255,7 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
 
     engine->newgame(std::nullopt);
 
-    if (get_player_role(board->get_player()) == Player::Computer) {
+    if (get_player_type(board->get_player()) == PlayerType::Computer) {
         board->set_user_input(false);
         engine->go(false);
     } else {
@@ -279,7 +279,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 
         engine->newgame(std::make_optional(dialog.get_fen_string().ToStdString()));
 
-        if (get_player_role(board->get_player()) == Player::Computer) {
+        if (get_player_type(board->get_player()) == PlayerType::Computer) {
             board->set_user_input(false);
             engine->go(false);
         } else {
@@ -319,13 +319,13 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
 
 void MainWindow::on_black_change(wxCommandEvent&) {
     if (btn_black_human->GetValue()) {
-        black = Player::Human;
+        black = PlayerType::Human;
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(true);
         }
     } else {
-        black = Player::Computer;
+        black = PlayerType::Computer;
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(false);
@@ -339,13 +339,13 @@ void MainWindow::on_black_change(wxCommandEvent&) {
 
 void MainWindow::on_white_change(wxCommandEvent&) {
     if (btn_white_human->GetValue()) {
-        white = Player::Human;
+        white = PlayerType::Human;
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(true);
         }
     } else {
-        white = Player::Computer;
+        white = PlayerType::Computer;
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(false);
@@ -370,8 +370,8 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 
     pnl_game_state->update(board);
 
-    if (get_player_role(board->get_player()) == Player::Computer) {
-        if (get_player_role(board::CheckersBoard::opponent(board->get_player())) == Player::Human) {
+    if (get_player_type(board->get_player()) == PlayerType::Computer) {
+        if (get_player_type(board::CheckersBoard::opponent(board->get_player())) == PlayerType::Human) {
             engine->move(board::CheckersBoard::move_to_string(move));
         }
     }
@@ -380,7 +380,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
         return;
     }
 
-    if (get_player_role(board->get_player()) == Player::Computer) {
+    if (get_player_type(board->get_player()) == PlayerType::Computer) {
         engine->go(false);
 
         board->set_user_input(false);
@@ -404,8 +404,8 @@ int MainWindow::get_ideal_board_size() {
     return std::min(size.GetHeight(), size.GetWidth());
 }
 
-MainWindow::Player MainWindow::get_player_role(board::CheckersBoard::Player player) {
-    const Player PLAYERS[2u] { black, white };
+MainWindow::PlayerType MainWindow::get_player_type(board::CheckersBoard::Player player) {
+    const PlayerType PLAYERS[2u] { black, white };
 
     return PLAYERS[static_cast<unsigned int>(player) - 1u];
 }

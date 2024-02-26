@@ -16,7 +16,7 @@ class MainWindow : public wxFrame {
 public:
     MainWindow();
 private:
-    enum class Player {
+    enum class PlayerType {
         Human,
         Computer
     };
@@ -41,7 +41,7 @@ private:
     void on_engine_message(const std::string& message);
 
     int get_ideal_board_size();
-    Player get_player_role(board::CheckersBoard::Player player);
+    PlayerType get_player_type(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
     std::vector<std::string> parse_message(const std::string& message);
 
@@ -56,8 +56,8 @@ private:
     wxButton* btn_stop {nullptr};
     wxButton* btn_continue {nullptr};
 
-    Player black {Player::Human};
-    Player white {Player::Computer};
+    PlayerType black {PlayerType::Human};
+    PlayerType white {PlayerType::Computer};
 
     wxStaticText* txt_engine {nullptr};
 
