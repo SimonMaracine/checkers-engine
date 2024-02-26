@@ -5,8 +5,6 @@
 // FIXME these functions throw and the exceptions must be caught and wait_for() must be called
 
 namespace engine {
-    using Error = int;
-
     void EngineReader::Notify() {
         assert(callback);
 
@@ -26,7 +24,7 @@ namespace engine {
 
         try {
             process = subprocess::Subprocess(file_path);
-        } catch (int) {
+        } catch (subprocess::Subprocess::Error) {
             throw;
         }
 

@@ -29,6 +29,8 @@ namespace engine {
 
     class Engine {
     public:
+        using Error = subprocess::Subprocess::Error;
+
         Engine(const ReadCallback& callback)
             : reader(process, callback) {}
 

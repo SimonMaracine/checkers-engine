@@ -10,8 +10,6 @@
 #include <sys/select.h>
 
 namespace subprocess {
-    using Error = int;
-
     template<std::size_t Size>
     static bool newline_in_buffer(const char* buffer, std::size_t& bytes_up_to_newline) {
         for (std::size_t i {0u}; i < Size; i++) {
@@ -140,11 +138,11 @@ namespace subprocess {
             return false;
         }
 
-        // 1   Read a bunch of bytes
-        // 2   Scan for newline in buffer
-        // 3a  If a newline is found, concatenate the buffer up to the newline with the contents of the buffered buffer and return it as the result
-        // 3b  Save the rest of the extracted characters (from newline + 1 up to the end) into the buffered buffer
-        // 4   If a newline is not found, save the buffer and goto #1
+        // 1.  Read a bunch of bytes
+        // 2.  Scan for newline in buffer
+        // 3a. If a newline is found, concatenate the buffer up to the newline with the contents of the buffered buffer and return it as the result
+        // 3b. Save the rest of the extracted characters (from newline + 1 up to the end) into the buffered buffer
+        // 4.  If a newline is not found, save the buffer and goto #1
 
         static constexpr std::size_t CHUNK {256u};
 

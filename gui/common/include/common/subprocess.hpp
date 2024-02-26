@@ -5,6 +5,8 @@
 namespace subprocess {
     class Subprocess {
     public:
+        using Error = int;
+
         Subprocess() = default;
         Subprocess(const std::string& file_path);
         ~Subprocess();

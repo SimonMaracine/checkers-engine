@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
-#include <optional>
 #include <cassert>
 
 #include <wx/statline.h>
@@ -80,6 +79,9 @@ void MainWindow::setup_widgets() {
         );
 
         szr_main->Add(board, 3, wxEXPAND | wxALL);
+
+        // Initially user input is disabled until an engine is loaded
+        board->set_user_input(false);
     }
 
     szr_main->AddSpacer(30);
@@ -143,6 +145,12 @@ void MainWindow::setup_widgets() {
             pnl_players->SetSizer(szr_players);
 
             szr_right_side->Add(pnl_players);
+
+            // Initially these are disabled until an engine is loaded
+            btn_black_human->Disable();
+            btn_black_computer->Disable();
+            btn_white_human->Disable();
+            btn_white_computer->Disable();
         }
 
 
@@ -222,74 +230,50 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
     if (dialog.ShowModal() == wxID_OK) {
+        // Also reset the board here in case the engine is reloaded
+        set_position(std::nullopt);
+
         engine->quit();
 
         txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
 
         try {
             engine->init(dialog.GetPath().ToStdString());
-        } catch (int) {
+        } catch (engine::Engine::Error) {
             std::cout << "Error creating process\n";
             return;
         }
 
-        // FIXME call newgame with the current position
-
         pnl_parameters->set_engine(engine.get());
 
-        engine->getparameters();
+        engine->getparameters();  // FIXME clear previous parameters
 
         if (get_player_type(board->get_player()) == PlayerType::Computer) {
             if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
                 engine->go(false);
             }
+        } else {  // Human
+            // Finally enable user input
+            board->set_user_input(true);
         }
+
+        // Finally enable these as well
+        btn_black_human->Enable();
+        btn_black_computer->Enable();
+        btn_white_human->Enable();
+        btn_white_computer->Enable();
     }
 }
 
 void MainWindow::on_reset_position(wxCommandEvent&) {
-    board->reset_position();
-    pnl_moves_log->clear_log();
-
-    pnl_game_state->reset(board);
-
-    engine->newgame(std::nullopt);
-
-    if (get_player_type(board->get_player()) == PlayerType::Computer) {
-        board->set_user_input(false);
-        engine->go(false);
-    } else {
-        board->set_user_input(true);
-    }
-
-    btn_black_human->Enable();
-    btn_black_computer->Enable();
-    btn_white_human->Enable();
-    btn_white_computer->Enable();
+    set_position(std::nullopt);
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
     FenStringDialog dialog {this, wxID_ANY};
 
     if (dialog.ShowModal() == wxID_OK) {
-        board->set_position(dialog.get_fen_string().ToStdString());
-        pnl_moves_log->clear_log();
-
-        pnl_game_state->reset(board);
-
-        engine->newgame(std::make_optional(dialog.get_fen_string().ToStdString()));
-
-        if (get_player_type(board->get_player()) == PlayerType::Computer) {
-            board->set_user_input(false);
-            engine->go(false);
-        } else {
-            board->set_user_input(true);
-        }
-
-        btn_black_human->Enable();
-        btn_black_computer->Enable();
-        btn_white_human->Enable();
-        btn_white_computer->Enable();
+        set_position(dialog.get_fen_string().ToStdString());
     }
 }
 
@@ -396,6 +380,32 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 
 void MainWindow::on_engine_message(const std::string& message) {
     process_engine_message(message);
+}
+
+void MainWindow::set_position(const std::optional<std::string>& fen_string) {
+    if (!fen_string) {
+        board->reset_position();
+    } else {
+        board->set_position(*fen_string);
+    }
+
+    pnl_moves_log->clear_log();
+
+    pnl_game_state->reset(board);
+
+    engine->newgame(fen_string);
+
+    if (get_player_type(board->get_player()) == PlayerType::Computer) {
+        board->set_user_input(false);
+        engine->go(false);
+    } else {
+        board->set_user_input(true);
+    }
+
+    btn_black_human->Enable();
+    btn_black_computer->Enable();
+    btn_white_human->Enable();
+    btn_white_computer->Enable();
 }
 
 int MainWindow::get_ideal_board_size() {

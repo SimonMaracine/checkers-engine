@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <optional>
 
 #include <wx/wx.h>
 #include <common/board.hpp>
@@ -40,6 +41,7 @@ private:
     void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message);
 
+    void set_position(const std::optional<std::string>& fen_string);
     int get_ideal_board_size();
     PlayerType get_player_type(board::CheckersBoard::Player player);
     void process_engine_message(const std::string& message);
