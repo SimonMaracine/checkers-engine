@@ -5,10 +5,11 @@ namespace game_state {
     static const wxString PLAYER {"Player: "};
     static const wxString PLIES_WITHOUT_ADVANCEMENT {"Plies without advancement: "};
     static const wxString REPETITION_SIZE {"Repetition size: "};
+    static const wxString DEFAULT_STATUS {"game not started"};
 
     GameStatePanel::GameStatePanel(wxWindow* parent, wxSizer* sizer)
         : wxPanel(parent) {
-        txt_status = new wxStaticText(this, wxID_ANY, STATUS + "game in progress");
+        txt_status = new wxStaticText(this, wxID_ANY, STATUS + DEFAULT_STATUS);
         sizer->Add(txt_status);
 
         txt_player = new wxStaticText(this, wxID_ANY, PLAYER + "black");
@@ -22,7 +23,7 @@ namespace game_state {
     }
 
     void GameStatePanel::reset(const board::CheckersBoard* board) {
-        txt_status->SetLabelText(STATUS + "game in progress");
+        txt_status->SetLabelText(STATUS + DEFAULT_STATUS);
         txt_player->SetLabelText(PLAYER + (board->get_player() == board::CheckersBoard::Player::Black ? "black" : "white"));
         txt_plies_without_advancement->SetLabelText(PLIES_WITHOUT_ADVANCEMENT + "0");
         txt_repetition_size->SetLabelText(REPETITION_SIZE + "0");

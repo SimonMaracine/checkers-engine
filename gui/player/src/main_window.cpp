@@ -10,8 +10,6 @@
 
 #include "fen_string_dialog.hpp"
 
-// FIXME need to make a stop and continue button for the engine and to also update the protocol; engine should no longer automatically play moves
-
 enum {
     START_ENGINE = 10,
     RESET_POSITION,
@@ -173,6 +171,10 @@ void MainWindow::setup_widgets() {
             pnl_control_buttons->SetSizer(szr_control_buttons);
 
             szr_right_side->Add(pnl_control_buttons);
+
+            // Initially these are disabled until an engine is loaded
+            btn_stop->Disable();
+            btn_continue->Disable();
         }
 
         szr_right_side->AddSpacer(10);
@@ -248,11 +250,9 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
 
         engine->getparameters();  // FIXME clear previous parameters
 
-        if (get_player_type(board->get_player()) == PlayerType::Computer) {
-            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go(false);
-            }
-        } else {  // Human
+        // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
+
+        if (get_player_type(board->get_player()) == PlayerType::Human) {
             // Finally enable user input
             board->set_user_input(true);
         }
@@ -262,6 +262,9 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
         btn_black_computer->Enable();
         btn_white_human->Enable();
         btn_white_computer->Enable();
+
+        btn_stop->Enable();
+        btn_continue->Enable();
     }
 }
 
@@ -313,10 +316,6 @@ void MainWindow::on_black_change(wxCommandEvent&) {
 
         if (board->get_player() == board::CheckersBoard::Player::Black) {
             board->set_user_input(false);
-
-            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go(false);
-            }
         }
     }
 }
@@ -333,10 +332,6 @@ void MainWindow::on_white_change(wxCommandEvent&) {
 
         if (board->get_player() == board::CheckersBoard::Player::White) {
             board->set_user_input(false);
-
-            if (board->get_game_over() == board::CheckersBoard::GameOver::None) {
-                engine->go(false);
-            }
         }
     }
 }
@@ -346,7 +341,13 @@ void MainWindow::on_stop(wxCommandEvent&) {
 }
 
 void MainWindow::on_continue(wxCommandEvent&) {
-    // TODO
+    if (get_player_type(board->get_player()) != PlayerType::Computer) {
+        return;
+    }
+
+    // FIXME don't call go multiple times
+
+    engine->go(false);
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
@@ -372,6 +373,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
         board->set_user_input(true);
     }
 
+    // It's okay to disable these over and over again
     btn_black_human->Disable();
     btn_black_computer->Disable();
     btn_white_human->Disable();
@@ -397,7 +399,6 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
 
     if (get_player_type(board->get_player()) == PlayerType::Computer) {
         board->set_user_input(false);
-        engine->go(false);
     } else {
         board->set_user_input(true);
     }
