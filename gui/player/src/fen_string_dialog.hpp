@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wx/wx.h>
+#include <common/wx.hpp>
 
 class FenStringDialog : public wxDialog {
 public:

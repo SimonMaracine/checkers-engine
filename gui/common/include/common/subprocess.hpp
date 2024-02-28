@@ -1,11 +1,15 @@
 #pragma once
 
 #include <string>
+#include <stdexcept>
 
 namespace subprocess {
     class Subprocess {
     public:
-        using Error = int;
+        struct Error : public std::runtime_error {
+            explicit Error(const char* message)
+                : std::runtime_error(message) {}
+        };
 
         Subprocess() = default;
         Subprocess(const std::string& file_path);
@@ -18,7 +22,7 @@ namespace subprocess {
 
         bool read_from(std::string& data) const;
         bool write_to(const std::string& data) const;
-        bool wait_for();  // Sets PID to -1
+        bool wait_for();  // Resets PID
     private:
         int input {};  // Read from
         int output {};  // Write to

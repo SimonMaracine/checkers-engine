@@ -4,8 +4,7 @@
 #include <string>
 #include <optional>
 
-#include <wx/timer.h>
-
+#include "wx.hpp"
 #include "subprocess.hpp"
 
 namespace engine {
@@ -23,7 +22,7 @@ namespace engine {
 
         void Notify() override;
     private:
-        const subprocess::Subprocess& process;  // A reference is okay
+        const subprocess::Subprocess& process;  // Reference is okay
         ReadCallback callback;
     };
 

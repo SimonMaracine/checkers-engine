@@ -38,18 +38,18 @@ namespace subprocess {
     Subprocess::Subprocess(const std::string& file_path) {
         int fd_r[2u] {};
         if (pipe(fd_r) < 0) {
-            throw Error();
+            throw Error("Could not create reading pipe");
         }
 
         int fd_w[2u] {};
         if (pipe(fd_w) < 0) {
-            throw Error();
+            throw Error("Could not create writing pipe");
         }
 
         const pid_t pid {fork()};
 
         if (pid < 0) {
-            throw Error();
+            throw Error("Could not create subprocess");
         } else if (pid == 0) {
             close(fd_r[0u]);
             close(fd_w[1u]);
@@ -133,7 +133,7 @@ namespace subprocess {
         const int result {select(input + 1, &set, nullptr, nullptr, &time)};
 
         if (result < 0) {
-            return false;
+            throw Error("Could not read from file");
         } else if (result != 1) {
             return false;
         }
@@ -181,7 +181,7 @@ namespace subprocess {
         const ssize_t bytes {write(output, data.c_str(), data.size())};
 
         if (bytes < 0) {
-            return false;
+            throw Error("Could not write to file");
         } else if (bytes < static_cast<ssize_t>(data.size())) {
             return false;
         }

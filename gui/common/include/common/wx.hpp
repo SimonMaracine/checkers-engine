@@ -8,6 +8,7 @@
 #endif
 
 #include <wx/wx.h>
+#include <wx/timer.h>
 
 #ifdef __GNUG__
     #pragma GCC diagnostic pop

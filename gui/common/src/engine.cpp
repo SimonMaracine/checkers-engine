@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-// FIXME these functions throw and the exceptions must be caught and wait_for() must be called
-
 namespace engine {
     void EngineReader::Notify() {
         assert(callback);
@@ -22,14 +20,10 @@ namespace engine {
             return;
         }
 
-        try {
-            process = subprocess::Subprocess(file_path);
-        } catch (subprocess::Subprocess::Error) {
-            throw;
-        }
+        process = subprocess::Subprocess(file_path);
 
         if (!process.write_to("INIT\n")) {
-            throw Error();
+            throw Error("Could not write all");
         }
 
         for (unsigned int i {0u}; i < 5u; i++) {
@@ -39,7 +33,7 @@ namespace engine {
             }
         }
 
-        throw Error();
+        throw Error("Could not start wxTimer");
     }
 
     void Engine::newgame(const std::optional<std::string>& fen_string) {
@@ -56,7 +50,7 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -66,7 +60,7 @@ namespace engine {
         }
 
         if (!process.write_to("MOVE " + move_string + '\n')) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -84,7 +78,7 @@ namespace engine {
         }
 
         if (!process.write_to(message)) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -94,7 +88,7 @@ namespace engine {
         }
 
         if (!process.write_to("STOP\n")) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -104,7 +98,7 @@ namespace engine {
         }
 
         if (!process.write_to("GETPARAMETERS\n")) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -114,7 +108,7 @@ namespace engine {
         }
 
         if (!process.write_to("GETPARAMETER " + name + '\n')) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -124,7 +118,7 @@ namespace engine {
         }
 
         if (!process.write_to("SETPARAMETER " + name + ' ' + value + '\n')) {
-            throw Error();
+            throw Error("Could not write all");
         }
     }
 
@@ -135,12 +129,17 @@ namespace engine {
 
         reader.Stop();
 
-        if (!process.write_to("QUIT\n")) {
-            throw Error();
+        try {
+            if (!process.write_to("QUIT\n")) {
+                throw Error("Could not write all");
+            }
+        } catch (const subprocess::Subprocess::Error&) {
+            process.wait_for();
+            throw;
         }
 
         if (!process.wait_for()) {
-            throw Error();
+            throw Error("Could not wait for subprocess");
         }
 
         started = false;

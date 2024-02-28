@@ -1,7 +1,6 @@
 #include "main_window.hpp"
 
 #include <iostream>
-#include <cstdio>
 #include <cstring>
 #include <algorithm>
 #include <cassert>
@@ -217,13 +216,21 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    engine->quit();
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error quit: " << e.what() << '\n';
+    }
 
     wxExit();
 }
 
 void MainWindow::on_close(wxCloseEvent&) {
-    engine->quit();
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error quit: " << e.what() << '\n';
+    }
 
     wxExit();
 }
@@ -236,21 +243,30 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
         set_position(std::nullopt);
 
         // Also stop the current engine
-        engine->quit();
-
-        txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
+        try {
+            engine->quit();
+        } catch (const engine::Engine::Error& e) {
+            std::cerr << "Error quit: " << e.what() << '\n';
+            return;
+        }
 
         try {
             engine->init(dialog.GetPath().ToStdString());
-        } catch (engine::Engine::Error) {
-            std::cout << "Error creating process\n";
+        } catch (const engine::Engine::Error& e) {
+            std::cerr << "Error init: " << e.what() << '\n';
             return;
         }
+
+        txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
 
         pnl_parameters->clear_parameters();
         pnl_parameters->set_engine(engine.get());
 
-        engine->getparameters();
+        try {
+            engine->getparameters();
+        } catch (const engine::Engine::Error& e) {
+            std::cerr << "Error getparameters: " << e.what() << '\n';
+        }
 
         // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
 
@@ -339,7 +355,11 @@ void MainWindow::on_white_change(wxCommandEvent&) {
 }
 
 void MainWindow::on_stop(wxCommandEvent&) {
-    engine->stop();
+    try {
+        engine->stop();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error stop: " << e.what() << '\n';
+    }
 }
 
 void MainWindow::on_continue(wxCommandEvent&) {
@@ -349,7 +369,11 @@ void MainWindow::on_continue(wxCommandEvent&) {
 
     // FIXME don't call go multiple times
 
-    engine->go(false);
+    try {
+        engine->go(false);
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error go: " << e.what() << '\n';
+    }
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
@@ -359,7 +383,11 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 
     if (get_player_type(board->get_player()) == PlayerType::Computer) {
         if (get_player_type(board::CheckersBoard::opponent(board->get_player())) == PlayerType::Human) {
-            engine->move(board::CheckersBoard::move_to_string(move));
+            try {
+                engine->move(board::CheckersBoard::move_to_string(move));
+            } catch (const engine::Engine::Error& e) {
+                std::cerr << "Error move: " << e.what() << '\n';
+            }
         }
     }
 
@@ -368,7 +396,11 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     }
 
     if (get_player_type(board->get_player()) == PlayerType::Computer) {
-        engine->go(false);
+        try {
+            engine->go(false);
+        } catch (const engine::Engine::Error& e) {
+            std::cerr << "Error go: " << e.what() << '\n';
+        }
 
         board->set_user_input(false);
     } else {
@@ -397,7 +429,11 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
 
     pnl_game_state->reset(board);
 
-    engine->newgame(fen_string);
+    try {
+        engine->newgame(fen_string);
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error newgame: " << e.what() << '\n';
+    }
 
     if (get_player_type(board->get_player()) == PlayerType::Computer) {
         board->set_user_input(false);
@@ -433,9 +469,9 @@ void MainWindow::process_engine_message(const std::string& message) {
     // Remove new line from the last token
     tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
 
-    if (tokens.at(0u) == "WARNING") {
+    if (tokens.at(0u) == "WARNING") {  // TODO maybe get rid of this message
         if (tokens.size() > 1u) {
-            std::cout << "Engine warning: " << tokens.at(1u) << '\n';
+            std::cerr << "Engine warning: " << tokens.at(1u) << '\n';
         }
     } else if (tokens.at(0u) == "BESTMOVE") {
         if (tokens.size() > 1u) {
