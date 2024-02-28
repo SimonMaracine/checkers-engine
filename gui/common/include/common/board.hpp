@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <wx/wx.h>
+#include <common/wx.hpp>
 
 namespace board {
     class CheckersBoard : public wxWindow {

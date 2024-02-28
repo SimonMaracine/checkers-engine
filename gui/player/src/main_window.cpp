@@ -232,9 +232,10 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
     if (dialog.ShowModal() == wxID_OK) {
-        // Also reset the board here in case the engine is reloaded
+        // Reset the board here in case the engine is reloaded
         set_position(std::nullopt);
 
+        // Also stop the current engine
         engine->quit();
 
         txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
@@ -246,9 +247,10 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
             return;
         }
 
+        pnl_parameters->clear_parameters();
         pnl_parameters->set_engine(engine.get());
 
-        engine->getparameters();  // FIXME clear previous parameters
+        engine->getparameters();
 
         // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
 

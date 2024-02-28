@@ -7,6 +7,7 @@ add_library(common STATIC
     "include/common/moves_log.hpp"
     "include/common/parameters.hpp"
     "include/common/subprocess.hpp"
+    "include/common/wx.hpp"
     "src/board.cpp"
     "src/engine.cpp"
     "src/game_state.cpp"

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <wx/wx.h>
-
+#include <common/wx.hpp>
 #include "common/board.hpp"
 
 namespace moves_log {

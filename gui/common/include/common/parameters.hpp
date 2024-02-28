@@ -5,8 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include <wx/wx.h>
-
+#include <common/wx.hpp>
 #include "common/engine.hpp"
 
 namespace parameters {
@@ -16,6 +15,7 @@ namespace parameters {
 
         void get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters);
         void add_parameter(const std::string& name, const std::string& value);
+        void clear_parameters();
 
         void set_sizer(wxSizer* sizer);
         void set_engine(engine::Engine* engine) { this->engine = engine; }

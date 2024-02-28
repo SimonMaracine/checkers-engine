@@ -28,6 +28,13 @@ namespace parameters {
         }
     }
 
+    void ParametersPanel::clear_parameters() {
+        sizer->Clear();
+        DestroyChildren();
+
+        Layout();
+    }
+
     void ParametersPanel::set_sizer(wxSizer* sizer) {
         SetSizer(sizer);
         this->sizer = sizer;

@@ -1,13 +1,4 @@
-#ifdef __GNUG__
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wconversion"  // Ignore stupid wxWidgets warnings
-#endif
-
-#include <wx/wx.h>
-
-#ifdef __GNUG__
-    #pragma GCC diagnostic pop
-#endif
+#include <common/wx.hpp>
 
 #include "main_window.hpp"
 

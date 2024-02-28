@@ -1,7 +1,6 @@
 #pragma once
 
-#include <wx/wx.h>
-
+#include <common/wx.hpp>
 #include "common/board.hpp"
 
 namespace game_state {
@@ -11,8 +10,6 @@ namespace game_state {
 
         void reset(const board::CheckersBoard* board);
         void update(const board::CheckersBoard* board);
-
-        void set_sizer(wxSizer* sizer);
     private:
         const char* game_over_text(board::CheckersBoard::GameOver game_over);
 
