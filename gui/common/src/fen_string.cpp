@@ -1,6 +1,6 @@
-#include "fen_string_dialog.hpp"
+#include "common/fen_string.hpp"
 
-FenStringDialog::FenStringDialog(wxWindow* parent, wxWindowID id)
+FenString::FenString(wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, "FEN String") {
     txt_fen_string = new wxTextCtrl(this, wxID_ANY);
 
@@ -8,6 +8,7 @@ FenStringDialog::FenStringDialog(wxWindow* parent, wxWindowID id)
     wxBoxSizer* szr_buttons {new wxBoxSizer(wxHORIZONTAL)};
 
     szr_buttons->Add(new wxButton(pnl_buttons, wxID_OK, "Ok"));
+    szr_buttons->AddSpacer(10);
     szr_buttons->Add(new wxButton(pnl_buttons, wxID_CANCEL, "Cancel"));
 
     pnl_buttons->SetSizer(szr_buttons);
@@ -23,6 +24,6 @@ FenStringDialog::FenStringDialog(wxWindow* parent, wxWindowID id)
     SetSizer(szr_main);
 }
 
-wxString FenStringDialog::get_fen_string() const {
+wxString FenString::get_fen_string() const {
     return txt_fen_string->GetValue();
 }

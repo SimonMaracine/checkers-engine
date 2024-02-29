@@ -7,7 +7,7 @@
 
 #include <wx/statline.h>
 
-#include "fen_string_dialog.hpp"
+#include <common/fen_string.hpp>
 
 enum {
     START_ENGINE = 10,
@@ -291,7 +291,7 @@ void MainWindow::on_reset_position(wxCommandEvent&) {
 }
 
 void MainWindow::on_set_position(wxCommandEvent&) {
-    FenStringDialog dialog {this, wxID_ANY};
+    FenString dialog {this, wxID_ANY};
 
     if (dialog.ShowModal() == wxID_OK) {
         set_position(dialog.get_fen_string().ToStdString());
