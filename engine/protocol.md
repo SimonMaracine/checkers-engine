@@ -91,6 +91,8 @@ The GUI may first ask the engine about its parameters and their types in order t
 
 Tells the engine to shut down and exit gracefully.
 
+This command should shut down the engine nicely, even if it is in the process of thinking.
+
 ## Engine -> GUI
 
 ### WARNING [warning or error message]

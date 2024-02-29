@@ -26,7 +26,7 @@ namespace game {
                 return game::Player::White;
         }
 
-        throw error::ERR;
+        throw error::Error();
     }
 
     static std::pair<game::Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index) {
@@ -77,9 +77,9 @@ namespace game {
         try {
             result = std::stoul(result_number);
         } catch (const std::invalid_argument&) {
-            throw error::ERR;
+            throw error::Error();
         } catch (const std::out_of_range&) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         return std::make_pair(static_cast<game::Idx>(result), king);
@@ -128,7 +128,7 @@ namespace game {
                 index++;
                 break;
             } else {
-                throw error::ERR;
+                throw error::Error();
             }
         }
 
@@ -137,9 +137,9 @@ namespace game {
         try {
             result = std::stoul(result_number);
         } catch (const std::invalid_argument&) {
-            throw error::ERR;
+            throw error::Error();
         } catch (const std::out_of_range&) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         return static_cast<unsigned int>(result);
@@ -149,7 +149,7 @@ namespace game {
         const auto number {parse_number(move_string, index)};
 
         if (number < 1u || number > 32u) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         return static_cast<game::Idx>(number);
@@ -167,7 +167,7 @@ namespace game {
             const auto number {parse_number(move_string, index)};
 
             if (number < 1u || number > 32u) {
-                throw error::ERR;
+                throw error::Error();
             }
 
             indices[count++] = static_cast<game::Idx>(number);
@@ -192,7 +192,7 @@ namespace game {
 
     void set_position(FenPosition& position, const std::string& fen_string) {
         if (!valid_fen_string(fen_string)) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         // Clear the board first
@@ -222,7 +222,7 @@ namespace game {
 
     void make_move(Position& position, const std::string& move_string) {
         if (!valid_move_string(move_string)) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         // Construct a move and play it
@@ -239,7 +239,7 @@ namespace game {
         const auto [destinations, count] {parse_destination_squares(move_string, index)};
 
         if (count == 0u) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         game::Move move;

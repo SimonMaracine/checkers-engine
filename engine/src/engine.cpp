@@ -30,30 +30,37 @@ namespace engine {
         try {
             result = std::stoi(string);
         } catch (const std::invalid_argument&) {
-            throw error::ERR;
+            throw error::Error();
         } catch (const std::out_of_range&) {
-            throw error::ERR;
+            throw error::Error();
         }
 
         return result;
     }
 
     void init(engine::EngineData& data) {
-        assert(!data.minimax.running);
+        if (data.minimax.running) {
+            throw error::Error();
+        }
 
         data.minimax.running = true;
 
         data.minimax.thread = std::thread([&data]() {
             while (true) {
+                // Check this condition also before wait
+                if (!data.minimax.running) {
+                    break;
+                }
+
                 // Wait for some work to do or to exit the loop
                 std::unique_lock<std::mutex> lock {data.minimax.mutex};
-                data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search); });
+                data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search_func); });
 
                 if (!data.minimax.running) {
                     break;
                 }
 
-                const auto [best_move, dont_play] {data.minimax.search(lock)};
+                const auto [best_move, dont_play] {data.minimax.search_func(lock)};
 
                 if (!dont_play) {
                     moves::play_move(data.game.position, best_move);
@@ -62,8 +69,8 @@ namespace engine {
                     data.game.moves_played.push_back(best_move);
                 }
 
-                // Reset the function as a signal for the cv
-                data.minimax.search = {};
+                // Reset the search function as a signal for the cv
+                data.minimax.search_func = {};
 
                 // Message the GUI only now, to indicate that we are ready for another GO
                 messages::bestmove(best_move);
@@ -112,13 +119,20 @@ namespace engine {
     }
 
     void go(engine::EngineData& data, bool dont_play_move) {
-        assert(data.minimax.running);  // TODO maybe use exceptions instead
-        assert(!data.minimax.search);
+        if (!data.minimax.running) {
+            throw error::Error();
+        }
+
+        if (data.minimax.search_func) {
+            // Just ignore this GO command
+            // Not great, but it's okay since it's UB for GUI to send GO at this point
+            return;  // TODO make sure that the engine actually follows the protocol
+        }
 
         // Set to true when a best move is set
         bool result_available {false};
 
-        const auto search {
+        const auto search_func {
             [&data, dont_play_move, &result_available](auto& lock) {
                 search::Search instance {
                     data.minimax.cv,
@@ -146,10 +160,10 @@ namespace engine {
             }
         };
 
-        // Set the search fuction
+        // Set the search fuction; it's a signal for the cv
         {
             std::lock_guard<std::mutex> lock {data.minimax.mutex};
-            data.minimax.search = search;
+            data.minimax.search_func = search_func;
         }
         data.minimax.cv.notify_one();
 
@@ -188,14 +202,23 @@ namespace engine {
     }
 
     void quit(engine::EngineData& data) {
-        assert(data.minimax.running);
-        assert(!data.minimax.search);
+        if (!data.minimax.running) {
+            throw error::Error();
+        }
 
-        // Set dummy work to wake up the thread from sleeping
-        data.minimax.search = [](auto&) -> SearchResult { return {}; };
-        data.minimax.running = false;
+        if (data.minimax.search_func) {
+            // The thread is already busy searching, just join it
 
-        data.minimax.cv.notify_one();
-        data.minimax.thread.join();
+            data.minimax.running = false;
+
+            data.minimax.thread.join();
+        } else {
+            // Set dummy work to wake up the thread from sleeping
+            data.minimax.search_func = [](auto&) -> SearchResult { return {}; };
+            data.minimax.running = false;
+
+            data.minimax.cv.notify_one();
+            data.minimax.thread.join();
+        }
     }
 }

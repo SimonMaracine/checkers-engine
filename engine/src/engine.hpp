@@ -26,7 +26,7 @@ namespace engine {
 
        struct {
             std::thread thread;
-            std::function<SearchResult(std::unique_lock<std::mutex>&)> search;
+            std::function<SearchResult(std::unique_lock<std::mutex>&)> search_func;
             std::condition_variable cv;
             std::mutex mutex;
             std::unordered_map<std::string, Param> parameters;
