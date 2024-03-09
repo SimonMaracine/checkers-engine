@@ -469,11 +469,7 @@ void MainWindow::process_engine_message(const std::string& message) {
     // Remove new line from the last token
     tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
 
-    if (tokens.at(0u) == "WARNING") {  // TODO maybe get rid of this message
-        if (tokens.size() > 1u) {
-            std::cerr << "Engine warning: " << tokens.at(1u) << '\n';
-        }
-    } else if (tokens.at(0u) == "BESTMOVE") {
+    if (tokens.at(0u) == "BESTMOVE") {
         if (tokens.size() > 1u) {
             board->play_move(tokens.at(1u));
         }

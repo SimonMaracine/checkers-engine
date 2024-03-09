@@ -9,7 +9,7 @@ Messages from GUI to engine are also called *commands*.
 The string of a message can contain arbitrary whitespace around tokens.
 
 If a received command is invalid in any way, it should be ignored completely and the receiver (engine) may respond
-with the message **WARNING**.
+with the message **ALERT**.
 
 Messages can consist of any number of characters and, as a consequence, any number of tokens. Both the GUI and the
 engine should account for messages of any size.
@@ -38,7 +38,7 @@ specific position or/and play the setup moves.
 Tells the engine to play the move on the internal board.
 
 It is GUI's responsability to send correct move commands. The engine is not obligated to do error checking. If it
-does check for invalid move commands, it is encouraged to immediately respond with the message **WARNING**.
+does check for invalid move commands, it is encouraged to immediately respond with the message **ALERT**.
 
 ### GO [don't play move]
 
@@ -95,10 +95,9 @@ This command should shut down the engine nicely, even if it is in the process of
 
 ## Engine -> GUI
 
-### WARNING [warning or error message]
+### ALERT \<warning or error message\>
 
-Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It can
-optionally contain a message.
+Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It must contain a message.
 
 The engine is free to never send this message to GUI. It exists solely as a debug facility. It can, however, send it
 at any time, for any sensible reason. For example: it couldn't process a command, the requested parameter

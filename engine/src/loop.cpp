@@ -103,9 +103,7 @@ namespace loop {
             }
 
             try {
-                if (!execute_command(data, input_tokens)) {
-                    messages::warning();
-                }
+                [[maybe_unused]] const auto result {execute_command(data, input_tokens)};
             } catch (error::Error) {
                 return 1;
             }
