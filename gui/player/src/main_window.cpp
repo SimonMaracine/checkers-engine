@@ -90,9 +90,7 @@ void MainWindow::setup_widgets() {
         {
             wxBoxSizer* szr_game_state {new wxBoxSizer(wxVERTICAL)};
             pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
-
             pnl_game_state->SetSizer(szr_game_state);
-
             szr_right_side->Add(pnl_game_state);
         }
 
@@ -150,7 +148,6 @@ void MainWindow::setup_widgets() {
             btn_white_computer->Disable();
         }
 
-
         szr_right_side->AddSpacer(10);
         szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
         szr_right_side->AddSpacer(10);
@@ -191,9 +188,7 @@ void MainWindow::setup_widgets() {
 
         {
             pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
-
             pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
-
             szr_right_side->Add(pnl_parameters, 1, wxEXPAND | wxALL);
         }
 
@@ -206,9 +201,7 @@ void MainWindow::setup_widgets() {
 
     {
         pnl_moves_log = new moves_log::MovesLog(this);
-
         pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
-
         szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
     }
 

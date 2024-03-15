@@ -1,12 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 add_executable(tester ${WINDOWS_APP}
-    "src/application.cpp"
-    "src/application.hpp"
-    "src/fen_string_dialog.cpp"
-    "src/fen_string_dialog.hpp"
     "src/main_window.cpp"
     "src/main_window.hpp"
+    "src/main.cpp"
 )
 
 target_link_libraries(tester PRIVATE wxmono common)

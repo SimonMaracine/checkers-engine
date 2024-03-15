@@ -3,24 +3,30 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
+#include <optional>
 
-#include <wx/wx.h>
+#include <common/wx.hpp>
 #include <common/board.hpp>
 #include <common/engine.hpp>
+#include <common/parameters.hpp>
+#include <common/moves_log.hpp>
+#include <common/game_state.hpp>
 
 class MainWindow : public wxFrame {
 public:
     MainWindow();
 private:
     enum class Player {
-        Human,
-        Computer
+        Black,
+        White
     };
 
     void setup_menubar();
     void setup_widgets();
 
-    void on_start_engine(wxCommandEvent&);
+    void on_start_engine_black(wxCommandEvent&);
+    void on_start_engine_white(wxCommandEvent&);
     void on_reset_position(wxCommandEvent&);
     void on_set_position(wxCommandEvent&);
     void on_show_indices(wxCommandEvent&);
@@ -28,48 +34,39 @@ private:
     void on_close(wxCloseEvent&);
     void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);
-    void on_black_change(wxCommandEvent&);
-    void on_white_change(wxCommandEvent&);
+    void on_start(wxCommandEvent&);
     void on_stop(wxCommandEvent&);
-    void on_continue(wxCommandEvent&);
+
+    void start_engine(
+        std::unique_ptr<engine::Engine>& engine,
+        wxStaticText* txt_engine,
+        const wxString& text,
+        parameters::ParametersPanel* pnl_parameters
+    );
 
     void on_piece_move(const board::CheckersBoard::Move& move);
-    void on_engine_message(const std::string& message);
+    void on_engine_message(const std::string& message, Player player);
 
+    void set_position(const std::optional<std::string>& fen_string);
     int get_ideal_board_size();
-    const char* game_over_text();
-    Player get_player_role(board::CheckersBoard::Player player);
-    void process_engine_message(const std::string& message);
+    void process_engine_message(const std::string& message, Player player);
     std::vector<std::string> parse_message(const std::string& message);
-    void log_move(const board::CheckersBoard::Move& move);
-    void clear_moves_log();
 
     board::CheckersBoard* board {nullptr};
 
-    wxStaticText* txt_status {nullptr};
-    wxStaticText* txt_player {nullptr};
-    wxStaticText* txt_plies_without_advancement {nullptr};
-    wxStaticText* txt_repetition_size {nullptr};
-
-    wxRadioButton* btn_black_human {nullptr};
-    wxRadioButton* btn_black_computer {nullptr};
-
-    wxRadioButton* btn_white_human {nullptr};
-    wxRadioButton* btn_white_computer {nullptr};
-
+    wxButton* btn_start {nullptr};
     wxButton* btn_stop {nullptr};
-    wxButton* btn_continue {nullptr};
 
-    Player black {Player::Human};
-    Player white {Player::Computer};
+    wxStaticText* txt_engine_black {nullptr};
+    wxStaticText* txt_engine_white {nullptr};
 
-    wxStaticText* txt_engine {nullptr};
+    std::unique_ptr<engine::Engine> engine_black;
+    std::unique_ptr<engine::Engine> engine_white;
 
-    std::unique_ptr<engine::Engine> engine;
-
-    wxScrolledWindow* pnl_moves {nullptr};
-    wxBoxSizer* szr_moves {nullptr};
-    unsigned int moves {0u};
+    game_state::GameStatePanel* pnl_game_state {nullptr};
+    moves_log::MovesLog* pnl_moves_log {nullptr};
+    parameters::ParametersPanel* pnl_parameters_black {nullptr};
+    parameters::ParametersPanel* pnl_parameters_white {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };

@@ -38,6 +38,8 @@ namespace engine {
         Engine(Engine&&) = delete;
         Engine& operator=(Engine&&) = delete;
 
+        bool is_started() const { return started; }
+
         void init(const std::string& file_path);
         void newgame(const std::optional<std::string>& fen_string);
         void move(const std::string& move_string);
