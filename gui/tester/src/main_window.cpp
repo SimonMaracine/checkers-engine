@@ -12,10 +12,9 @@
 enum {
     START_ENGINE_BLACK = 10,
     START_ENGINE_WHITE,
-    RESET_POSITION,
-    SET_POSITION,
     SHOW_INDICES,
-    START,
+    PLAY_POSITION,
+    PLAY_100_POSITIONS,
     STOP
 };
 
@@ -25,14 +24,13 @@ static const wxString ENGINE_WHITE {"White engine: "};
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(START_ENGINE_BLACK, MainWindow::on_start_engine_black)
     EVT_MENU(START_ENGINE_WHITE, MainWindow::on_start_engine_white)
-    EVT_MENU(RESET_POSITION, MainWindow::on_reset_position)
-    EVT_MENU(SET_POSITION, MainWindow::on_set_position)
     EVT_MENU(SHOW_INDICES, MainWindow::on_show_indices)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
+    EVT_MENU(PLAY_POSITION, MainWindow::on_play_position)
+    EVT_MENU(PLAY_100_POSITIONS, MainWindow::on_play_100_positions)
+    EVT_MENU(STOP, MainWindow::on_stop)
     EVT_MENU(wxID_ABOUT, MainWindow::on_about)
     EVT_SIZE(MainWindow::on_window_resize)
-    EVT_BUTTON(START, MainWindow::on_start)
-    EVT_BUTTON(STOP, MainWindow::on_stop)
     EVT_CLOSE(MainWindow::on_close)
 wxEND_EVENT_TABLE()
 
@@ -51,16 +49,24 @@ void MainWindow::setup_menubar() {
     wxMenu* men_file {new wxMenu};
     men_file->Append(START_ENGINE_BLACK, "Start Black Engine");
     men_file->Append(START_ENGINE_WHITE, "Start White Engine");
-    men_file->Append(RESET_POSITION, "Reset Position");
-    men_file->Append(SET_POSITION, "Set Position");
     men_file->Append(SHOW_INDICES, "Show Indices");
     men_file->Append(wxID_EXIT, "Exit");
+
+    wxMenu* men_run {new wxMenu};
+    btn_play_position = men_run->Append(PLAY_POSITION, "Play Position");
+    btn_play_100_positions = men_run->Append(PLAY_100_POSITIONS, "Play 100 Positions");
+    btn_stop = men_run->Append(STOP, "Stop");
+
+    btn_play_position->Enable(false);
+    btn_play_100_positions->Enable(false);
+    btn_stop->Enable(false);
 
     wxMenu* men_help {new wxMenu};
     men_help->Append(wxID_ABOUT, "About");
 
     wxMenuBar* menu_bar {new wxMenuBar};
     menu_bar->Append(men_file, "File");
+    menu_bar->Append(men_run, "Run");
     menu_bar->Append(men_help, "Help");
 
     SetMenuBar(menu_bar);
@@ -92,31 +98,6 @@ void MainWindow::setup_widgets() {
             pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
             pnl_game_state->SetSizer(szr_game_state);
             szr_right_side->Add(pnl_game_state);
-        }
-
-        szr_right_side->AddSpacer(10);
-        szr_right_side->Add(new wxStaticLine(pnl_right_side), 0, wxEXPAND | wxRIGHT);
-        szr_right_side->AddSpacer(10);
-
-        {
-            wxPanel* pnl_control_buttons {new wxPanel(pnl_right_side)};
-            wxBoxSizer* szr_control_buttons {new wxBoxSizer(wxHORIZONTAL)};
-
-            btn_start = new wxButton(pnl_control_buttons, START, "Start");
-            szr_control_buttons->Add(btn_start, 1);
-
-            szr_control_buttons->AddSpacer(10);
-
-            btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
-            szr_control_buttons->Add(btn_stop, 1);
-
-            pnl_control_buttons->SetSizer(szr_control_buttons);
-
-            szr_right_side->Add(pnl_control_buttons);
-
-            // Initially these are disabled until both engines are loaded
-            btn_start->Disable();
-            btn_stop->Disable();
         }
 
         szr_right_side->AddSpacer(10);
@@ -203,18 +184,6 @@ void MainWindow::on_start_engine_white(wxCommandEvent&) {
     start_engine(engine_white, txt_engine_white, ENGINE_WHITE, pnl_parameters_white);
 }
 
-void MainWindow::on_reset_position(wxCommandEvent&) {
-    set_position(std::nullopt);
-}
-
-void MainWindow::on_set_position(wxCommandEvent&) {
-    FenString dialog {this, wxID_ANY};
-
-    if (dialog.ShowModal() == wxID_OK) {
-        set_position(dialog.get_fen_string().ToStdString());
-    }
-}
-
 void MainWindow::on_show_indices(wxCommandEvent&) {
     static bool show_indices {false};
 
@@ -223,7 +192,7 @@ void MainWindow::on_show_indices(wxCommandEvent&) {
 
 void MainWindow::on_about(wxCommandEvent&) {
     wxMessageBox(
-        "Checkers Player, an implementation of the game of checkers.",
+        "Checkers Tester, comparing the strength of two engines.",
         "About",
         wxOK | wxICON_INFORMATION
     );
@@ -239,10 +208,14 @@ void MainWindow::on_window_resize(wxSizeEvent& event) {
     event.Skip();
 }
 
-void MainWindow::on_start(wxCommandEvent&) {
-    set_position(std::nullopt);
+void MainWindow::on_play_position(wxCommandEvent&) {
+    FenString dialog {this, wxID_ANY};
 
-    // FIXME don't call go multiple times
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    set_position(dialog.get_fen_string().ToStdString());
 
     try {
         engine_black->go(false);
@@ -250,12 +223,17 @@ void MainWindow::on_start(wxCommandEvent&) {
         std::cerr << "Error go: " << e.what() << '\n';
     }
 
-    btn_start->Disable();
+    btn_play_position->Enable(false);
+    btn_play_100_positions->Enable(false);
     btn_stop->Enable();
 }
 
+void MainWindow::on_play_100_positions(wxCommandEvent&) {
+    // TODO
+}
+
 void MainWindow::on_stop(wxCommandEvent&) {
-    return;  // TODO
+    // TODO
 
     // try {
     //     engine_black->stop();
@@ -264,8 +242,9 @@ void MainWindow::on_stop(wxCommandEvent&) {
     //     std::cerr << "Error stop: " << e.what() << '\n';
     // }
 
-    btn_stop->Disable();
-    btn_start->Enable();
+    // btn_stop->Enable(false);
+    // btn_play_position->Enable();
+    // btn_play_100_positions->Enable();
 }
 
 void MainWindow::start_engine(
@@ -276,35 +255,38 @@ void MainWindow::start_engine(
 ) {
     wxFileDialog dialog {this};
 
-    if (dialog.ShowModal() == wxID_OK) {
-        try {
-            engine->quit();
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error quit: " << e.what() << '\n';
-            return;
-        }
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
 
-        try {
-            engine->init(dialog.GetPath().ToStdString());
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error init: " << e.what() << '\n';
-            return;
-        }
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error quit: " << e.what() << '\n';
+        return;
+    }
 
-        txt_engine->SetLabelText(text + dialog.GetFilename());
+    try {
+        engine->init(dialog.GetPath().ToStdString());
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error init: " << e.what() << '\n';
+        return;
+    }
 
-        pnl_parameters->clear_parameters();
-        pnl_parameters->set_engine(engine.get());
+    txt_engine->SetLabelText(text + dialog.GetFilename());
 
-        try {
-            engine->getparameters();
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error getparameters: " << e.what() << '\n';
-        }
+    pnl_parameters->clear_parameters();
+    pnl_parameters->set_engine(engine.get());
 
-        if (engine_black->is_started() && engine_white->is_started()) {
-            btn_start->Enable();
-        }
+    try {
+        engine->getparameters();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error getparameters: " << e.what() << '\n';
+    }
+
+    if (engine_black->is_started() && engine_white->is_started()) {
+        btn_play_position->Enable();
+        btn_play_100_positions->Enable();
     }
 }
 

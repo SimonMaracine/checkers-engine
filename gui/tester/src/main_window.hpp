@@ -27,14 +27,13 @@ private:
 
     void on_start_engine_black(wxCommandEvent&);
     void on_start_engine_white(wxCommandEvent&);
-    void on_reset_position(wxCommandEvent&);
-    void on_set_position(wxCommandEvent&);
     void on_show_indices(wxCommandEvent&);
     void on_exit(wxCommandEvent&);
     void on_close(wxCloseEvent&);
     void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);
-    void on_start(wxCommandEvent&);
+    void on_play_position(wxCommandEvent&);
+    void on_play_100_positions(wxCommandEvent&);
     void on_stop(wxCommandEvent&);
 
     void start_engine(
@@ -54,8 +53,12 @@ private:
 
     board::CheckersBoard* board {nullptr};
 
-    wxButton* btn_start {nullptr};
-    wxButton* btn_stop {nullptr};
+    // wxButton* btn_start {nullptr};
+    // wxButton* btn_stop {nullptr};
+
+    wxMenuItem* btn_play_position {nullptr};
+    wxMenuItem* btn_play_100_positions {nullptr};
+    wxMenuItem* btn_stop {nullptr};
 
     wxStaticText* txt_engine_black {nullptr};
     wxStaticText* txt_engine_white {nullptr};
