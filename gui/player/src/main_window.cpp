@@ -48,18 +48,18 @@ MainWindow::MainWindow()
 }
 
 void MainWindow::setup_menubar() {
-    wxMenu* men_file {new wxMenu};
-    men_file->Append(START_ENGINE, "Start Engine");
-    men_file->Append(RESET_POSITION, "Reset Position");
-    men_file->Append(SET_POSITION, "Set Position");
-    men_file->Append(SHOW_INDICES, "Show Indices");
-    men_file->Append(wxID_EXIT, "Exit");
+    wxMenu* men_player {new wxMenu};
+    men_player->Append(START_ENGINE, "Start Engine");
+    men_player->Append(RESET_POSITION, "Reset Position");
+    men_player->Append(SET_POSITION, "Set Position");
+    men_player->Append(SHOW_INDICES, "Show Indices", wxEmptyString, wxITEM_CHECK);
+    men_player->Append(wxID_EXIT, "Exit");
 
     wxMenu* men_help {new wxMenu};
     men_help->Append(wxID_ABOUT, "About");
 
     wxMenuBar* menu_bar {new wxMenuBar};
-    menu_bar->Append(men_file, "File");
+    menu_bar->Append(men_player, "Player");
     menu_bar->Append(men_help, "Help");
 
     SetMenuBar(menu_bar);
@@ -231,52 +231,54 @@ void MainWindow::on_close(wxCloseEvent&) {
 void MainWindow::on_start_engine(wxCommandEvent&) {
     wxFileDialog dialog {this};
 
-    if (dialog.ShowModal() == wxID_OK) {
-        // Reset the board here in case the engine is reloaded
-        set_position(std::nullopt);
-
-        // Also stop the current engine
-        try {
-            engine->quit();
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error quit: " << e.what() << '\n';
-            return;
-        }
-
-        try {
-            engine->init(dialog.GetPath().ToStdString());
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error init: " << e.what() << '\n';
-            return;
-        }
-
-        txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
-
-        pnl_parameters->clear_parameters();
-        pnl_parameters->set_engine(engine.get());
-
-        try {
-            engine->getparameters();
-        } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error getparameters: " << e.what() << '\n';
-        }
-
-        // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
-
-        if (get_player_type(board->get_player()) == PlayerType::Human) {
-            // Finally enable user input
-            board->set_user_input(true);
-        }
-
-        // Finally enable these as well
-        btn_black_human->Enable();
-        btn_black_computer->Enable();
-        btn_white_human->Enable();
-        btn_white_computer->Enable();
-
-        btn_stop->Enable();
-        btn_continue->Enable();
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
     }
+
+    // Reset the board here in case the engine is reloaded
+    set_position(std::nullopt);
+
+    // Also stop the current engine
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error quit: " << e.what() << '\n';
+        return;
+    }
+
+    try {
+        engine->init(dialog.GetPath().ToStdString());
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error init: " << e.what() << '\n';
+        return;
+    }
+
+    txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
+
+    pnl_parameters->clear_parameters();
+    pnl_parameters->set_engine(engine.get());
+
+    try {
+        engine->getparameters();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error getparameters: " << e.what() << '\n';
+    }
+
+    // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
+
+    if (get_player_type(board->get_player()) == PlayerType::Human) {
+        // Finally enable user input
+        board->set_user_input(true);
+    }
+
+    // Finally enable these as well
+    btn_black_human->Enable();
+    btn_black_computer->Enable();
+    btn_white_human->Enable();
+    btn_white_computer->Enable();
+
+    btn_stop->Enable();
+    btn_continue->Enable();
 }
 
 void MainWindow::on_reset_position(wxCommandEvent&) {
@@ -360,13 +362,13 @@ void MainWindow::on_continue(wxCommandEvent&) {
         return;
     }
 
-    // FIXME don't call go multiple times
-
     try {
         engine->go(false);
     } catch (const engine::Engine::Error& e) {
         std::cerr << "Error go: " << e.what() << '\n';
     }
+
+    btn_continue->Disable();
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
@@ -405,6 +407,8 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     btn_black_computer->Disable();
     btn_white_human->Disable();
     btn_white_computer->Disable();
+
+    btn_continue->Disable();
 }
 
 void MainWindow::on_engine_message(const std::string& message) {
@@ -438,6 +442,8 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     btn_black_computer->Enable();
     btn_white_human->Enable();
     btn_white_computer->Enable();
+
+    btn_continue->Enable();
 }
 
 int MainWindow::get_ideal_board_size() {

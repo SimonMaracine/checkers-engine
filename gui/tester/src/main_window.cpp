@@ -46,11 +46,11 @@ MainWindow::MainWindow()
 }
 
 void MainWindow::setup_menubar() {
-    wxMenu* men_file {new wxMenu};
-    men_file->Append(START_ENGINE_BLACK, "Start Black Engine");
-    men_file->Append(START_ENGINE_WHITE, "Start White Engine");
-    men_file->Append(SHOW_INDICES, "Show Indices");
-    men_file->Append(wxID_EXIT, "Exit");
+    wxMenu* men_tester {new wxMenu};
+    men_tester->Append(START_ENGINE_BLACK, "Start Black Engine");
+    men_tester->Append(START_ENGINE_WHITE, "Start White Engine");
+    men_tester->Append(SHOW_INDICES, "Show Indices", wxEmptyString, wxITEM_CHECK);
+    men_tester->Append(wxID_EXIT, "Exit");
 
     wxMenu* men_run {new wxMenu};
     btn_play_position = men_run->Append(PLAY_POSITION, "Play Position");
@@ -65,7 +65,7 @@ void MainWindow::setup_menubar() {
     men_help->Append(wxID_ABOUT, "About");
 
     wxMenuBar* menu_bar {new wxMenuBar};
-    menu_bar->Append(men_file, "File");
+    menu_bar->Append(men_tester, "Tester");
     menu_bar->Append(men_run, "Run");
     menu_bar->Append(men_help, "Help");
 
