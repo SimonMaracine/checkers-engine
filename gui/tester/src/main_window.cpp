@@ -4,6 +4,7 @@
 #include <cstring>
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 
 #include <wx/statline.h>
 
@@ -14,7 +15,7 @@ enum {
     START_ENGINE_WHITE,
     SHOW_INDICES,
     PLAY_POSITION,
-    PLAY_100_POSITIONS,
+    PLAY_POSITIONS,
     STOP
 };
 
@@ -27,7 +28,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(SHOW_INDICES, MainWindow::on_show_indices)
     EVT_MENU(wxID_EXIT, MainWindow::on_exit)
     EVT_MENU(PLAY_POSITION, MainWindow::on_play_position)
-    EVT_MENU(PLAY_100_POSITIONS, MainWindow::on_play_100_positions)
+    EVT_MENU(PLAY_POSITIONS, MainWindow::on_play_positions)
     EVT_MENU(STOP, MainWindow::on_stop)
     EVT_MENU(wxID_ABOUT, MainWindow::on_about)
     EVT_SIZE(MainWindow::on_window_resize)
@@ -54,11 +55,11 @@ void MainWindow::setup_menubar() {
 
     wxMenu* men_run {new wxMenu};
     btn_play_position = men_run->Append(PLAY_POSITION, "Play Position");
-    btn_play_100_positions = men_run->Append(PLAY_100_POSITIONS, "Play 100 Positions");
+    btn_play_positions = men_run->Append(PLAY_POSITIONS, "Play Positions");
     btn_stop = men_run->Append(STOP, "Stop");
 
     btn_play_position->Enable(false);
-    btn_play_100_positions->Enable(false);
+    btn_play_positions->Enable(false);
     btn_stop->Enable(false);
 
     wxMenu* men_help {new wxMenu};
@@ -224,11 +225,19 @@ void MainWindow::on_play_position(wxCommandEvent&) {
     }
 
     btn_play_position->Enable(false);
-    btn_play_100_positions->Enable(false);
+    btn_play_positions->Enable(false);
     btn_stop->Enable();
 }
 
-void MainWindow::on_play_100_positions(wxCommandEvent&) {
+void MainWindow::on_play_positions(wxCommandEvent&) {
+    wxFileDialog dialog {this};
+
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    read_positions_file(dialog.GetPath().ToStdString());
+
     // TODO
 }
 
@@ -241,10 +250,6 @@ void MainWindow::on_stop(wxCommandEvent&) {
     // } catch (const engine::Engine::Error& e) {
     //     std::cerr << "Error stop: " << e.what() << '\n';
     // }
-
-    // btn_stop->Enable(false);
-    // btn_play_position->Enable();
-    // btn_play_100_positions->Enable();
 }
 
 void MainWindow::start_engine(
@@ -286,7 +291,7 @@ void MainWindow::start_engine(
 
     if (engine_black->is_started() && engine_white->is_started()) {
         btn_play_position->Enable();
-        btn_play_100_positions->Enable();
+        btn_play_positions->Enable();
     }
 }
 
@@ -416,4 +421,14 @@ std::vector<std::string> MainWindow::parse_message(const std::string& message) {
     }
 
     return tokens;
+}
+
+void MainWindow::read_positions_file(const std::string& file_path) {
+    std::ifstream stream {file_path};
+
+    if (!stream.is_open()) {
+
+    }
+
+    // TODO
 }

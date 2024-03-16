@@ -33,7 +33,7 @@ private:
     void on_about(wxCommandEvent&);
     void on_window_resize(wxSizeEvent& event);
     void on_play_position(wxCommandEvent&);
-    void on_play_100_positions(wxCommandEvent&);
+    void on_play_positions(wxCommandEvent&);
     void on_stop(wxCommandEvent&);
 
     void start_engine(
@@ -50,14 +50,12 @@ private:
     int get_ideal_board_size();
     void process_engine_message(const std::string& message, Player player);
     std::vector<std::string> parse_message(const std::string& message);
+    void read_positions_file(const std::string& file_path);
 
     board::CheckersBoard* board {nullptr};
 
-    // wxButton* btn_start {nullptr};
-    // wxButton* btn_stop {nullptr};
-
     wxMenuItem* btn_play_position {nullptr};
-    wxMenuItem* btn_play_100_positions {nullptr};
+    wxMenuItem* btn_play_positions {nullptr};
     wxMenuItem* btn_stop {nullptr};
 
     wxStaticText* txt_engine_black {nullptr};
