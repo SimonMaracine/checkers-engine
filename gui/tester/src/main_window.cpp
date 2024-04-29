@@ -193,7 +193,7 @@ void MainWindow::on_show_indices(wxCommandEvent&) {
 
 void MainWindow::on_about(wxCommandEvent&) {
     wxMessageBox(
-        "Checkers Tester, comparing the strength of two engines.",
+        "Checkers Tester, comparing the strengths of two engines.",
         "About",
         wxOK | wxICON_INFORMATION
     );

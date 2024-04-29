@@ -120,7 +120,13 @@ namespace moves {
         return result_index;
     }
 
-    static bool check_piece_jumps(std::vector<game::Move>& moves, game::Idx square_index, game::Player player, bool king, JumpCtx& ctx) {
+    static bool check_piece_jumps(
+        std::vector<game::Move>& moves,
+        game::Idx square_index,
+        game::Player player,
+        bool king,
+        JumpCtx& ctx
+    ) {
         Direction directions[4u] {};
         std::size_t index {0u};
 
@@ -198,7 +204,13 @@ namespace moves {
         return sequence_jumps_ended;
     }
 
-    static void generate_piece_capture_moves(const game::Board& board, game::Player player, game::Idx square_index, bool king, std::vector<game::Move>& moves) {
+    static void generate_piece_capture_moves(
+        const game::Board& board,
+        game::Player player,
+        game::Idx square_index,
+        bool king,
+        std::vector<game::Move>& moves
+    ) {
         JumpCtx ctx;
         ctx.board = board;
         ctx.source_index = square_index;
@@ -206,7 +218,13 @@ namespace moves {
         check_piece_jumps(moves, square_index, player, king, ctx);
     }
 
-    static void generate_piece_moves(const game::Board& board, game::Player player, game::Idx square_index, bool king, std::vector<game::Move>& moves) {
+    static void generate_piece_moves(
+        const game::Board& board,
+        game::Player player,
+        game::Idx square_index,
+        bool king,
+        std::vector<game::Move>& moves
+    ) {
         Direction directions[4u] {};
         std::size_t index {0u};
 

@@ -24,3 +24,8 @@ add_executable(checkers-engine
 )
 
 set_compile_options(checkers-engine)
+
+if(UNIX)
+    target_compile_options(checkers-engine PRIVATE "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer" "-libasan")
+    target_link_options(checkers-engine PRIVATE "-fsanitize=address" "-fsanitize=undefined")
+endif()
