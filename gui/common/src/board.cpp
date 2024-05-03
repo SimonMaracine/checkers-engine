@@ -250,6 +250,7 @@ namespace board {
         refresh_canvas();
     }
 
+#if 0
     void CheckersBoard::on_mouse_right_down(wxMouseEvent& event) {
         if (!user_input) {
             return;
@@ -293,6 +294,26 @@ namespace board {
 
         refresh_canvas();
     }
+#endif
+
+    void CheckersBoard::on_mouse_right_down(wxMouseEvent&) {
+        if (!user_input) {
+            return;
+        }
+
+        if (game_over != GameOver::None) {
+            return;
+        }
+
+        if (selected_piece_index == NULL_INDEX) {
+            return;
+        }
+
+        selected_piece_index = NULL_INDEX;
+        jump_square_indices.clear();
+
+        refresh_canvas();
+    }
 
     int CheckersBoard::get_square(wxPoint position) const {
         const int SQUARE_SIZE {board_size / 8};
@@ -321,6 +342,7 @@ namespace board {
     }
 
     bool CheckersBoard::select_piece(Idx square_index) {
+#if 0
         if (selected_piece_index == square_index) {
             selected_piece_index = NULL_INDEX;
             jump_square_indices.clear();
@@ -329,8 +351,9 @@ namespace board {
 
             return false;
         }
+#endif
 
-        if (board[square_index] != Square::None) {
+        if (board[square_index] != Square::None && selected_piece_index != square_index) {
             selected_piece_index = square_index;
             jump_square_indices.clear();
 
@@ -671,7 +694,10 @@ namespace board {
 
         const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1u]};
 
-        assert(board[destination_index] == Square::None);
+        assert(
+            board[destination_index] == Square::None ||
+            move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+        );
 
         remove_jumped_pieces(move);
         std::swap(board[move.capture.source_index], board[destination_index]);
@@ -702,7 +728,10 @@ namespace board {
     }
 
     void CheckersBoard::remove_jumped_pieces(const Move& move) {
-        assert(board[move.capture.destination_indices[0u]] == Square::None);
+        assert(
+            board[move.capture.destination_indices[0u]] == Square::None ||
+            move.capture.source_index == move.capture.destination_indices[0u]
+        );
 
         const Idx index {get_jumped_piece_index(
             to_1_32(move.capture.source_index),
@@ -714,7 +743,10 @@ namespace board {
         board[to_0_31(index)] = Square::None;
 
         for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
-            assert(board[move.capture.destination_indices[i + 1u]] == Square::None);
+            assert(
+                board[move.capture.destination_indices[i + 1u]] == Square::None ||
+                move.capture.source_index == move.capture.destination_indices[i + 1u]
+            );
 
             const Idx index {get_jumped_piece_index(
                 to_1_32(move.capture.destination_indices[i]),

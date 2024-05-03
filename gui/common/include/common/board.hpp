@@ -102,7 +102,7 @@ namespace board {
 
         void on_paint(wxPaintEvent&);
         void on_mouse_left_down(wxMouseEvent& event);
-        void on_mouse_right_down(wxMouseEvent& event);
+        void on_mouse_right_down(wxMouseEvent&);
 
         int get_square(wxPoint position) const;
         static std::pair<int, int> get_square(int square);

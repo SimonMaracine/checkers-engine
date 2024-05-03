@@ -30,7 +30,10 @@ namespace moves {
     static void remove_jumped_pieces(game::Board& board, const game::Move& move) {
         assert(move.type == game::MoveType::Capture);
 
-        assert(board[move.capture.destination_indices[0u]] == game::Square::None);
+        assert(
+            board[move.capture.destination_indices[0u]] == game::Square::None ||
+            move.capture.source_index == move.capture.destination_indices[0u]
+        );
 
         const auto index {get_jumped_piece_index(
             game::to_1_32(move.capture.source_index),
