@@ -6,6 +6,12 @@
 #include <iterator>
 #include <utility>
 
+/*
+    triggered assertions B:W2,3,4,6,7,8,10,11,12,13,14:B17,20,21,25,23,27,28,29,30,31,32
+
+    capture loop B:W1,2,3,26,18,17,25:BK30,28
+*/
+
 namespace moves {
     static game::Idx get_jumped_piece_index(game::Idx index1, game::Idx index2) {
         // This works with indices in the range [1, 32]
@@ -36,7 +42,10 @@ namespace moves {
         board[game::to_0_31(index)] = game::Square::None;
 
         for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
-            assert(board[move.capture.destination_indices[i + 1u]] == game::Square::None);  // FIXME this failed randomly
+            assert(
+                board[move.capture.destination_indices[i + 1u]] == game::Square::None ||
+                move.capture.source_index == move.capture.destination_indices[i + 1u]
+            );
 
             const auto index {get_jumped_piece_index(
                 game::to_1_32(move.capture.destination_indices[i]),
@@ -337,7 +346,10 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
-                assert(node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);  // FIXME this failed randomly, for a billion times
+                assert(
+                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None ||
+                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+                );
 
                 remove_jumped_pieces(node.board, move);
                 std::swap(
