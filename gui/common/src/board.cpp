@@ -8,6 +8,8 @@
 #include <iterator>
 #include <sstream>
 
+#include "wood_click.hpp"
+
 /*
     branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
     longest capture W:WK4:B6,7,8,14,15,16,22,23,24
@@ -32,6 +34,12 @@ namespace board {
     CheckersBoard::CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
         : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
         reset_position();
+
+        sound = new wxSound(wood_click_wav_len, wood_click_wav);
+    }
+
+    CheckersBoard::~CheckersBoard() {
+        delete sound;
     }
 
     void CheckersBoard::set_board_size(int size) {
@@ -687,6 +695,8 @@ namespace board {
         check_legal_moves();  // This sets game over and has higher precedence
 
         on_piece_move(move);
+
+        sound->Play();
     }
 
     void CheckersBoard::play_capture_move(const Move& move) {
@@ -709,6 +719,8 @@ namespace board {
         check_legal_moves();  // This sets game over and has higher precedence
 
         on_piece_move(move);
+
+        sound->Play();
     }
 
     void CheckersBoard::select_jump_square(Idx square_index) {
