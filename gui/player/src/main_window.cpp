@@ -488,6 +488,8 @@ void MainWindow::process_engine_message(const std::string& message) {
         pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
 
         Layout();
+    } else if (tokens.at(0u) == "INFO") {
+        std::cout << "eval " << tokens.at(4u) << '\n';
     }
 }
 
