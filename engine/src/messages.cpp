@@ -80,4 +80,15 @@ namespace messages {
 
         std::cout << std::endl;
     }
+
+    void info(unsigned int nodes, evaluation::Eval eval, double time) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
+        std::cout << "INFO ";
+        std::cout << "nodes " << nodes << ' ';
+        std::cout << "eval " << eval << ' ';
+        std::cout << "time " << time;
+
+        std::cout << std::endl;
+    }
 }

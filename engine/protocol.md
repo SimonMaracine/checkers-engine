@@ -115,3 +115,15 @@ consists of the parameter name and its type. The list can be empty, if the engin
 ### PARAMETER \<name\> \<value\>
 
 Responds with the name and value of the requested parameter after a **GETPARAMETER** command.
+
+### INFO [nodes \<value\>] [eval \<value\>] time \<value\>
+
+Informs the GUI about its progress in calculating the best move. Can be sent at any time between the **GO**
+command and the **BESTMOVE** response.
+
+*nodes* represents the number of leaf nodes processed in the minimax algorithm. This value is optional,
+as the engine may not use the minimax algorithm.
+
+*eval* represents how much advantage does the current player have. It is implementation defined and optional.
+
+*time* represents the total elapsed time since the thinking algorithm began (be it minimax or anything else).

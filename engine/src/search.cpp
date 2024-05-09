@@ -6,6 +6,7 @@
 #include <cstddef>
 
 #include "moves.hpp"
+#include "messages.hpp"
 
 namespace search {
     Search::Search(
@@ -31,9 +32,9 @@ namespace search {
         const evaluation::Eval evaluation {minimax(static_cast<unsigned int>(parameters.DEPTH), 0u, current_node)};
 
         const auto end {std::chrono::steady_clock::now()};
-
-        // TODO
         const double time {std::chrono::duration<double>(end - start).count()};
+
+        messages::info(nodes_evaluated, evaluation, time);
 
         return best_move;
     }
@@ -67,7 +68,7 @@ namespace search {
 
             const auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
-            if (moves.empty()) {
+            if (moves.empty()) {  // Game over
                 nodes_evaluated++;
                 return evaluation::static_evaluation(current_node, parameters);
             }
@@ -98,7 +99,7 @@ namespace search {
 
             const auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
-            if (moves.empty()) {
+            if (moves.empty()) {  // Game over
                 nodes_evaluated++;
                 return evaluation::static_evaluation(current_node, parameters);
             }
