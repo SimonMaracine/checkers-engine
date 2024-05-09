@@ -696,7 +696,11 @@ namespace board {
 
         on_piece_move(move);
 
+        remember_move(move);
+
+#if 0
         sound->Play();
+#endif
     }
 
     void CheckersBoard::play_capture_move(const Move& move) {
@@ -720,7 +724,11 @@ namespace board {
 
         on_piece_move(move);
 
+        remember_move(move);
+
+#if 0
         sound->Play();
+#endif
     }
 
     void CheckersBoard::select_jump_square(Idx square_index) {
@@ -769,6 +777,14 @@ namespace board {
 
             board[to_0_31(index)] = Square::None;
         }
+    }
+
+    void CheckersBoard::remember_move(const Move& move) {
+        if (last_moves.size() == 2u) {
+            last_moves.erase(last_moves.cbegin());
+        }
+
+        last_moves.push_back(move);
     }
 
     CheckersBoard::Idx CheckersBoard::get_jumped_piece_index(Idx index1, Idx index2) {
@@ -994,6 +1010,7 @@ namespace board {
         jump_square_indices.clear();
         plies_without_advancement = 0u;
         game_over = GameOver::None;
+        last_moves = {};
         repetition.positions.clear();
     }
 
@@ -1009,6 +1026,7 @@ namespace board {
         const auto GOLD {wxColour(160, 160, 10)};
         const auto WHITE {wxColour(200, 200, 200)};
         const auto BLACK {wxColour(80, 60, 40)};
+        const auto GREEN {wxColour(70, 140, 70)};
         const int SQUARE_SIZE {board_size / 8};
 
         {
@@ -1148,6 +1166,43 @@ namespace board {
                 dc.SetBrush(wxBrush(GOLD));
                 dc.SetPen(wxPen(GOLD));
                 dc.DrawCircle(position, PIECE_SIZE / 3);
+            }
+        }
+
+        for (const Move& move : last_moves) {
+            switch (move.type) {
+                case MoveType::Normal: {
+                    const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.normal.source_index)))};
+                    const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
+
+                    dc.SetBrush(wxBrush(GREEN));
+                    dc.SetPen(wxPen(GREEN));
+                    dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
+                    dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
+
+                    break;
+                }
+                case MoveType::Capture: {
+                    const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.source_index)))};
+                    const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
+
+                    dc.SetBrush(wxBrush(GREEN));
+                    dc.SetPen(wxPen(GREEN));
+                    dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
+                    dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
+
+                    for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+                        const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.destination_indices[i])))};
+                        const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
+
+                        dc.SetBrush(wxBrush(GREEN));
+                        dc.SetPen(wxPen(GREEN));
+                        dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
+                        dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
+                    }
+
+                    break;
+                }
             }
         }
     }

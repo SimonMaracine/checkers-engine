@@ -126,6 +126,7 @@ namespace board {
         void select_jump_square(Idx square_index);
         void deselect_jump_square(Idx square_index);
         void remove_jumped_pieces(const Move& move);
+        void remember_move(const Move& move);
         static Idx get_jumped_piece_index(Idx index1, Idx index2);
         static bool validate_fen_string(const std::string& fen_string);
         static Player parse_player(const std::string& fen_string, std::size_t index);
@@ -164,6 +165,7 @@ namespace board {
         std::vector<Idx> jump_square_indices;
         unsigned int plies_without_advancement {0u};
         GameOver game_over {GameOver::None};
+        std::vector<Move> last_moves;
 
         struct Repetition {
             struct Position {
