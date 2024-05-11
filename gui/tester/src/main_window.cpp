@@ -7,7 +7,6 @@
 #include <fstream>
 
 #include <wx/statline.h>
-
 #include <common/fen_string.hpp>
 
 enum {
@@ -21,6 +20,7 @@ enum {
 
 static const wxString ENGINE_BLACK {"Black engine: "};
 static const wxString ENGINE_WHITE {"White engine: "};
+static const wxString EVAL {"Eval: "};
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(START_ENGINE_BLACK, MainWindow::on_start_engine_black)
@@ -108,6 +108,9 @@ void MainWindow::setup_widgets() {
         {
             txt_engine_black = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_BLACK);
             szr_right_side->Add(txt_engine_black);
+
+            txt_eval_black = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
+            szr_right_side->Add(txt_eval_black);
         }
 
         szr_right_side->AddSpacer(10);
@@ -127,6 +130,9 @@ void MainWindow::setup_widgets() {
         {
             txt_engine_white = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_WHITE);
             szr_right_side->Add(txt_engine_white);
+
+            txt_eval_white = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
+            szr_right_side->Add(txt_eval_white);
         }
 
         szr_right_side->AddSpacer(10);
@@ -374,6 +380,7 @@ int MainWindow::get_ideal_board_size() {
 
 void MainWindow::process_engine_message(const std::string& message, Player player) {
     parameters::ParametersPanel* pnl_parameters {player == Player::Black ? pnl_parameters_black : pnl_parameters_white};
+    wxStaticText* txt_eval {player == Player::Black ? txt_eval_black : txt_eval_white};
 
     auto tokens {parse_message(message)};
 
@@ -404,6 +411,10 @@ void MainWindow::process_engine_message(const std::string& message, Player playe
         pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
 
         Layout();
+    } else if (tokens.at(0u) == "INFO") {
+        std::cout << message;  // It already has a new line
+
+        txt_eval->SetLabelText(EVAL + tokens.at(4u));
     }
 }
 

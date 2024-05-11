@@ -9,6 +9,8 @@
 #include "error.hpp"
 
 namespace engine {
+    static const char* START_POSITION {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
+
     static void reset_position(EngineData& data, const std::string& fen_string) {
         game::set_position(data.game.position.position, fen_string);
 
@@ -77,7 +79,7 @@ namespace engine {
             }
         });
 
-        reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
+        reset_position(data, START_POSITION);
 
         // Store the initial position too
         data.game.previous_positions.push_back(data.game.position);
@@ -94,7 +96,7 @@ namespace engine {
         if (position) {
             reset_position(data, *position);
         } else {
-            reset_position(data, "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32");
+            reset_position(data, START_POSITION);
         }
 
         // Store the initial position too, as it can be any specific position

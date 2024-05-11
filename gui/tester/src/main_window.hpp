@@ -61,6 +61,9 @@ private:
     wxStaticText* txt_engine_black {nullptr};
     wxStaticText* txt_engine_white {nullptr};
 
+    wxStaticText* txt_eval_black {nullptr};
+    wxStaticText* txt_eval_white {nullptr};
+
     std::unique_ptr<engine::Engine> engine_black;
     std::unique_ptr<engine::Engine> engine_white;
 

@@ -126,4 +126,4 @@ as the engine may not use the minimax algorithm.
 
 *eval* represents how much advantage does the current player have. It is implementation defined and optional.
 
-*time* represents the total elapsed time since the thinking algorithm began (be it minimax or anything else).
+*time* represents the total elapsed time since the thinking algorithm started (be it minimax or anything else).

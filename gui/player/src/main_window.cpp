@@ -6,7 +6,6 @@
 #include <cassert>
 
 #include <wx/statline.h>
-
 #include <common/fen_string.hpp>
 
 enum {
@@ -489,7 +488,7 @@ void MainWindow::process_engine_message(const std::string& message) {
 
         Layout();
     } else if (tokens.at(0u) == "INFO") {
-        std::cout << "eval " << tokens.at(4u) << '\n';
+        std::cout << message;  // It already has a new line
     }
 }
 
