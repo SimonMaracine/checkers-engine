@@ -2,18 +2,19 @@
 
 #include <functional>
 
-#include "loop.hpp"
 #include "engine.hpp"
+#include "input_tokens.hpp"
 
 namespace commands {
-    using TryCommand = std::function<bool(engine::EngineData&, const loop::InputTokens&)>;
+    using Command = std::function<void(engine::EngineData&, const input_tokens::InputTokens&)>;
 
-    bool try_init(engine::EngineData& data, const loop::InputTokens&);
-    bool try_newgame(engine::EngineData& data, const loop::InputTokens& input_tokens);
-    bool try_move(engine::EngineData& data, const loop::InputTokens& input_tokens);
-    bool try_go(engine::EngineData& data, const loop::InputTokens& input_tokens);
-    bool try_stop(engine::EngineData& data, const loop::InputTokens&);
-    bool try_getparameters(engine::EngineData& data, const loop::InputTokens&);
-    bool try_setparameter(engine::EngineData& data, const loop::InputTokens& input_tokens);
-    bool try_getparameter(engine::EngineData& data, const loop::InputTokens& input_tokens);
+    void init(engine::EngineData& data, const input_tokens::InputTokens&);
+    void newgame(engine::EngineData& data, const input_tokens::InputTokens& tokens);
+    void move(engine::EngineData& data, const input_tokens::InputTokens& tokens);
+    void go(engine::EngineData& data, const input_tokens::InputTokens& tokens);
+    void stop(engine::EngineData& data, const input_tokens::InputTokens&);
+    void getparameters(engine::EngineData& data, const input_tokens::InputTokens&);
+    void setparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens);
+    void getparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens);
+    void quit(engine::EngineData& data, const input_tokens::InputTokens&);
 }

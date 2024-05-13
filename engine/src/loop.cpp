@@ -1,12 +1,17 @@
 #include "loop.hpp"
 
 #include <iostream>
+#include <string>
+#include <vector>
+#include <cstddef>
+#include <utility>
 #include <cstring>
 #include <unordered_map>
 #include <cassert>
 
 #include "commands.hpp"
 #include "messages.hpp"
+#include "input_tokens.hpp"
 #include "error.hpp"
 
 namespace loop {
@@ -36,7 +41,7 @@ namespace loop {
         }
     }
 
-    static InputTokens tokenize_input(std::string&& input) {
+    static input_tokens::InputTokens tokenize_input(std::string&& input) {
         std::vector<std::string> tokens;
 
         char* token {std::strtok(input.data(), " \t")};
@@ -47,63 +52,49 @@ namespace loop {
             token = std::strtok(nullptr, " \t");
         }
 
-        return InputTokens(std::move(tokens));
+        return input_tokens::InputTokens(std::move(tokens));
     }
 
-    static bool execute_command(engine::EngineData& data, const InputTokens& input_tokens) {
-        static const std::unordered_map<std::string, commands::TryCommand> COMMANDS {
-            { "INIT", commands::try_init },
-            { "NEWGAME", commands::try_newgame },
-            { "MOVE", commands::try_move },
-            { "GO", commands::try_go },
-            { "STOP", commands::try_stop },
-            { "GETPARAMETERS", commands::try_getparameters },
-            { "SETPARAMETER", commands::try_setparameter },
-            { "GETPARAMETER", commands::try_getparameter }
+    static void execute_command(engine::EngineData& data, const input_tokens::InputTokens& input_tokens) {
+        static const std::unordered_map<std::string, commands::Command> COMMANDS {
+            { "INIT", commands::init },
+            { "NEWGAME", commands::newgame },
+            { "MOVE", commands::move },
+            { "GO", commands::go },
+            { "STOP", commands::stop },
+            { "GETPARAMETERS", commands::getparameters },
+            { "SETPARAMETER", commands::setparameter },
+            { "GETPARAMETER", commands::getparameter }
         };
 
         const auto command_name {input_tokens[0u]};
 
         if (COMMANDS.find(command_name) == COMMANDS.cend()) {
-            return false;
+            return;
         }
 
         // Call the command; may throw errors
-        if (!COMMANDS.at(command_name)(data, input_tokens)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    bool InputTokens::find(std::size_t index) const {
-        return index < tokens.size();
-    }
-
-    const std::string& InputTokens::operator[](std::size_t index) const {
-        assert(index < tokens.size());
-
-        return tokens[index];
+        COMMANDS.at(command_name)(data, input_tokens);
     }
 
     int main_loop(engine::EngineData& data) {
         while (true) {
             auto input {read_input()};
 
-            const InputTokens input_tokens {tokenize_input(std::move(input))};
+            const input_tokens::InputTokens tokens {tokenize_input(std::move(input))};
 
-            if (input_tokens.empty()) {
+            if (tokens.empty()) {
                 continue;
             }
 
             // Handle QUIT separately
-            if (input_tokens[0u] == "QUIT") {
-                engine::quit(data);
+            if (tokens[0u] == "QUIT") {
+                commands::quit(data, tokens);
                 break;
             }
 
             try {
-                [[maybe_unused]] const auto result {execute_command(data, input_tokens)};
+                execute_command(data, tokens);
             } catch (error::Error) {
                 return 1;
             }

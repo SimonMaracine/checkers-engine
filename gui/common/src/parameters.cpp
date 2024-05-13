@@ -1,7 +1,5 @@
 #include "common/parameters.hpp"
 
-#include <iostream>  // TODO temporary
-
 #include <wx/spinctrl.h>
 
 namespace parameters {
@@ -52,7 +50,6 @@ namespace parameters {
             wxEVT_SPINCTRL,
             [this, name](wxSpinEvent& event) {
                 engine->setparameter(name, std::to_string(event.GetValue()));
-                std::cout << event.GetValue() << '\n';
             },
             id
         );

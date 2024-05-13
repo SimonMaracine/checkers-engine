@@ -10,6 +10,7 @@ add_executable(checkers-engine
     "src/evaluation.hpp"
     "src/game.cpp"
     "src/game.hpp"
+    "src/input_tokens.hpp"
     "src/loop.cpp"
     "src/loop.hpp"
     "src/main.cpp"
@@ -25,7 +26,9 @@ add_executable(checkers-engine
 
 set_compile_options(checkers-engine)
 
-if(UNIX)
+if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(checkers-engine PRIVATE "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer" "-libasan")
     target_link_options(checkers-engine PRIVATE "-fsanitize=address" "-fsanitize=undefined")
+
+    message(STATUS "Building engine with sanitizers")
 endif()

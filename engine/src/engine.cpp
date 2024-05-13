@@ -187,15 +187,27 @@ namespace engine {
     }
 
     void getparameter(const engine::EngineData& data, const std::string& name) {
-        messages::parameter(name, data.minimax.parameters.at(name));
+        const auto iter {data.minimax.parameters.find(name)};
+
+        if (iter == data.minimax.parameters.cend()) {
+            return;
+        }
+
+        messages::parameter(name, iter->second);
     }
 
     void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {
-        const Param& parameter {data.minimax.parameters.at(name)};
+        auto iter {data.minimax.parameters.find(name)};
+
+        if (iter == data.minimax.parameters.cend()) {
+            return;
+        }
+
+        Param& parameter {iter->second};
 
         switch (parameter.index()) {
             case 0u:
-                data.minimax.parameters[name] = parse_int(value);
+                parameter = parse_int(value);
                 break;
             default:
                 assert(false);

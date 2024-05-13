@@ -11,7 +11,7 @@ namespace search {
     }
 
     bool eighty_move_rule(const SearchNode& node) {
-        return node.plies_without_advancement == 80u;  // TODO is it 80 or 40?
+        return node.plies_without_advancement == 80u;
     }
 
     bool threefold_repetition_rule(const SearchNode& node) {
