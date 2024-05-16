@@ -294,7 +294,7 @@ namespace moves {
     }
 
     void play_move(game::Position& position, const game::Move& move) {
-        auto& board {position.position.board};
+        auto& board {position.board};
 
         switch (move.type) {
             case game::MoveType::Normal:
@@ -327,7 +327,7 @@ namespace moves {
                 break;
         }
 
-        position.position.player = game::opponent(position.position.player);
+        position.player = game::opponent(position.player);
         position.plies++;
     }
 

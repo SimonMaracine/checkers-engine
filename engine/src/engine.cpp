@@ -12,7 +12,7 @@ namespace engine {
     static const char* START_POSITION {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
 
     static void reset_position(EngineData& data, const std::string& fen_string) {
-        game::set_position(data.game.position.position, fen_string);
+        game::set_position(data.game.position, fen_string);
 
         data.game.position.plies = 0u;
         data.game.position.plies_without_advancement = 0u;
@@ -40,7 +40,7 @@ namespace engine {
         return result;
     }
 
-    void init(engine::EngineData& data) {
+    void init(EngineData& data) {
         if (data.minimax.running) {
             throw error::Error();
         }
@@ -89,7 +89,7 @@ namespace engine {
     }
 
     void newgame(
-        engine::EngineData& data,
+        EngineData& data,
         const std::optional<std::string>& position,
         const std::optional<std::vector<std::string>>& moves
     ) {
@@ -113,14 +113,14 @@ namespace engine {
         }
     }
 
-    void move(engine::EngineData& data, const std::string& move) {
+    void move(EngineData& data, const std::string& move) {
         game::make_move(data.game.position, move);
 
         data.game.previous_positions.push_back(data.game.position);
         data.game.moves_played.push_back(game::parse_move(move));
     }
 
-    void go(engine::EngineData& data, bool dont_play_move) {
+    void go(EngineData& data, bool dont_play_move) {
         if (!data.minimax.running) {
             throw error::Error();
         }
@@ -176,17 +176,17 @@ namespace engine {
         }
     }
 
-    void stop(engine::EngineData& data) {
+    void stop(EngineData& data) {
         if (data.minimax.should_stop != nullptr) {
             *data.minimax.should_stop = true;
         }
     }
 
-    void getparameters(const engine::EngineData& data) {
+    void getparameters(const EngineData& data) {
         messages::parameters(data.minimax.parameters);
     }
 
-    void getparameter(const engine::EngineData& data, const std::string& name) {
+    void getparameter(const EngineData& data, const std::string& name) {
         const auto iter {data.minimax.parameters.find(name)};
 
         if (iter == data.minimax.parameters.cend()) {
@@ -196,7 +196,7 @@ namespace engine {
         messages::parameter(name, iter->second);
     }
 
-    void setparameter(engine::EngineData& data, const std::string& name, const std::string& value) {
+    void setparameter(EngineData& data, const std::string& name, const std::string& value) {
         auto iter {data.minimax.parameters.find(name)};
 
         if (iter == data.minimax.parameters.cend()) {
@@ -215,7 +215,7 @@ namespace engine {
         }
     }
 
-    void quit(engine::EngineData& data) {
+    void quit(EngineData& data) {
         if (!data.minimax.running) {
             throw error::Error();
         }

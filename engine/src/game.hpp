@@ -27,13 +27,9 @@ namespace game {
 
     using Board = std::array<Square, 32u>;
 
-    struct FenPosition {
+    struct Position {
         Board board {};
         Player player {Player::Black};
-    };
-
-    struct Position {
-        FenPosition position;
         unsigned int plies {0u};  // TODO might not be needed
         unsigned int plies_without_advancement {0u};
     };
@@ -61,7 +57,7 @@ namespace game {
         MoveType type {};
     };
 
-    void set_position(FenPosition& position, const std::string& fen_string);
+    void set_position(Position& position, const std::string& fen_string);
     void make_move(Position& position, const std::string& move_string);
     Move parse_move(const std::string& move_string);
     Player opponent(Player player);

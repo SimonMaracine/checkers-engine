@@ -19,6 +19,5 @@ endfunction()
 
 add_subdirectory(gui)
 add_subdirectory(engine)
-add_subdirectory(tests)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

@@ -10,7 +10,7 @@ namespace search {
         current.previous = &previous;
     }
 
-    bool eighty_move_rule(const SearchNode& node) {
+    bool forty_move_rule(const SearchNode& node) {
         return node.plies_without_advancement == 80u;
     }
 

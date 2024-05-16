@@ -2,3 +2,7 @@
 	path = gui/extern/wxWidgets
 	url = https://github.com/wxWidgets/wxWidgets/
 	branch = 3.2
+[submodule "engine/tests/extern/googletest"]
+	path = engine/tests/extern/googletest
+	url = https://github.com/google/googletest
+	branch = v1.14.x

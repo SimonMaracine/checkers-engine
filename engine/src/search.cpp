@@ -53,7 +53,7 @@ namespace search {
             return evaluation::static_evaluation(current_node, parameters);
         }
 
-        if (eighty_move_rule(current_node)) {
+        if (forty_move_rule(current_node)) {
             nodes_evaluated++;
             return 0;
         }
@@ -143,8 +143,8 @@ namespace search {
                 nodes.clear();
             } else {
                 SearchNode node;
-                node.board = position.position.board;
-                node.player = position.position.player;
+                node.board = position.board;
+                node.player = position.player;
                 node.plies = position.plies;
                 node.plies_without_advancement = position.plies_without_advancement;
 
@@ -153,8 +153,8 @@ namespace search {
         }
 
         SearchNode current_node;
-        current_node.board = position.position.board;
-        current_node.player = position.position.player;
+        current_node.board = position.board;
+        current_node.player = position.player;
         current_node.plies = position.plies;
         current_node.plies_without_advancement = position.plies_without_advancement;
 
@@ -172,7 +172,7 @@ namespace search {
 
     bool Search::is_advancement(const game::Position& position, const game::Move& move) {
         if (move.type == game::MoveType::Normal) {
-            return !game::is_king_piece(position.position.board[move.normal.destination_index]);
+            return !game::is_king_piece(position.board[move.normal.destination_index]);
         } else {
             return true;
         }

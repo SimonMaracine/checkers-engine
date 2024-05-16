@@ -190,7 +190,7 @@ namespace game {
         }
     }
 
-    void set_position(FenPosition& position, const std::string& fen_string) {
+    void set_position(Position& position, const std::string& fen_string) {
         if (!valid_fen_string(fen_string)) {
             throw error::Error();
         }
