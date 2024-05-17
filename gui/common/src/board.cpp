@@ -999,6 +999,7 @@ namespace board {
             return true;
         } else {
             assert(false);
+            return {};
         }
     }
 

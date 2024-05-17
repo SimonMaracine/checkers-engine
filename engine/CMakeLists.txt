@@ -38,9 +38,7 @@ endif()
 
 # Executable
 
-add_executable(checkers-engine
-    "src/main.cpp"
-)
+add_executable(checkers-engine "src/main.cpp")
 
 target_link_libraries(checkers-engine PRIVATE checkers-engine-core)
 
