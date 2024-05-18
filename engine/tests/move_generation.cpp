@@ -1,12 +1,14 @@
+#include <iostream>
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <moves.hpp>
 #include <game.hpp>
 
-static unsigned int count_moves(unsigned int depth, game::Position& position) {
-    unsigned int total_moves {0u};
+static std::uint64_t count_moves(unsigned int depth, game::Position& position) {
+    std::uint64_t total_moves {0u};
 
     if (depth == 0u) {
-        return 1u;
+        return 1ul;
     }
 
     const auto moves {moves::generate_moves(position.board, position.player)};
@@ -18,10 +20,14 @@ static unsigned int count_moves(unsigned int depth, game::Position& position) {
         total_moves += count_moves(depth - 1u, new_position);
     }
 
+    if (position.plies == 1u) {
+        std::cout << total_moves << '\n';
+    }
+
     return total_moves;
 }
 
-static unsigned int test_moves_from_position(unsigned int depth, const char* fen_string) {
+static std::uint64_t test_moves_from_position(unsigned int depth, const char* fen_string) {
     game::Position position;
     game::set_position(position, fen_string);
 
@@ -33,7 +39,7 @@ static unsigned int test_moves_from_position(unsigned int depth, const char* fen
 TEST(move_generation, move_generation_start) {
     const char* fen_string {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
 
-# if 1
+#if 0
     ASSERT_EQ(test_moves_from_position(1u, fen_string), 7u);
     ASSERT_EQ(test_moves_from_position(2u, fen_string), 49u);
     ASSERT_EQ(test_moves_from_position(3u, fen_string), 302u);
@@ -47,8 +53,9 @@ TEST(move_generation, move_generation_start) {
     ASSERT_EQ(test_moves_from_position(11u, fen_string), 85242128u);
     ASSERT_EQ(test_moves_from_position(12u, fen_string), 388623673u);
     ASSERT_EQ(test_moves_from_position(13u, fen_string), 1766623630u);
+#elif 1
+    ASSERT_EQ(test_moves_from_position(14u, fen_string), 7978439499ul);
 #else
-    ASSERT_EQ(test_moves_from_position(14u, fen_string), 7978439499u);  // FIXME fail
-    ASSERT_EQ(test_moves_from_position(15u, fen_string), 36263167175u);
+    ASSERT_EQ(test_moves_from_position(15u, fen_string), 36263167175ul);
 #endif
 }

@@ -287,6 +287,8 @@ namespace moves {
                 board[square_index] = game::Square::BlackKing;
             }
         } else {  // Assume it's white
+            assert(game::is_white_piece(board[square_index]));
+
             if (row == 7) {
                 board[square_index] = game::Square::WhiteKing;
             }
@@ -298,6 +300,7 @@ namespace moves {
 
         switch (move.type) {
             case game::MoveType::Normal:
+                assert(board[move.normal.source_index] != game::Square::None);
                 assert(board[move.normal.destination_index] == game::Square::None);  // FIXME this failed in endgame when I switched from computer to human
 
                 std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
@@ -312,7 +315,11 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
-                assert(board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None);
+                assert(board[move.capture.source_index] != game::Square::None);
+                assert(
+                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None ||
+                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+                );
 
                 remove_jumped_pieces(board, move);
                 std::swap(
@@ -334,6 +341,7 @@ namespace moves {
     void play_move(search::SearchNode& node, const game::Move& move) {
         switch (move.type) {
             case game::MoveType::Normal:
+                assert(node.board[move.normal.source_index] != game::Square::None);
                 assert(node.board[move.normal.destination_index] == game::Square::None);
 
                 std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);
@@ -349,6 +357,7 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
+                assert(node.board[move.capture.source_index] != game::Square::None);
                 assert(
                     node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None ||
                     move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]

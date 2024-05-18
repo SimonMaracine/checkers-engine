@@ -187,6 +187,7 @@ namespace game {
             return true;
         } else {
             assert(false);
+            return {};
         }
     }
 

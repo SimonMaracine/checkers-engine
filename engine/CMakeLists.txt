@@ -36,6 +36,10 @@ if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Building engine with sanitizers")
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(checkers-engine-core PRIVATE "NDEBUG")
+endif()
+
 # Executable
 
 add_executable(checkers-engine "src/main.cpp")
