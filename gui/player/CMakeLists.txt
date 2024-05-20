@@ -10,7 +10,7 @@ target_link_libraries(player PRIVATE wxmono common)
 
 target_compile_definitions(player PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_sanitizers(player)
 endif()
 

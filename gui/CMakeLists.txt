@@ -8,8 +8,10 @@ function(set_linux_defines TARGET)
 endfunction()
 
 function(set_sanitizers TARGET)
-    target_compile_options(${TARGET} PRIVATE "-fsanitize=undefined" "-g")
-    target_link_options(${TARGET} PRIVATE "-static-libasan" "-fsanitize=undefined")
+    target_compile_options(${TARGET} PRIVATE "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer" "-libasan")
+    target_link_options(${TARGET} PRIVATE "-fsanitize=address" "-fsanitize=undefined")
+
+    message(STATUS "Building ${TARGET} with sanitizers")
 endfunction()
 
 set(wxBUILD_SHARED ON)

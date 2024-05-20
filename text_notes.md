@@ -152,8 +152,7 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   în acest fi trebuie trimise mesaje, scriindu-se în fișierul stdout, și fiindcă între timp și firul principal poate
   trimite mesaje, operație aceasta de scriere trebuie protejată de un simplu mutex.
 
-<!-- TODO cum denumesc array? -->
-- Inițial am scris algoritmul minimax într-un fel foarte simplu. De date am avut nevoie doar de un array de
+- Inițial am scris algoritmul minimax într-un fel foarte simplu. De date am avut nevoie doar de un tablou de
   treizeci și două de elemente reprezentând tabla cu piesele ei. Fiecare pătrățel negru al tablei poate avea una
   din cinci stări: poate fi gol, poate avea o piesă neagră simplă, o piesă neagră rege, o piesă albă simplă sau
   o piesă albă rege.
@@ -309,3 +308,11 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
 - Această idee de abordare mi-a venit atunci când mă uitam în mare la codul motorului de șah Stockfish.
 
 <!-- TODO de asemenea, este posibilă rularea algoritmului pe mai multe fire de execuție -->
+
+- Ca să pot testa anumite funcții din motorul de dame, am transformat aproape tot codul motorului într-o bibliotecă
+  statică, pe care o leg cu executabilul, iar apoi am scris executabile separate pentru testare. Acestea, desigur,
+  sunt legate cu biblioteca statică a motorului și se folosesc de framework-ul Google Test.
+- Cel mai important lucru de testat în acest moment este generarea mutărilor. Am scris o funcție care pentru o anumită
+  adâncime generează toate posibilele poziții ale jocului și returnează numărul acestora. Apoi am comparat câteva
+  astfel de numere cu ceea ce alții au calculat deja înaintea mea: C. A. Pickover, The Math Book, Sterling, NY, 2009;
+  see p. 512.
