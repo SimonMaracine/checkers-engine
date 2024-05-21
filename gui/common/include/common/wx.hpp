@@ -9,7 +9,6 @@
 
 #include <wx/wx.h>
 #include <wx/timer.h>
-#include <wx/sound.h>
 
 #ifdef __GNUG__
     #pragma GCC diagnostic pop

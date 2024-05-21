@@ -17,7 +17,6 @@ endfunction()
 set(wxBUILD_SHARED ON)
 set(wxBUILD_MONOLITHIC ON)
 # set(wxBUILD_SAMPLES SOME)
-set(wxUSE_LIBSDL ON)
 
 add_subdirectory(extern/wxWidgets)
 

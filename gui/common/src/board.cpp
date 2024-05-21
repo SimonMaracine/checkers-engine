@@ -34,12 +34,6 @@ namespace board {
     CheckersBoard::CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
         : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
         reset_position();
-
-        sound = new wxSound(wood_click_wav_len, wood_click_wav);
-    }
-
-    CheckersBoard::~CheckersBoard() {
-        delete sound;
     }
 
     void CheckersBoard::set_board_size(int size) {

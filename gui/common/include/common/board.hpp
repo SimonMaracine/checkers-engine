@@ -54,7 +54,6 @@ namespace board {
         using OnPieceMove = std::function<void(const Move&)>;
 
         CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move);
-        ~CheckersBoard();
 
         void set_board_size(int size);
         void reset_position();
@@ -179,8 +178,6 @@ namespace board {
 
             std::vector<Position> positions;
         } repetition;
-
-        wxSound* sound {nullptr};
 
         wxDECLARE_EVENT_TABLE();
     };
