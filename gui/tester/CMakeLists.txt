@@ -14,5 +14,5 @@ if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_sanitizers(tester)
 endif()
 
-set_compile_options(tester)
+set_compile_options_features(tester)
 set_linux_defines(tester)

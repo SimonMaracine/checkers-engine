@@ -27,10 +27,10 @@ add_library(checkers-engine-core STATIC
 
 target_include_directories(checkers-engine-core PUBLIC "src")
 
-set_compile_options(checkers-engine-core)
+set_compile_options_features(checkers-engine-core)
 
 if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer" "-libasan")
+    target_compile_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer")
     target_link_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined")
 
     message(STATUS "Building engine with sanitizers")
@@ -46,7 +46,7 @@ add_executable(checkers-engine "src/main.cpp")
 
 target_link_libraries(checkers-engine PRIVATE checkers-engine-core)
 
-set_compile_options(checkers-engine)
+set_compile_options_features(checkers-engine)
 
 # Tests
 

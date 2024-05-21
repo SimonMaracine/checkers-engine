@@ -14,5 +14,5 @@ if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_sanitizers(player)
 endif()
 
-set_compile_options(player)
+set_compile_options_features(player)
 set_linux_defines(player)

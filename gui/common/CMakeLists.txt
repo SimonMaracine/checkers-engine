@@ -26,5 +26,5 @@ if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_sanitizers(common)
 endif()
 
-set_compile_options(common)
+set_compile_options_features(common)
 set_linux_defines(common)
