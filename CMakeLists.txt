@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Variable used to control the build type")
-
 project("checkers-artificial-intelligence" LANGUAGES CXX)
+
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Variable used to control the build type")
 
 function(set_compile_options_features target)
     if(UNIX)
         target_compile_options(${target} PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wconversion")
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${target} PRIVATE "/W3")
+    elseif(MSVC)
+        target_compile_options(${target} PRIVATE "/W4")
     else()
         message(WARNING "Warnings are not enabled")
     endif()
