@@ -44,11 +44,10 @@ private:
     );
 
     void on_piece_move(const board::CheckersBoard::Move& move);
-    void on_engine_message(const std::string& message, Player player);
+    void on_engine_message(const std::string& message, bool error, Player player);
 
     void set_position(const std::optional<std::string>& fen_string);
     int get_ideal_board_size();
-    void process_engine_message(const std::string& message, Player player);
     std::vector<std::string> parse_message(const std::string& message);
     void read_positions_file(const std::string& file_path);
 

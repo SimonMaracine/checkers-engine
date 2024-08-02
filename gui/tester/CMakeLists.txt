@@ -11,7 +11,7 @@ target_link_libraries(tester PRIVATE wxmono common)
 target_compile_definitions(tester PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
 if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set_sanitizers(tester)
+    # set_sanitizers(tester)
 endif()
 
 set_compile_options_features(tester)

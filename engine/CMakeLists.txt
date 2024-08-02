@@ -30,10 +30,10 @@ target_include_directories(checkers-engine-core PUBLIC "src")
 set_compile_options_features(checkers-engine-core)
 
 if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer")
-    target_link_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined")
+    # target_compile_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer")  # FIXME make optional
+    # target_link_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined")
 
-    message(STATUS "Building engine with sanitizers")
+    # message(STATUS "Building engine with sanitizers")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")

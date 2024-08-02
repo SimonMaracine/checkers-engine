@@ -23,7 +23,7 @@ target_include_directories(common PUBLIC "include")
 target_link_libraries(common PRIVATE wxmono)
 
 if(UNIX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set_sanitizers(common)
+    # set_sanitizers(common)
 endif()
 
 set_compile_options_features(common)

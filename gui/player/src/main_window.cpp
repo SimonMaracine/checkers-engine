@@ -43,7 +43,7 @@ MainWindow::MainWindow()
     setup_widgets();
     Center();
 
-    engine = std::make_unique<engine::Engine>([this](const auto& message) { on_engine_message(message); });
+    engine = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error); });
 }
 
 void MainWindow::setup_menubar() {
@@ -410,8 +410,44 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     btn_continue->Disable();
 }
 
-void MainWindow::on_engine_message(const std::string& message) {
-    process_engine_message(message);
+void MainWindow::on_engine_message(const std::string& message, bool error) {
+    if (error) {
+        std::cerr << "Error reading message\n";
+        return;
+    }
+
+    auto tokens {parse_message(message)};
+
+    if (tokens.empty()) {
+        return;
+    }
+
+    // Remove new line from the last token
+    tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
+
+    if (tokens.at(0u) == "BESTMOVE") {
+        if (tokens.size() > 1u) {
+            board->play_move(tokens.at(1u));
+        }
+    } else if (tokens.at(0u) == "PARAMETERS") {
+        std::vector<std::pair<std::string, std::string>> parameters;
+        auto i {tokens.size() - 1u};
+
+        while (i > 0u) {
+            const auto name = tokens.at(tokens.size() - i--);
+            const auto type = tokens.at(tokens.size() - i--);
+
+            parameters.push_back(std::make_pair(name, type));
+        }
+
+        pnl_parameters->get_engine_parameters(std::move(parameters));
+    } else if (tokens.at(0u) == "PARAMETER") {
+        pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
+
+        Layout();
+    } else if (tokens.at(0u) == "INFO") {
+        std::cout << message;  // It already has a new line
+    }
 }
 
 void MainWindow::set_position(const std::optional<std::string>& fen_string) {
@@ -455,41 +491,6 @@ MainWindow::PlayerType MainWindow::get_player_type(board::CheckersBoard::Player 
     const PlayerType PLAYERS[2u] { black, white };
 
     return PLAYERS[static_cast<unsigned int>(player) - 1u];
-}
-
-void MainWindow::process_engine_message(const std::string& message) {
-    auto tokens {parse_message(message)};
-
-    if (tokens.empty()) {
-        return;
-    }
-
-    // Remove new line from the last token
-    tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
-
-    if (tokens.at(0u) == "BESTMOVE") {
-        if (tokens.size() > 1u) {
-            board->play_move(tokens.at(1u));
-        }
-    } else if (tokens.at(0u) == "PARAMETERS") {
-        std::vector<std::pair<std::string, std::string>> parameters;
-        auto i {tokens.size() - 1u};
-
-        while (i > 0u) {
-            const auto name = tokens.at(tokens.size() - i--);
-            const auto type = tokens.at(tokens.size() - i--);
-
-            parameters.push_back(std::make_pair(name, type));
-        }
-
-        pnl_parameters->get_engine_parameters(std::move(parameters));
-    } else if (tokens.at(0u) == "PARAMETER") {
-        pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
-
-        Layout();
-    } else if (tokens.at(0u) == "INFO") {
-        std::cout << message;  // It already has a new line
-    }
 }
 
 std::vector<std::string> MainWindow::parse_message(const std::string& message) {

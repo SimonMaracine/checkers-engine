@@ -42,8 +42,8 @@ MainWindow::MainWindow()
     setup_widgets();
     Center();
 
-    engine_black = std::make_unique<engine::Engine>([this](const auto& message) { on_engine_message(message, Player::Black); });
-    engine_white = std::make_unique<engine::Engine>([this](const auto& message) { on_engine_message(message, Player::White); });
+    engine_black = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::Black); });
+    engine_white = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::White); });
 }
 
 void MainWindow::setup_menubar() {
@@ -349,36 +349,12 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     }
 }
 
-void MainWindow::on_engine_message(const std::string& message, Player player) {
-    process_engine_message(message, player);
-}
-
-void MainWindow::set_position(const std::optional<std::string>& fen_string) {
-    if (!fen_string) {
-        board->reset_position();
-    } else {
-        board->set_position(*fen_string);
+void MainWindow::on_engine_message(const std::string& message, bool error, Player player) {
+    if (error) {
+        std::cerr << "Error reading message\n";
+        return;
     }
 
-    pnl_moves_log->clear_log();
-
-    pnl_game_state->reset(board);
-
-    try {
-        engine_black->newgame(fen_string);
-        engine_white->newgame(fen_string);
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error newgame: " << e.what() << '\n';
-    }
-}
-
-int MainWindow::get_ideal_board_size() {
-    const wxSize size {board->GetSize()};
-
-    return std::min(size.GetHeight(), size.GetWidth());
-}
-
-void MainWindow::process_engine_message(const std::string& message, Player player) {
     parameters::ParametersPanel* pnl_parameters {player == Player::Black ? pnl_parameters_black : pnl_parameters_white};
     wxStaticText* txt_eval {player == Player::Black ? txt_eval_black : txt_eval_white};
 
@@ -416,6 +392,31 @@ void MainWindow::process_engine_message(const std::string& message, Player playe
 
         txt_eval->SetLabelText(EVAL + tokens.at(4u));
     }
+}
+
+void MainWindow::set_position(const std::optional<std::string>& fen_string) {
+    if (!fen_string) {
+        board->reset_position();
+    } else {
+        board->set_position(*fen_string);
+    }
+
+    pnl_moves_log->clear_log();
+
+    pnl_game_state->reset(board);
+
+    try {
+        engine_black->newgame(fen_string);
+        engine_white->newgame(fen_string);
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << "Error newgame: " << e.what() << '\n';
+    }
+}
+
+int MainWindow::get_ideal_board_size() {
+    const wxSize size {board->GetSize()};
+
+    return std::min(size.GetHeight(), size.GetWidth());
 }
 
 std::vector<std::string> MainWindow::parse_message(const std::string& message) {

@@ -6,13 +6,24 @@ namespace engine {
     void EngineReader::Notify() {
         assert(callback);
 
-        std::string message;
+        bool error {false};
+        std::optional<std::string> message;
 
-        if (!process.read_from(message)) {
+        try {
+            message = process.read();
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            error = true;
+        }
+
+        if (error) {
+            callback({}, true);
             return;
         }
 
-        callback(message);
+        if (message) {
+            callback(*message, false);
+        }
     }
 
     void Engine::init(const std::string& file_path) {
@@ -22,8 +33,11 @@ namespace engine {
 
         process = subprocess::Subprocess(file_path);
 
-        if (!process.write_to("INIT\n")) {
-            throw Error("Could not write all");
+        try {
+            process.write("INIT\n");
+        } catch (const subprocess::Error& e) {
+            process.terminate();  // FIXME throws
+            throw;
         }
 
         for (unsigned int i {0u}; i < 5u; i++) {
@@ -49,8 +63,11 @@ namespace engine {
             message = "NEWGAME\n";
         }
 
-        if (!process.write_to(message)) {
-            throw Error("Could not write all");
+        try {
+            process.write(message);
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -59,8 +76,11 @@ namespace engine {
             return;
         }
 
-        if (!process.write_to("MOVE " + move_string + '\n')) {
-            throw Error("Could not write all");
+        try {
+            process.write("MOVE " + move_string + '\n');
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -77,8 +97,11 @@ namespace engine {
             message = "GO\n";
         }
 
-        if (!process.write_to(message)) {
-            throw Error("Could not write all");
+        try {
+            process.write(message);
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -87,8 +110,11 @@ namespace engine {
             return;
         }
 
-        if (!process.write_to("STOP\n")) {
-            throw Error("Could not write all");
+        try {
+            process.write("STOP\n");
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -97,8 +123,11 @@ namespace engine {
             return;
         }
 
-        if (!process.write_to("GETPARAMETERS\n")) {
-            throw Error("Could not write all");
+        try {
+            process.write("GETPARAMETERS\n");
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -107,8 +136,11 @@ namespace engine {
             return;
         }
 
-        if (!process.write_to("GETPARAMETER " + name + '\n')) {
-            throw Error("Could not write all");
+        try {
+            process.write("GETPARAMETER " + name + '\n');
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -117,8 +149,11 @@ namespace engine {
             return;
         }
 
-        if (!process.write_to("SETPARAMETER " + name + ' ' + value + '\n')) {
-            throw Error("Could not write all");
+        try {
+            process.write("SETPARAMETER " + name + ' ' + value + '\n');
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
     }
 
@@ -130,16 +165,17 @@ namespace engine {
         reader.Stop();
 
         try {
-            if (!process.write_to("QUIT\n")) {
-                throw Error("Could not write all");
-            }
-        } catch (const subprocess::Subprocess::Error&) {
-            process.wait_for();
+            process.write("QUIT\n");
+        } catch (const subprocess::Error& e) {
+            process.terminate();
             throw;
         }
 
-        if (!process.wait_for()) {
-            throw Error("Could not wait for subprocess");
+        try {
+            process.wait();
+        } catch (const subprocess::Error& e) {
+            process.terminate();
+            throw;
         }
 
         started = false;

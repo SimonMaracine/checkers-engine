@@ -8,11 +8,11 @@
 #include "subprocess.hpp"
 
 namespace engine {
-    using ReadCallback = std::function<void(const std::string&)>;
+    using ReadCallback = std::function<void(const std::string&, bool)>;
 
     class EngineReader : public wxTimer {
     public:
-        EngineReader(const subprocess::Subprocess& process, const ReadCallback& callback)
+        EngineReader(subprocess::Subprocess& process, const ReadCallback& callback)
             : wxTimer(), process(process), callback(callback) {}
 
         EngineReader(const EngineReader&) = delete;
@@ -22,15 +22,15 @@ namespace engine {
 
         void Notify() override;
     private:
-        const subprocess::Subprocess& process;  // Reference is okay
+        subprocess::Subprocess& process;  // Reference is okay
         ReadCallback callback;
     };
 
     class Engine {
     public:
-        using Error = subprocess::Subprocess::Error;
+        using Error = subprocess::Error;
 
-        Engine(const ReadCallback& callback)
+        explicit Engine(const ReadCallback& callback)
             : reader(process, callback) {}
 
         Engine(const Engine&) = delete;

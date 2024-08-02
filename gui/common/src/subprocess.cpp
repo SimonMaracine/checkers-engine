@@ -2,70 +2,59 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <cassert>
+#include <cstring>
 #include <utility>
+#include <csignal>
+#include <cerrno>
 
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/select.h>
 
 namespace subprocess {
-    template<std::size_t Size>
-    static bool newline_in_buffer(const char* buffer, std::size_t& bytes_up_to_newline) {
-        for (std::size_t i {0u}; i < Size; i++) {
-            if (buffer[i] == '\n') {
-                bytes_up_to_newline = i + 1u;  // Including newline
-                return true;
-            }
-        }
-
-        bytes_up_to_newline = 0u;
-        return false;
-    }
-
-    static bool newline_in_buffer(const std::string& buffer, std::size_t& bytes_up_to_newline) {
+    static bool newline_in_buffer(std::string_view buffer, std::size_t& bytes_up_to_newline) {
         for (std::size_t i {0u}; i < buffer.size(); i++) {
             if (buffer[i] == '\n') {
-                bytes_up_to_newline = i + 1u;  // Including newline
+                bytes_up_to_newline = i + 1;  // Including newline
                 return true;
             }
         }
 
-        bytes_up_to_newline = 0u;
+        bytes_up_to_newline = 0;
         return false;
     }
 
     Subprocess::Subprocess(const std::string& file_path) {
         int fd_r[2u] {};
         if (pipe(fd_r) < 0) {
-            throw Error("Could not create reading pipe");
+            throw Error(std::string("Could not create reading pipe") + strerror(errno));
         }
 
         int fd_w[2u] {};
         if (pipe(fd_w) < 0) {
-            throw Error("Could not create writing pipe");
+            throw Error(std::string("Could not create writing pipe") + strerror(errno));
         }
 
         const pid_t pid {fork()};
 
         if (pid < 0) {
-            throw Error("Could not create subprocess");
+            throw Error(std::string("Could not create subprocess") + strerror(errno));
         } else if (pid == 0) {
             close(fd_r[0u]);
             close(fd_w[1u]);
 
             if (dup2(fd_r[1u], STDOUT_FILENO) < 0) {
-                std::exit(1);
+                std::abort();
             }
 
             if (dup2(fd_w[0u], STDIN_FILENO) < 0) {
-                std::exit(1);
+                std::abort();
             }
 
             char* const argv[] { const_cast<char*>(file_path.c_str()), nullptr };
 
             if (execv(file_path.c_str(), argv) < 0) {
-                std::exit(1);
+                std::abort();
             }
 
             // Child execution stops in execv
@@ -82,8 +71,10 @@ namespace subprocess {
         }
     }
 
-    Subprocess::~Subprocess() {
-        assert(child_pid < 0);
+    Subprocess::~Subprocess() noexcept {
+        if (!(child_pid < 0)) {
+            std::abort();
+        }
     }
 
     Subprocess::Subprocess(Subprocess&& other) noexcept {
@@ -96,7 +87,9 @@ namespace subprocess {
     }
 
     Subprocess& Subprocess::operator=(Subprocess&& other) noexcept {
-        assert(child_pid < 0);
+        if (!(child_pid < 0)) {
+            std::abort();
+        }
 
         input = other.input;
         output = other.output;
@@ -108,17 +101,16 @@ namespace subprocess {
         return *this;
     }
 
-    bool Subprocess::read_from(std::string& data) const {
+    std::optional<std::string> Subprocess::read() const {
         {
             std::size_t bytes_up_to_newline {};
 
             if (newline_in_buffer(buffered, bytes_up_to_newline)) {
-                const std::string current = std::string(buffered, 0u, bytes_up_to_newline);
+                const auto current {std::string(buffered, 0, bytes_up_to_newline)};
 
-                buffered = std::string(buffered, bytes_up_to_newline, static_cast<std::size_t>(buffered.size()));
-                data = current;
+                buffered = std::string(buffered, bytes_up_to_newline, buffered.size() - bytes_up_to_newline);
 
-                return true;
+                return std::make_optional(current);
             }
         }
 
@@ -133,67 +125,86 @@ namespace subprocess {
         const int result {select(input + 1, &set, nullptr, nullptr, &time)};
 
         if (result < 0) {
-            throw Error("Could not read from file");
+            throw Error(std::string("Could not poll read file: ") + strerror(errno));
         } else if (result != 1) {
-            return false;
+            return std::nullopt;
         }
 
         // 1.  Read a bunch of bytes
         // 2.  Scan for newline in buffer
-        // 3a. If a newline is found, concatenate the buffer up to the newline with the contents of the buffered buffer and return it as the result
-        // 3b. Save the rest of the extracted characters (from newline + 1 up to the end) into the buffered buffer
-        // 4.  If a newline is not found, save the buffer and goto #1
-
-        static constexpr std::size_t CHUNK {256u};
+        // 3.  If no bytes read, save the buffer in the buffered buffer and return
+        // 4a. If a newline is found, concatenate the buffer up to the newline with the contents of the buffered buffer and return it as the result
+        // 4b. Save the rest of the extracted characters (from newline + 1 up to the end) into the buffered buffer
+        // 5.  If a newline is not found, save the buffer and goto #1
 
         std::string current;
 
         while (true) {
-            char buffer[CHUNK] {};
-            const ssize_t bytes {read(input, buffer, CHUNK)};
+            char buffer[256u] {};
+            const ssize_t bytes {::read(input, buffer, sizeof(buffer))};
 
             if (bytes < 0) {
-                return false;
+                buffered += current;
+
+                throw Error(std::string("Could not read from file: ") + strerror(errno));
             }
 
             if (bytes == 0) {
-                return false;
+                buffered += current;
+
+                return std::nullopt;
             }
 
             std::size_t bytes_up_to_newline {};
 
-            if (newline_in_buffer<CHUNK>(buffer, bytes_up_to_newline)) {
-                current += std::string(buffer, bytes_up_to_newline);
+            if (newline_in_buffer(buffer, bytes_up_to_newline)) {
+                current += std::string(buffer, 0, bytes_up_to_newline);
 
-                data = (
+                return std::make_optional(
                     std::exchange(buffered, std::string(buffer, bytes_up_to_newline, static_cast<std::size_t>(bytes)))
                     + current
                 );
-
-                return true;
             } else {
                 current += buffer;
             }
         }
     }
 
-    bool Subprocess::write_to(const std::string& data) const {
-        const ssize_t bytes {write(output, data.c_str(), data.size())};
+    void Subprocess::write(const std::string& data) const {
+        const char* buffer {data.data()};
+        std::size_t size {data.size()};
 
-        if (bytes < 0) {
-            throw Error("Could not write to file");
-        } else if (bytes < static_cast<ssize_t>(data.size())) {
-            return false;
+        while (true) {
+            const ssize_t bytes {::write(output, buffer, size)};
+
+            if (bytes < 0) {
+                throw Error(std::string("Could not write to file: ") + strerror(errno));
+            }
+
+            if (static_cast<std::size_t>(bytes) < size) {
+                buffer = data.data() + bytes;
+                size -= bytes;
+
+                continue;
+            }
+
+            break;
         }
-
-        return true;
     }
 
-    bool Subprocess::wait_for() {
+    void Subprocess::wait() {
         if (waitpid(std::exchange(child_pid, -1), nullptr, 0) < 0) {
-            return false;
+            throw Error(std::string("Failed waiting for subprocess: ") + strerror(errno));
         }
+    }
 
-        return true;
+    void Subprocess::terminate() {
+        if (kill(std::exchange(child_pid, -1), SIGTERM) < 0) {
+            throw Error(std::string("Could not send terminate signal to subprocess: ") + strerror(errno));
+        }
+    }
+
+    bool Subprocess::active() const noexcept {
+        return child_pid != -1;
     }
 }
