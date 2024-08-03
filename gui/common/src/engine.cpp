@@ -13,11 +13,13 @@ namespace engine {
             message = process.read();
         } catch (const subprocess::Error& e) {
             process.terminate();
+            Stop();
             error = true;
+            message = std::make_optional(e.what());
         }
 
         if (error) {
-            callback({}, true);
+            callback(*message, true);
             return;
         }
 
@@ -36,8 +38,8 @@ namespace engine {
         try {
             process.write("INIT\n");
         } catch (const subprocess::Error& e) {
-            process.terminate();  // FIXME throws
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error init: ") + e.what());
         }
 
         for (unsigned int i {0u}; i < 5u; i++) {
@@ -66,8 +68,8 @@ namespace engine {
         try {
             process.write(message);
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error newgame: ") + e.what());
         }
     }
 
@@ -79,8 +81,8 @@ namespace engine {
         try {
             process.write("MOVE " + move_string + '\n');
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error move: ") + e.what());
         }
     }
 
@@ -100,8 +102,8 @@ namespace engine {
         try {
             process.write(message);
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error go: ") + e.what());
         }
     }
 
@@ -114,7 +116,7 @@ namespace engine {
             process.write("STOP\n");
         } catch (const subprocess::Error& e) {
             process.terminate();
-            throw;
+            throw subprocess::Error(std::string("Error stop: ") + e.what());
         }
     }
 
@@ -126,8 +128,8 @@ namespace engine {
         try {
             process.write("GETPARAMETERS\n");
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error getparameters: ") + e.what());
         }
     }
 
@@ -139,8 +141,8 @@ namespace engine {
         try {
             process.write("GETPARAMETER " + name + '\n');
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error getparameter: ") + e.what());
         }
     }
 
@@ -152,8 +154,8 @@ namespace engine {
         try {
             process.write("SETPARAMETER " + name + ' ' + value + '\n');
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error setparameter: ") + e.what());
         }
     }
 
@@ -167,17 +169,26 @@ namespace engine {
         try {
             process.write("QUIT\n");
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error quit: ") + e.what());
         }
 
         try {
             process.wait();
         } catch (const subprocess::Error& e) {
-            process.terminate();
-            throw;
+            try_terminate();
+            throw subprocess::Error(std::string("Error waiting for subprocess: ") + e.what());
         }
 
+        started = false;
+    }
+
+    void Engine::try_terminate() {
+        try {
+            process.terminate();
+        } catch (const subprocess::Error&) {}
+
+        reader.Stop();
         started = false;
     }
 }

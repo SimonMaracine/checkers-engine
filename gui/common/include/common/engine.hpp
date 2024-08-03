@@ -13,7 +13,7 @@ namespace engine {
     class EngineReader : public wxTimer {
     public:
         EngineReader(subprocess::Subprocess& process, const ReadCallback& callback)
-            : wxTimer(), process(process), callback(callback) {}
+            : process(process), callback(callback) {}
 
         EngineReader(const EngineReader&) = delete;
         EngineReader& operator=(const EngineReader&) = delete;
@@ -50,6 +50,8 @@ namespace engine {
         void setparameter(const std::string& name, const std::string& value);
         void quit();
     private:
+        void try_terminate();
+
         subprocess::Subprocess process;
         EngineReader reader;
         bool started {false};

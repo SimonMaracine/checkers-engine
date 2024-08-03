@@ -211,7 +211,7 @@ void MainWindow::on_exit(wxCommandEvent&) {
     try {
         engine->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     wxExit();
@@ -221,7 +221,7 @@ void MainWindow::on_close(wxCloseEvent&) {
     try {
         engine->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     wxExit();
@@ -241,14 +241,14 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     try {
         engine->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
         return;
     }
 
     try {
         engine->init(dialog.GetPath().ToStdString());
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error init: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
         return;
     }
 
@@ -260,7 +260,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     try {
         engine->getparameters();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error getparameters: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
@@ -352,7 +352,7 @@ void MainWindow::on_stop(wxCommandEvent&) {
     try {
         engine->stop();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error stop: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 }
 
@@ -364,7 +364,7 @@ void MainWindow::on_continue(wxCommandEvent&) {
     try {
         engine->go(false);
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error go: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     btn_continue->Disable();
@@ -380,7 +380,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             try {
                 engine->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
-                std::cerr << "Error move: " << e.what() << '\n';
+                std::cerr << e.what() << '\n';
             }
         }
     }
@@ -393,7 +393,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
         try {
             engine->go(false);
         } catch (const engine::Engine::Error& e) {
-            std::cerr << "Error go: " << e.what() << '\n';
+            std::cerr << e.what() << '\n';
         }
 
         board->set_user_input(false);
@@ -412,7 +412,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 
 void MainWindow::on_engine_message(const std::string& message, bool error) {
     if (error) {
-        std::cerr << "Error reading message\n";
+        std::cerr << message << '\n';
         return;
     }
 
@@ -464,7 +464,7 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     try {
         engine->newgame(fen_string);
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error newgame: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     if (get_player_type(board->get_player()) == PlayerType::Computer) {

@@ -164,9 +164,14 @@ void MainWindow::setup_widgets() {
 void MainWindow::on_exit(wxCommandEvent&) {
     try {
         engine_black->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+
+    try {
         engine_white->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     wxExit();
@@ -177,7 +182,7 @@ void MainWindow::on_close(wxCloseEvent&) {
         engine_black->quit();
         engine_white->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     wxExit();
@@ -227,7 +232,7 @@ void MainWindow::on_play_position(wxCommandEvent&) {
     try {
         engine_black->go(false);
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error go: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     btn_play_position->Enable(false);
@@ -273,14 +278,14 @@ void MainWindow::start_engine(
     try {
         engine->quit();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error quit: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
         return;
     }
 
     try {
         engine->init(dialog.GetPath().ToStdString());
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error init: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
         return;
     }
 
@@ -292,7 +297,7 @@ void MainWindow::start_engine(
     try {
         engine->getparameters();
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error getparameters: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 
     if (engine_black->is_started() && engine_white->is_started()) {
@@ -311,7 +316,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             try {
                 engine_white->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
-                std::cerr << "Error move: " << e.what() << '\n';
+                std::cerr << e.what() << '\n';
             }
 
             break;
@@ -319,7 +324,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             try {
                 engine_black->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
-                std::cerr << "Error move: " << e.what() << '\n';
+                std::cerr << e.what() << '\n';
             }
 
             break;
@@ -334,7 +339,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             try {
                 engine_white->go(false);
             } catch (const engine::Engine::Error& e) {
-                std::cerr << "Error move: " << e.what() << '\n';
+                std::cerr << e.what() << '\n';
             }
 
             break;
@@ -342,7 +347,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             try {
                 engine_black->go(false);
             } catch (const engine::Engine::Error& e) {
-                std::cerr << "Error move: " << e.what() << '\n';
+                std::cerr << e.what() << '\n';
             }
 
             break;
@@ -351,7 +356,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
 
 void MainWindow::on_engine_message(const std::string& message, bool error, Player player) {
     if (error) {
-        std::cerr << "Error reading message\n";
+        std::cerr << message << '\n';
         return;
     }
 
@@ -409,7 +414,7 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
         engine_black->newgame(fen_string);
         engine_white->newgame(fen_string);
     } catch (const engine::Engine::Error& e) {
-        std::cerr << "Error newgame: " << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 }
 
