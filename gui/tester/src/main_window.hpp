@@ -36,16 +36,24 @@ private:
     void on_play_positions(wxCommandEvent&);
     void on_stop(wxCommandEvent&);
 
-    void start_engine(
-        std::unique_ptr<engine::Engine>& engine,
-        wxStaticText* txt_engine,
-        const wxString& text,
-        parameters::ParametersPanel* pnl_parameters
-    );
+    // void start_engine(
+    //     const std::unique_ptr<engine::Engine>& engine,
+    //     wxStaticText* txt_engine,
+    //     const wxString& text,
+    //     parameters::ParametersPanel* pnl_parameters
+    // );
 
     void on_piece_move(const board::CheckersBoard::Move& move);
     void on_engine_message(const std::string& message, bool error, Player player);
 
+    void start_engine(const std::unique_ptr<engine::Engine>& engine);
+    void stop_engine(const std::unique_ptr<engine::Engine>& engine);
+    void initialize_engine(
+        const std::unique_ptr<engine::Engine>& engine,
+        wxStaticText* txt_engine,
+        const wxString& text,
+        parameters::ParametersPanel* pnl_parameters
+    );
     void set_position(const std::optional<std::string>& fen_string);
     int get_ideal_board_size();
     std::vector<std::string> parse_message(const std::string& message);

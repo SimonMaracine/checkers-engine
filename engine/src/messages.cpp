@@ -37,6 +37,12 @@ namespace messages {
         every message function needs to be protected by a mutex
     */
 
+    void ready() {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
+        std::cout << "READY" << std::endl;
+    }
+
     void bestmove(const game::Move& move) {
         std::lock_guard<std::mutex> lock {g_mutex};
 

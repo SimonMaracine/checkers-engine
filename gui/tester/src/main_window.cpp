@@ -162,38 +162,25 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    try {
-        engine_black->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
-
-    try {
-        engine_white->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
+    stop_engine(engine_black);
+    stop_engine(engine_white);
 
     wxExit();
 }
 
 void MainWindow::on_close(wxCloseEvent&) {
-    try {
-        engine_black->quit();
-        engine_white->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
+    stop_engine(engine_black);
+    stop_engine(engine_white);
 
     wxExit();
 }
 
 void MainWindow::on_start_engine_black(wxCommandEvent&) {
-    start_engine(engine_black, txt_engine_black, ENGINE_BLACK, pnl_parameters_black);
+    start_engine(engine_black);
 }
 
 void MainWindow::on_start_engine_white(wxCommandEvent&) {
-    start_engine(engine_white, txt_engine_white, ENGINE_WHITE, pnl_parameters_white);
+    start_engine(engine_white);
 }
 
 void MainWindow::on_show_indices(wxCommandEvent&) {
@@ -263,49 +250,6 @@ void MainWindow::on_stop(wxCommandEvent&) {
     // }
 }
 
-void MainWindow::start_engine(
-    std::unique_ptr<engine::Engine>& engine,
-    wxStaticText* txt_engine,
-    const wxString& text,
-    parameters::ParametersPanel* pnl_parameters
-) {
-    wxFileDialog dialog {this};
-
-    if (dialog.ShowModal() != wxID_OK) {
-        return;
-    }
-
-    try {
-        engine->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-        return;
-    }
-
-    try {
-        engine->init(dialog.GetPath().ToStdString());
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-        return;
-    }
-
-    txt_engine->SetLabelText(text + dialog.GetFilename());
-
-    pnl_parameters->clear_parameters();
-    pnl_parameters->set_engine(engine.get());
-
-    try {
-        engine->getparameters();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
-
-    if (engine_black->is_started() && engine_white->is_started()) {
-        btn_play_position->Enable();
-        btn_play_positions->Enable();
-    }
-}
-
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     pnl_moves_log->log_move(move);
 
@@ -372,7 +316,13 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
     // Remove new line from the last token
     tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
 
-    if (tokens.at(0u) == "BESTMOVE") {
+    if (tokens.at(0u) == "READY") {
+        if (player == Player::Black) {
+            initialize_engine(engine_black, txt_engine_black, ENGINE_BLACK, pnl_parameters_black);
+        } else {
+            initialize_engine(engine_white, txt_engine_white, ENGINE_WHITE, pnl_parameters_white);
+        }
+    } else if (tokens.at(0u) == "BESTMOVE") {
         if (tokens.size() > 1u) {
             board->play_move(tokens.at(1u));
         }
@@ -396,6 +346,66 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
         std::cout << message;  // It already has a new line
 
         txt_eval->SetLabelText(EVAL + tokens.at(4u));
+    }
+}
+
+void MainWindow::start_engine(const std::unique_ptr<engine::Engine>& engine) {
+    wxFileDialog dialog {this};
+
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    stop_engine(engine);
+
+    try {
+        engine->start_engine(dialog.GetPath().ToStdString(), dialog.GetFilename().ToStdString());
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void MainWindow::stop_engine(const std::unique_ptr<engine::Engine>& engine) {
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+
+    try {
+        engine->stop_engine();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void MainWindow::initialize_engine(
+    const std::unique_ptr<engine::Engine>& engine,
+    wxStaticText* txt_engine,
+    const wxString& text,
+    parameters::ParametersPanel* pnl_parameters
+) {
+    try {
+        engine->init();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+        return;
+    }
+
+    txt_engine->SetLabelText(text + engine->get_name());
+
+    pnl_parameters->clear_parameters();
+    pnl_parameters->set_engine(engine.get());
+
+    try {
+        engine->getparameters();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+
+    if (engine_black->is_started() && engine_white->is_started()) {
+        btn_play_position->Enable();
+        btn_play_positions->Enable();
     }
 }
 

@@ -208,21 +208,13 @@ void MainWindow::setup_widgets() {
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    try {
-        engine->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
+    stop_engine();
 
     wxExit();
 }
 
 void MainWindow::on_close(wxCloseEvent&) {
-    try {
-        engine->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-    }
+    stop_engine();
 
     wxExit();
 }
@@ -234,50 +226,13 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
         return;
     }
 
-    // Reset the board here in case the engine is reloaded
-    set_position(std::nullopt);
-
-    // Also stop the current engine
-    try {
-        engine->quit();
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-        return;
-    }
+    stop_engine();
 
     try {
-        engine->init(dialog.GetPath().ToStdString());
-    } catch (const engine::Engine::Error& e) {
-        std::cerr << e.what() << '\n';
-        return;
-    }
-
-    txt_engine->SetLabelText(ENGINE + dialog.GetFilename());
-
-    pnl_parameters->clear_parameters();
-    pnl_parameters->set_engine(engine.get());
-
-    try {
-        engine->getparameters();
+        engine->start_engine(dialog.GetPath().ToStdString(), dialog.GetFilename().ToStdString());
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
-
-    // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
-
-    if (get_player_type(board->get_player()) == PlayerType::Human) {
-        // Finally enable user input
-        board->set_user_input(true);
-    }
-
-    // Finally enable these as well
-    btn_black_human->Enable();
-    btn_black_computer->Enable();
-    btn_white_human->Enable();
-    btn_white_computer->Enable();
-
-    btn_stop->Enable();
-    btn_continue->Enable();
 }
 
 void MainWindow::on_reset_position(wxCommandEvent&) {
@@ -425,7 +380,9 @@ void MainWindow::on_engine_message(const std::string& message, bool error) {
     // Remove new line from the last token
     tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
 
-    if (tokens.at(0u) == "BESTMOVE") {
+    if (tokens.at(0u) == "READY") {
+        initialize_engine();
+    } else if (tokens.at(0u) == "BESTMOVE") {
         if (tokens.size() > 1u) {
             board->play_move(tokens.at(1u));
         }
@@ -448,6 +405,59 @@ void MainWindow::on_engine_message(const std::string& message, bool error) {
     } else if (tokens.at(0u) == "INFO") {
         std::cout << message;  // It already has a new line
     }
+}
+
+void MainWindow::stop_engine() {
+    try {
+        engine->quit();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+
+    try {
+        engine->stop_engine();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void MainWindow::initialize_engine() {
+    // Reset the board here in case the engine is reloaded
+    set_position(std::nullopt);
+
+    try {
+        engine->init();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+        return;
+    }
+
+    txt_engine->SetLabelText(ENGINE + engine->get_name());
+
+    pnl_parameters->clear_parameters();
+    pnl_parameters->set_engine(engine.get());
+
+    try {
+        engine->getparameters();
+    } catch (const engine::Engine::Error& e) {
+        std::cerr << e.what() << '\n';
+    }
+
+    // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
+
+    if (get_player_type(board->get_player()) == PlayerType::Human) {
+        // Finally enable user input
+        board->set_user_input(true);
+    }
+
+    // Finally enable these as well
+    btn_black_human->Enable();
+    btn_black_computer->Enable();
+    btn_white_human->Enable();
+    btn_white_computer->Enable();
+
+    btn_stop->Enable();
+    btn_continue->Enable();
 }
 
 void MainWindow::set_position(const std::optional<std::string>& fen_string) {

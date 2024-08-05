@@ -28,19 +28,14 @@ namespace engine {
         }
     }
 
-    void Engine::init(const std::string& file_path) {
+    void Engine::start_engine(const std::string& file_path, const std::string& name) {
         if (started) {
             return;
         }
 
-        process = subprocess::Subprocess(file_path);
+        this->name = name;
 
-        try {
-            process.write("INIT\n");
-        } catch (const subprocess::Error& e) {
-            try_terminate();
-            throw subprocess::Error(std::string("Error init: ") + e.what());
-        }
+        process = subprocess::Subprocess(file_path);
 
         for (unsigned int i {0u}; i < 5u; i++) {
             if (reader.Start(250)) {
@@ -50,6 +45,36 @@ namespace engine {
         }
 
         throw Error("Could not start wxTimer");
+    }
+
+    void Engine::stop_engine() {
+        if (!started) {
+            return;
+        }
+
+        reader.Stop();
+
+        try {
+            process.wait();
+        } catch (const subprocess::Error& e) {
+            try_terminate();
+            throw subprocess::Error(std::string("Error waiting for subprocess: ") + e.what());
+        }
+
+        started = false;
+    }
+
+    void Engine::init() {
+        if (!started) {
+            return;
+        }
+
+        try {
+            process.write("INIT\n");
+        } catch (const subprocess::Error& e) {
+            try_terminate();
+            throw subprocess::Error(std::string("Error init: ") + e.what());
+        }
     }
 
     void Engine::newgame(const std::optional<std::string>& fen_string) {
@@ -164,23 +189,12 @@ namespace engine {
             return;
         }
 
-        reader.Stop();
-
         try {
             process.write("QUIT\n");
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error quit: ") + e.what());
         }
-
-        try {
-            process.wait();
-        } catch (const subprocess::Error& e) {
-            try_terminate();
-            throw subprocess::Error(std::string("Error waiting for subprocess: ") + e.what());
-        }
-
-        started = false;
     }
 
     void Engine::try_terminate() {

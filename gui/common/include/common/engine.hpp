@@ -39,8 +39,12 @@ namespace engine {
         Engine& operator=(Engine&&) = delete;
 
         bool is_started() const { return started; }
+        const std::string& get_name() const { return name; }
 
-        void init(const std::string& file_path);
+        void start_engine(const std::string& file_path, const std::string& name);
+        void stop_engine();
+
+        void init();
         void newgame(const std::optional<std::string>& fen_string);
         void move(const std::string& move_string);
         void go(bool dont_play_move);
@@ -54,6 +58,7 @@ namespace engine {
 
         subprocess::Subprocess process;
         EngineReader reader;
+        std::string name;
         bool started {false};
     };
 }

@@ -95,9 +95,15 @@ This command should shut down the engine nicely, even if it is in the process of
 
 ## Engine -> GUI
 
+### READY
+
+Informs the GUI that the engine has started. Must be sent once at the very beginning. The GUI should wait for this
+message before sending any other commands.
+
 ### ALERT \<warning or error message\>
 
-Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong. It must contain a message.
+Informs the GUI that it couldn't understand the last command, or it was invalid, or something went wrong.
+It must contain a message.
 
 The engine is free to never send this message to GUI. It exists solely as a debug facility. It can, however, send it
 at any time, for any sensible reason. For example: it couldn't process a command, the requested parameter
