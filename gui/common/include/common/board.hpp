@@ -106,20 +106,24 @@ namespace board {
         static std::pair<int, int> get_square(int square);
         static bool is_black_square(int square);
         bool select_piece(int square_index);
+
         std::vector<Move> generate_moves() const;
         void generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const;
         void generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const;
         bool check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx) const;
         int offset_index(int square_index, Direction direction, Diagonal diagonal) const;
+
         void change_turn();
         void check_80_move_rule(bool advancement);
         void check_piece_crowning(int square_index);
         void check_legal_moves();
         void check_repetition(bool advancement);
+
         bool playable_normal_move(const Move& move, int square_index) const;
         bool playable_capture_move(const Move& move, const std::vector<int>& square_indices) const;
         void play_normal_move(const Move& move);
         void play_capture_move(const Move& move);
+
         void select_jump_square(int square_index);
         void deselect_jump_square(int square_index);
         void remove_jumped_pieces(const Move& move);
@@ -138,9 +142,19 @@ namespace board {
         static int parse_source_square(const std::string& move_string, std::size_t& index);
         static std::vector<int> parse_destination_squares(const std::string& move_string, std::size_t& index);
         static bool is_capture_move(int source, int destination);
+
         void clear();
-        void refresh_canvas();
+        void refresh();
         void draw(wxDC& dc);
+
+        struct Position {
+            Board board {};
+            Player turn {Player::Black};
+
+            bool operator==(const Position& other) const {
+                return board == other.board && turn == other.turn;
+            }
+        };
 
         // Used for mouse cursor detection
         int m_board_size {0};
@@ -160,15 +174,6 @@ namespace board {
         std::vector<Move> m_last_moves;
         std::vector<int> m_jump_square_indices;
         GameOver m_game_over {GameOver::None};
-
-        struct Position {
-            Board board {};
-            Player turn {Player::Black};
-
-            bool operator==(const Position& other) const {
-                return board == other.board && turn == other.turn;
-            }
-        };
 
         // Game data
         Board m_board {};

@@ -41,7 +41,7 @@ namespace board {
     void CheckersBoard::set_board_size(int size) {
         m_board_size = std::clamp(size, 200, 2000);
 
-        refresh_canvas();
+        refresh();
     }
 
     void CheckersBoard::reset_position() {
@@ -57,7 +57,7 @@ namespace board {
 
         m_legal_moves = generate_moves();
 
-        refresh_canvas();
+        refresh();
     }
 
     void CheckersBoard::set_position(const std::string& fen_string) {
@@ -96,7 +96,7 @@ namespace board {
 
         m_legal_moves = generate_moves();
 
-        refresh_canvas();
+        refresh();
     }
 
     void CheckersBoard::set_user_input(bool user_input) {
@@ -106,7 +106,7 @@ namespace board {
     void CheckersBoard::set_show_indices(bool show_indices) {
         m_show_indices = show_indices;
 
-        refresh_canvas();
+        refresh();
     }
 
     void CheckersBoard::play_move(const Move& move) {
@@ -121,7 +121,7 @@ namespace board {
 
         m_legal_moves = generate_moves();
 
-        refresh_canvas();
+        refresh();
     }
 
     void CheckersBoard::play_move(const std::string& move_string) {
@@ -251,54 +251,8 @@ namespace board {
             assert(false);
         }
 
-        refresh_canvas();
+        refresh();
     }
-
-#if 0
-    void CheckersBoard::on_mouse_right_down(wxMouseEvent& event) {
-        if (!user_input) {
-            return;
-        }
-
-        if (game_over != GameOver::None) {
-            return;
-        }
-
-        if (selected_piece_index == NULL_INDEX) {
-            return;
-        }
-
-        const bool capture {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
-
-        if (!capture) {
-            return;
-        }
-
-        const int square {get_square(event.GetPosition())};
-
-        if (!is_black_square(square)) {
-            return;
-        }
-
-        const int square_index {to_0_31(translate_0_64_to_1_32(square))};
-
-        deselect_jump_square(square_index);
-
-        for (const Move& move : legal_moves) {
-            if (playable_capture_move(move, jump_square_indices)) {
-                play_capture_move(move);
-
-                legal_moves = generate_moves();
-                selected_piece_index = NULL_INDEX;
-                jump_square_indices.clear();
-
-                break;
-            }
-        }
-
-        refresh_canvas();
-    }
-#endif
 
     void CheckersBoard::on_mouse_right_down(wxMouseEvent&) {
         if (!m_user_input) {
@@ -316,7 +270,7 @@ namespace board {
         m_selected_piece_index = NULL_INDEX;
         m_jump_square_indices.clear();
 
-        refresh_canvas();
+        refresh();
     }
 
     int CheckersBoard::get_square(wxPoint position) const {
@@ -346,22 +300,11 @@ namespace board {
     }
 
     bool CheckersBoard::select_piece(int square_index) {
-#if 0
-        if (selected_piece_index == square_index) {
-            selected_piece_index = NULL_INDEX;
-            jump_square_indices.clear();
-
-            refresh_canvas();
-
-            return false;
-        }
-#endif
-
         if (m_board[square_index] != Square::None && m_selected_piece_index != square_index) {
             m_selected_piece_index = square_index;
             m_jump_square_indices.clear();
 
-            refresh_canvas();
+            refresh();
 
             return true;
         }
@@ -1012,7 +955,7 @@ namespace board {
         m_repetition_positions.clear();
     }
 
-    void CheckersBoard::refresh_canvas() {
+    void CheckersBoard::refresh() {
         Refresh();
         Update();
     }
