@@ -4,7 +4,7 @@
 
 namespace parameters {
     ParametersPanel::ParametersPanel(wxWindow* parent, int id_start)
-        : wxScrolledWindow(parent), id(id_start) {
+        : wxScrolledWindow(parent), m_id(id_start) {
         FitInside();
         SetScrollRate(0, 10);
     }
@@ -12,22 +12,22 @@ namespace parameters {
     void ParametersPanel::get_engine_parameters(std::vector<std::pair<std::string, std::string>>&& parameters) {
         for (const auto& [name, type] : parameters) {
             if (type == "int") {
-                this->parameters[name] = ParameterType::Int;
-                engine->getparameter(name);
+                m_parameters[name] = ParameterType::Int;
+                m_engine->getparameter(name);
             }
         }
     }
 
     void ParametersPanel::add_parameter(const std::string& name, const std::string& value) {
-        switch (parameters.at(name)) {
+        switch (m_parameters.at(name)) {
             case ParameterType::Int:
-                setup_integer_parameter_widget(name, value, id++);
+                setup_integer_parameter_widget(name, value, m_id++);
                 break;
         }
     }
 
     void ParametersPanel::clear_parameters() {
-        sizer->Clear();
+        m_sizer->Clear();
         DestroyChildren();
 
         Layout();
@@ -35,7 +35,7 @@ namespace parameters {
 
     void ParametersPanel::set_sizer(wxSizer* sizer) {
         SetSizer(sizer);
-        this->sizer = sizer;
+        m_sizer = sizer;
     }
 
     void ParametersPanel::setup_integer_parameter_widget(const std::string& name, const std::string& value, int id) {
@@ -49,7 +49,7 @@ namespace parameters {
         spn_parameter->Bind(
             wxEVT_SPINCTRL,
             [this, name](wxSpinEvent& event) {
-                engine->setparameter(name, std::to_string(event.GetValue()));
+                m_engine->setparameter(name, std::to_string(event.GetValue()));
             },
             id
         );
@@ -58,9 +58,9 @@ namespace parameters {
 
         pnl_parameter->SetSizer(szr_parameter);
 
-        sizer->Add(pnl_parameter);
-        sizer->AddSpacer(5);
-        sizer->FitInside(this);
+        m_sizer->Add(pnl_parameter);
+        m_sizer->AddSpacer(5);
+        m_sizer->FitInside(this);
 
         Layout();  // Not enough...
     }

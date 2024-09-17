@@ -6,13 +6,13 @@ namespace evaluation {
     Eval static_evaluation(const search::SearchNode& node, const evaluation::Parameters& parameters) {
         Eval eval {0};
 
-        unsigned int black_pieces {0u};
-        unsigned int white_pieces {0u};
+        unsigned int black_pieces {0};
+        unsigned int white_pieces {0};
 
         for (game::Idx i {0}; i < 32; i++) {
-            if (static_cast<unsigned char>(node.board[i]) & 1u << 0) {  // TODO opt.
+            if (static_cast<unsigned char>(node.board[i]) & 1 << 0) {  // TODO opt.
                 black_pieces++;
-            } else if (static_cast<unsigned char>(node.board[i]) & 1u << 1) {
+            } else if (static_cast<unsigned char>(node.board[i]) & 1 << 1) {
                 white_pieces++;
             }
         }

@@ -59,25 +59,25 @@ private:
     std::vector<std::string> parse_message(const std::string& message);
     void read_positions_file(const std::string& file_path);
 
-    board::CheckersBoard* board {nullptr};
+    board::CheckersBoard* m_board {nullptr};
 
-    wxMenuItem* btn_play_position {nullptr};
-    wxMenuItem* btn_play_positions {nullptr};
-    wxMenuItem* btn_stop {nullptr};
+    wxMenuItem* m_btn_play_position {nullptr};
+    wxMenuItem* m_btn_play_positions {nullptr};
+    wxMenuItem* m_btn_stop {nullptr};
 
-    wxStaticText* txt_engine_black {nullptr};
-    wxStaticText* txt_engine_white {nullptr};
+    wxStaticText* m_txt_engine_black {nullptr};
+    wxStaticText* m_txt_engine_white {nullptr};
 
-    wxStaticText* txt_eval_black {nullptr};
-    wxStaticText* txt_eval_white {nullptr};
+    wxStaticText* m_txt_eval_black {nullptr};
+    wxStaticText* m_txt_eval_white {nullptr};
 
-    std::unique_ptr<engine::Engine> engine_black;
-    std::unique_ptr<engine::Engine> engine_white;
+    std::unique_ptr<engine::Engine> m_engine_black;
+    std::unique_ptr<engine::Engine> m_engine_white;
 
-    game_state::GameStatePanel* pnl_game_state {nullptr};
-    moves_log::MovesLog* pnl_moves_log {nullptr};
-    parameters::ParametersPanel* pnl_parameters_black {nullptr};
-    parameters::ParametersPanel* pnl_parameters_white {nullptr};
+    game_state::GameStatePanel* m_pnl_game_state {nullptr};
+    moves_log::MovesLog* m_pnl_moves_log {nullptr};
+    parameters::ParametersPanel* m_pnl_parameters_black {nullptr};
+    parameters::ParametersPanel* m_pnl_parameters_white {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };

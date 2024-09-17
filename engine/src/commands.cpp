@@ -7,7 +7,7 @@
 
 namespace commands {
     static std::optional<std::vector<std::string>> parse_setup_moves(const input_tokens::InputTokens& tokens) {
-        std::size_t index {2u};
+        std::size_t index {2};
         std::vector<std::string> setup_moves;
 
         while (tokens.find(index)) {
@@ -30,24 +30,24 @@ namespace commands {
     void newgame(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
         const auto setup_moves {parse_setup_moves(tokens)};
 
-        if (tokens.find(1u)) {
-            engine::newgame(data, std::make_optional(tokens[1u]), setup_moves);
+        if (tokens.find(1)) {
+            engine::newgame(data, std::make_optional(tokens[1]), setup_moves);
         } else {
             engine::newgame(data, std::nullopt, setup_moves);
         }
     }
 
     void move(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1u)) {
+        if (!tokens.find(1)) {
             return;
         }
 
-        engine::move(data, tokens[1u]);
+        engine::move(data, tokens[1]);
     }
 
     void go(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (tokens.find(1u)) {
-            if (tokens[1u] == "dontplaymove") {
+        if (tokens.find(1)) {
+            if (tokens[1] == "dontplaymove") {
                 engine::go(data, true);
             }
         } else {
@@ -64,19 +64,19 @@ namespace commands {
     }
 
     void setparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1u) || !tokens.find(2u)) {
+        if (!tokens.find(1) || !tokens.find(2)) {
             return;
         }
 
-        engine::setparameter(data, tokens[1u], tokens[2u]);
+        engine::setparameter(data, tokens[1], tokens[2]);
     }
 
     void getparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1u)) {
+        if (!tokens.find(1)) {
             return;
         }
 
-        engine::getparameter(data, tokens[1u]);
+        engine::getparameter(data, tokens[1]);
     }
 
     void quit(engine::EngineData& data, const input_tokens::InputTokens&) {

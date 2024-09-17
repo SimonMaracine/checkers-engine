@@ -6,8 +6,8 @@ namespace search {
     struct SearchNode {
         game::Board board {};
         game::Player player {};
-        unsigned int plies {0u};  // TODO might not be needed
-        unsigned int plies_without_advancement {0u};
+        unsigned int plies {0};  // TODO might not be needed
+        unsigned int plies_without_advancement {0};
 
         const SearchNode* previous {nullptr};
     };

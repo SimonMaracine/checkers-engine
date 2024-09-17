@@ -2,7 +2,7 @@
 
 FenString::FenString(wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, "FEN String") {
-    txt_fen_string = new wxTextCtrl(this, wxID_ANY);
+    m_txt_fen_string = new wxTextCtrl(this, wxID_ANY);
 
     wxPanel* pnl_buttons {new wxPanel(this)};
     wxBoxSizer* szr_buttons {new wxBoxSizer(wxHORIZONTAL)};
@@ -16,7 +16,7 @@ FenString::FenString(wxWindow* parent, wxWindowID id)
     wxBoxSizer* szr_main {new wxBoxSizer(wxVERTICAL)};
 
     szr_main->AddStretchSpacer();
-    szr_main->Add(txt_fen_string, 0, wxEXPAND | wxLEFT | wxRIGHT);
+    szr_main->Add(m_txt_fen_string, 0, wxEXPAND | wxLEFT | wxRIGHT);
     szr_main->AddSpacer(10);
     szr_main->Add(pnl_buttons, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM);
     szr_main->AddStretchSpacer();
@@ -25,5 +25,5 @@ FenString::FenString(wxWindow* parent, wxWindowID id)
 }
 
 wxString FenString::get_fen_string() const {
-    return txt_fen_string->GetValue();
+    return m_txt_fen_string->GetValue();
 }

@@ -20,7 +20,7 @@ namespace messages {
             case game::MoveType::Capture:
                 stream << static_cast<int>(game::to_1_32(move.capture.source_index));
 
-                for (unsigned char i {0u}; i < move.capture.destination_indices_size; i++) {
+                for (unsigned char i {0}; i < move.capture.destination_indices_size; i++) {
                     stream << 'x' << static_cast<int>(game::to_1_32(move.capture.destination_indices[i]));
                 }
 
@@ -58,7 +58,7 @@ namespace messages {
             std::cout << ' ' << name << ' ';
 
             switch (value.index()) {
-                case 0u:
+                case 0:
                     std::cout << "int";  // Too bad that I can't just use typeid
                     break;
                 default:
@@ -76,8 +76,8 @@ namespace messages {
         std::cout << "PARAMETER " << name << ' ';
 
         switch (value.index()) {
-            case 0u:
-                std::cout << std::get<0u>(value);
+            case 0:
+                std::cout << std::get<0>(value);
                 break;
             default:
                 assert(false);

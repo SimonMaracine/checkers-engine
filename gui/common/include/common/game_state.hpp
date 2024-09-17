@@ -13,9 +13,9 @@ namespace game_state {
     private:
         const char* game_over_text(board::CheckersBoard::GameOver game_over);
 
-        wxStaticText* txt_status {nullptr};
-        wxStaticText* txt_player {nullptr};
-        wxStaticText* txt_plies_without_advancement {nullptr};
-        wxStaticText* txt_repetition_size {nullptr};
+        wxStaticText* m_txt_status {nullptr};
+        wxStaticText* m_txt_player {nullptr};
+        wxStaticText* m_txt_plies_without_advancement {nullptr};
+        wxStaticText* m_txt_repetition_size {nullptr};
     };
 }

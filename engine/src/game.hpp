@@ -25,13 +25,13 @@ namespace game {
         White = 0b0010u
     };
 
-    using Board = std::array<Square, 32u>;
+    using Board = std::array<Square, 32>;
 
     struct Position {
         Board board {};
         Player player {Player::Black};
-        unsigned int plies {0u};  // TODO might not be needed
-        unsigned int plies_without_advancement {0u};
+        unsigned int plies {0};  // TODO might not be needed
+        unsigned int plies_without_advancement {0};
     };
 
     enum class MoveType : unsigned char {
@@ -49,7 +49,7 @@ namespace game {
 
             struct {
                 Idx source_index;
-                Idx destination_indices[9u];
+                Idx destination_indices[9];
                 unsigned char destination_indices_size;
             } capture;
         };

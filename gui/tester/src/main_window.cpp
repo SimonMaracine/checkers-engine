@@ -42,8 +42,8 @@ MainWindow::MainWindow()
     setup_widgets();
     Center();
 
-    engine_black = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::Black); });
-    engine_white = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::White); });
+    m_engine_black = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::Black); });
+    m_engine_white = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error, Player::White); });
 }
 
 void MainWindow::setup_menubar() {
@@ -54,13 +54,13 @@ void MainWindow::setup_menubar() {
     men_tester->Append(wxID_EXIT, "Exit");
 
     wxMenu* men_run {new wxMenu};
-    btn_play_position = men_run->Append(PLAY_POSITION, "Play Position");
-    btn_play_positions = men_run->Append(PLAY_POSITIONS, "Play Positions");
-    btn_stop = men_run->Append(STOP, "Stop");
+    m_btn_play_position = men_run->Append(PLAY_POSITION, "Play Position");
+    m_btn_play_positions = men_run->Append(PLAY_POSITIONS, "Play Positions");
+    m_btn_stop = men_run->Append(STOP, "Stop");
 
-    btn_play_position->Enable(false);
-    btn_play_positions->Enable(false);
-    btn_stop->Enable(false);
+    m_btn_play_position->Enable(false);
+    m_btn_play_positions->Enable(false);
+    m_btn_stop->Enable(false);
 
     wxMenu* men_help {new wxMenu};
     men_help->Append(wxID_ABOUT, "About");
@@ -77,15 +77,15 @@ void MainWindow::setup_widgets() {
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
     {
-        board = new board::CheckersBoard(this, -1, -1, 400,
+        m_board = new board::CheckersBoard(this, -1, -1, 400,
             [this](const board::CheckersBoard::Move& move) {
                 return on_piece_move(move);
             }
         );
 
-        szr_main->Add(board, 3, wxEXPAND | wxALL);
+        szr_main->Add(m_board, 3, wxEXPAND | wxALL);
 
-        board->set_user_input(false);
+        m_board->set_user_input(false);
     }
 
     szr_main->AddSpacer(30);
@@ -96,9 +96,9 @@ void MainWindow::setup_widgets() {
 
         {
             wxBoxSizer* szr_game_state {new wxBoxSizer(wxVERTICAL)};
-            pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
-            pnl_game_state->SetSizer(szr_game_state);
-            szr_right_side->Add(pnl_game_state);
+            m_pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
+            m_pnl_game_state->SetSizer(szr_game_state);
+            szr_right_side->Add(m_pnl_game_state);
         }
 
         szr_right_side->AddSpacer(10);
@@ -106,11 +106,11 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            txt_engine_black = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_BLACK);
-            szr_right_side->Add(txt_engine_black);
+            m_txt_engine_black = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_BLACK);
+            szr_right_side->Add(m_txt_engine_black);
 
-            txt_eval_black = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
-            szr_right_side->Add(txt_eval_black);
+            m_txt_eval_black = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
+            szr_right_side->Add(m_txt_eval_black);
         }
 
         szr_right_side->AddSpacer(10);
@@ -118,9 +118,9 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            pnl_parameters_black = new parameters::ParametersPanel(pnl_right_side, 30);
-            pnl_parameters_black->set_sizer(new wxBoxSizer(wxVERTICAL));
-            szr_right_side->Add(pnl_parameters_black, 1, wxEXPAND | wxALL);
+            m_pnl_parameters_black = new parameters::ParametersPanel(pnl_right_side, 30);
+            m_pnl_parameters_black->set_sizer(new wxBoxSizer(wxVERTICAL));
+            szr_right_side->Add(m_pnl_parameters_black, 1, wxEXPAND | wxALL);
         }
 
         szr_right_side->AddSpacer(10);
@@ -128,11 +128,11 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            txt_engine_white = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_WHITE);
-            szr_right_side->Add(txt_engine_white);
+            m_txt_engine_white = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE_WHITE);
+            szr_right_side->Add(m_txt_engine_white);
 
-            txt_eval_white = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
-            szr_right_side->Add(txt_eval_white);
+            m_txt_eval_white = new wxStaticText(pnl_right_side, wxID_ANY, EVAL + "0");
+            szr_right_side->Add(m_txt_eval_white);
         }
 
         szr_right_side->AddSpacer(10);
@@ -140,9 +140,9 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            pnl_parameters_white = new parameters::ParametersPanel(pnl_right_side, 30);
-            pnl_parameters_white->set_sizer(new wxBoxSizer(wxVERTICAL));
-            szr_right_side->Add(pnl_parameters_white, 1, wxEXPAND | wxALL);
+            m_pnl_parameters_white = new parameters::ParametersPanel(pnl_right_side, 30);
+            m_pnl_parameters_white->set_sizer(new wxBoxSizer(wxVERTICAL));
+            szr_right_side->Add(m_pnl_parameters_white, 1, wxEXPAND | wxALL);
         }
 
         pnl_right_side->SetSizer(szr_right_side);
@@ -153,40 +153,40 @@ void MainWindow::setup_widgets() {
     szr_main->AddSpacer(30);
 
     {
-        pnl_moves_log = new moves_log::MovesLog(this);
-        pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
-        szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
+        m_pnl_moves_log = new moves_log::MovesLog(this);
+        m_pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
+        szr_main->Add(m_pnl_moves_log, 1, wxEXPAND | wxDOWN);
     }
 
     SetSizer(szr_main);
 }
 
 void MainWindow::on_exit(wxCommandEvent&) {
-    stop_engine(engine_black);
-    stop_engine(engine_white);
+    stop_engine(m_engine_black);
+    stop_engine(m_engine_white);
 
     wxExit();
 }
 
 void MainWindow::on_close(wxCloseEvent&) {
-    stop_engine(engine_black);
-    stop_engine(engine_white);
+    stop_engine(m_engine_black);
+    stop_engine(m_engine_white);
 
     wxExit();
 }
 
 void MainWindow::on_start_engine_black(wxCommandEvent&) {
-    start_engine(engine_black);
+    start_engine(m_engine_black);
 }
 
 void MainWindow::on_start_engine_white(wxCommandEvent&) {
-    start_engine(engine_white);
+    start_engine(m_engine_white);
 }
 
 void MainWindow::on_show_indices(wxCommandEvent&) {
     static bool show_indices {false};
 
-    board->set_show_indices(!std::exchange(show_indices, !show_indices));
+    m_board->set_show_indices(!std::exchange(show_indices, !show_indices));
 }
 
 void MainWindow::on_about(wxCommandEvent&) {
@@ -199,9 +199,9 @@ void MainWindow::on_about(wxCommandEvent&) {
 
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     // This function may be called before board is initialized
-    if (board != nullptr) {
+    if (m_board != nullptr) {
         Layout();
-        board->set_board_size(get_ideal_board_size());
+        m_board->set_board_size(get_ideal_board_size());
     }
 
     event.Skip();
@@ -217,14 +217,14 @@ void MainWindow::on_play_position(wxCommandEvent&) {
     set_position(dialog.get_fen_string().ToStdString());
 
     try {
-        engine_black->go(false);
+        m_engine_black->go(false);
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 
-    btn_play_position->Enable(false);
-    btn_play_positions->Enable(false);
-    btn_stop->Enable();
+    m_btn_play_position->Enable(false);
+    m_btn_play_positions->Enable(false);
+    m_btn_stop->Enable();
 }
 
 void MainWindow::on_play_positions(wxCommandEvent&) {
@@ -243,22 +243,22 @@ void MainWindow::on_stop(wxCommandEvent&) {
     // TODO
 
     // try {
-    //     engine_black->stop();
-    //     engine_white->stop();
+    //     m_engine_black->stop();
+    //     m_engine_white->stop();
     // } catch (const engine::Engine::Error& e) {
     //     std::cerr << "Error stop: " << e.what() << '\n';
     // }
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
-    pnl_moves_log->log_move(move);
+    m_pnl_moves_log->log_move(move);
 
-    pnl_game_state->update(board);
+    m_pnl_game_state->update(m_board);
 
-    switch (board::CheckersBoard::opponent(board->get_player())) {
+    switch (board::CheckersBoard::opponent(m_board->get_player())) {
         case board::CheckersBoard::Player::Black:
             try {
-                engine_white->move(board::CheckersBoard::move_to_string(move));
+                m_engine_white->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
                 std::cerr << e.what() << '\n';
             }
@@ -266,7 +266,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             break;
         case board::CheckersBoard::Player::White:
             try {
-                engine_black->move(board::CheckersBoard::move_to_string(move));
+                m_engine_black->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
                 std::cerr << e.what() << '\n';
             }
@@ -274,14 +274,14 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             break;
     }
 
-    if (board->get_game_over() != board::CheckersBoard::GameOver::None) {
+    if (m_board->get_game_over() != board::CheckersBoard::GameOver::None) {
         return;
     }
 
-    switch (board::CheckersBoard::opponent(board->get_player())) {
+    switch (board::CheckersBoard::opponent(m_board->get_player())) {
         case board::CheckersBoard::Player::Black:
             try {
-                engine_white->go(false);
+                m_engine_white->go(false);
             } catch (const engine::Engine::Error& e) {
                 std::cerr << e.what() << '\n';
             }
@@ -289,7 +289,7 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
             break;
         case board::CheckersBoard::Player::White:
             try {
-                engine_black->go(false);
+                m_engine_black->go(false);
             } catch (const engine::Engine::Error& e) {
                 std::cerr << e.what() << '\n';
             }
@@ -304,8 +304,8 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
         return;
     }
 
-    parameters::ParametersPanel* pnl_parameters {player == Player::Black ? pnl_parameters_black : pnl_parameters_white};
-    wxStaticText* txt_eval {player == Player::Black ? txt_eval_black : txt_eval_white};
+    parameters::ParametersPanel* pnl_parameters {player == Player::Black ? m_pnl_parameters_black : m_pnl_parameters_white};
+    wxStaticText* txt_eval {player == Player::Black ? m_txt_eval_black : m_txt_eval_white};
 
     auto tokens {parse_message(message)};
 
@@ -314,23 +314,23 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
     }
 
     // Remove new line from the last token
-    tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
+    tokens.back() = tokens.back().substr(0, tokens.back().size() - 1);
 
-    if (tokens.at(0u) == "READY") {
+    if (tokens.at(0) == "READY") {
         if (player == Player::Black) {
-            initialize_engine(engine_black, txt_engine_black, ENGINE_BLACK, pnl_parameters_black);
+            initialize_engine(m_engine_black, m_txt_engine_black, ENGINE_BLACK, m_pnl_parameters_black);
         } else {
-            initialize_engine(engine_white, txt_engine_white, ENGINE_WHITE, pnl_parameters_white);
+            initialize_engine(m_engine_white, m_txt_engine_white, ENGINE_WHITE, m_pnl_parameters_white);
         }
-    } else if (tokens.at(0u) == "BESTMOVE") {
-        if (tokens.size() > 1u) {
-            board->play_move(tokens.at(1u));
+    } else if (tokens.at(0) == "BESTMOVE") {
+        if (tokens.size() > 1) {
+            m_board->play_move(tokens.at(1));
         }
-    } else if (tokens.at(0u) == "PARAMETERS") {
+    } else if (tokens.at(0) == "PARAMETERS") {
         std::vector<std::pair<std::string, std::string>> parameters;
-        auto i {tokens.size() - 1u};
+        auto i {tokens.size() - 1};
 
-        while (i > 0u) {
+        while (i > 0) {
             const auto name = tokens.at(tokens.size() - i--);
             const auto type = tokens.at(tokens.size() - i--);
 
@@ -338,14 +338,14 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
         }
 
         pnl_parameters->get_engine_parameters(std::move(parameters));
-    } else if (tokens.at(0u) == "PARAMETER") {
-        pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
+    } else if (tokens.at(0) == "PARAMETER") {
+        pnl_parameters->add_parameter(tokens.at(1), tokens.at(2));
 
         Layout();
-    } else if (tokens.at(0u) == "INFO") {
+    } else if (tokens.at(0) == "INFO") {
         std::cout << message;  // It already has a new line
 
-        txt_eval->SetLabelText(EVAL + tokens.at(4u));
+        txt_eval->SetLabelText(EVAL + tokens.at(4));
     }
 }
 
@@ -403,33 +403,33 @@ void MainWindow::initialize_engine(
         std::cerr << e.what() << '\n';
     }
 
-    if (engine_black->is_started() && engine_white->is_started()) {
-        btn_play_position->Enable();
-        btn_play_positions->Enable();
+    if (m_engine_black->is_started() && m_engine_white->is_started()) {
+        m_btn_play_position->Enable();
+        m_btn_play_positions->Enable();
     }
 }
 
 void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     if (!fen_string) {
-        board->reset_position();
+        m_board->reset_position();
     } else {
-        board->set_position(*fen_string);
+        m_board->set_position(*fen_string);
     }
 
-    pnl_moves_log->clear_log();
+    m_pnl_moves_log->clear_log();
 
-    pnl_game_state->reset(board);
+    m_pnl_game_state->reset(m_board);
 
     try {
-        engine_black->newgame(fen_string);
-        engine_white->newgame(fen_string);
+        m_engine_black->newgame(fen_string);
+        m_engine_white->newgame(fen_string);
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 }
 
 int MainWindow::get_ideal_board_size() {
-    const wxSize size {board->GetSize()};
+    const wxSize size {m_board->GetSize()};
 
     return std::min(size.GetHeight(), size.GetWidth());
 }

@@ -14,8 +14,8 @@ namespace engine {
     static void reset_position(EngineData& data, const std::string& fen_string) {
         game::set_position(data.game.position, fen_string);
 
-        data.game.position.plies = 0u;
-        data.game.position.plies_without_advancement = 0u;
+        data.game.position.plies = 0;
+        data.game.position.plies_without_advancement = 0;
 
         data.game.previous_positions.clear();
         data.game.moves_played.clear();
@@ -140,8 +140,8 @@ namespace engine {
                     data.minimax.cv,
                     lock,
                     result_available,
-                    std::get<0u>(data.minimax.parameters.at("piece")),
-                    std::get<0u>(data.minimax.parameters.at("depth"))
+                    std::get<0>(data.minimax.parameters.at("piece")),
+                    std::get<0>(data.minimax.parameters.at("depth"))
                 };
 
                 data.minimax.should_stop = instance.get_should_stop();
@@ -206,7 +206,7 @@ namespace engine {
         Param& parameter {iter->second};
 
         switch (parameter.index()) {
-            case 0u:
+            case 0:
                 parameter = parse_int(value);
                 break;
             default:

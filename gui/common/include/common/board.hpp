@@ -12,9 +12,7 @@
 namespace board {
     class CheckersBoard : public wxWindow {
     public:
-        using Idx = int;
-
-        static constexpr Idx NULL_INDEX {-1};
+        static constexpr int NULL_INDEX {-1};
 
         enum class MoveType {
             Normal,
@@ -25,13 +23,13 @@ namespace board {
             // Always in the range [0, 31]
             union {
                 struct {
-                    Idx source_index;
-                    Idx destination_index;
+                    int source_index;
+                    int destination_index;
                 } normal;
 
                 struct {
-                    Idx source_index;
-                    Idx destination_indices[9u];
+                    int source_index;
+                    int destination_indices[9];
                     std::size_t destination_indices_size;
                 } capture;
             };
@@ -66,11 +64,11 @@ namespace board {
         static std::string move_to_string(const Move& move);
         static Player opponent(Player player);
 
-        GameOver get_game_over() const { return game_over; }
-        Player get_player() const { return turn; }
-        const std::vector<Move>& get_legal_moves() const { return legal_moves; }
-        unsigned int get_plies_without_advancement() const { return plies_without_advancement; }
-        std::size_t get_repetition_size() const { return repetition.positions.size(); }
+        GameOver get_game_over() const { return m_game_over; }
+        Player get_player() const { return m_turn; }
+        const std::vector<Move>& get_legal_moves() const { return m_legal_moves; }
+        unsigned int get_plies_without_advancement() const { return m_plies_without_advancement; }
+        std::size_t get_repetition_size() const { return m_repetition_positions.size(); }
     private:
         enum class Direction {
             NorthEast,
@@ -92,12 +90,12 @@ namespace board {
             WhiteKing = 0b0110u
         };
 
-        using Board = std::array<Square, 32u>;
+        using Board = std::array<Square, 32>;
 
         struct JumpCtx {
             Board board {};  // Use a copy of the board
-            Idx source_index {};
-            std::vector<Idx> destination_indices;
+            int source_index {};
+            std::vector<int> destination_indices;
         };
 
         void on_paint(wxPaintEvent&);
@@ -107,77 +105,76 @@ namespace board {
         int get_square(wxPoint position) const;
         static std::pair<int, int> get_square(int square);
         static bool is_black_square(int square);
-        bool select_piece(Idx square_index);
+        bool select_piece(int square_index);
         std::vector<Move> generate_moves() const;
-        void generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const;
-        void generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const;
-        bool check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) const;
-        Idx offset(Idx square_index, Direction direction, Diagonal diagonal) const;
+        void generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const;
+        void generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const;
+        bool check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx) const;
+        int offset_index(int square_index, Direction direction, Diagonal diagonal) const;
         void change_turn();
         void check_80_move_rule(bool advancement);
-        void check_piece_crowning(Idx square_index);
+        void check_piece_crowning(int square_index);
         void check_legal_moves();
         void check_repetition(bool advancement);
-        bool playable_normal_move(const Move& move, Idx square_index) const;
-        bool playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) const;
+        bool playable_normal_move(const Move& move, int square_index) const;
+        bool playable_capture_move(const Move& move, const std::vector<int>& square_indices) const;
         void play_normal_move(const Move& move);
         void play_capture_move(const Move& move);
-        void select_jump_square(Idx square_index);
-        void deselect_jump_square(Idx square_index);
+        void select_jump_square(int square_index);
+        void deselect_jump_square(int square_index);
         void remove_jumped_pieces(const Move& move);
         void remember_move(const Move& move);
-        static Idx get_jumped_piece_index(Idx index1, Idx index2);
+        static int get_jumped_piece_index(int index1, int index2);
         static bool validate_fen_string(const std::string& fen_string);
         static Player parse_player(const std::string& fen_string, std::size_t index);
         void parse_pieces(const std::string& fen_string, std::size_t& index, Player player);
-        static std::pair<Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index);
-        static int translate_1_32_to_0_64(Idx index);
-        static Idx translate_0_64_to_1_32(int index);
-        static Idx to_0_31(Idx index);
-        static Idx to_1_32(Idx index);
+        static std::pair<int, bool> parse_piece(const std::string& fen_string, std::size_t& index);
+        static int translate_1_32_to_0_64(int index);
+        static int translate_0_64_to_1_32(int index);
+        static int to_0_31(int index);
+        static int to_1_32(int index);
         static bool valid_move_string(const std::string& move_string);
         static unsigned int parse_number(const std::string& move_string, std::size_t& index);
-        static Idx parse_source_square(const std::string& move_string, std::size_t& index);
-        static std::vector<Idx> parse_destination_squares(const std::string& move_string, std::size_t& index);
-        static bool is_capture_move(Idx source, Idx destination);
+        static int parse_source_square(const std::string& move_string, std::size_t& index);
+        static std::vector<int> parse_destination_squares(const std::string& move_string, std::size_t& index);
+        static bool is_capture_move(int source, int destination);
         void clear();
         void refresh_canvas();
         void draw(wxDC& dc);
 
         // Used for mouse cursor detection
-        int board_size {0};
+        int m_board_size {0};
 
         // Called every time a move has been made
-        OnPieceMove on_piece_move;
+        OnPieceMove m_on_piece_move;
 
         // Used to differentiate between human and computer turns
-        bool user_input {true};
+        bool m_user_input {true};
 
         // Used for quicker analysis
-        bool show_indices {false};
+        bool m_show_indices {false};
+
+        // GUI data
+        int m_selected_piece_index {NULL_INDEX};
+        std::vector<Move> m_legal_moves;
+        std::vector<Move> m_last_moves;
+        std::vector<int> m_jump_square_indices;
+        GameOver m_game_over {GameOver::None};
+
+        struct Position {
+            Board board {};
+            Player turn {Player::Black};
+
+            bool operator==(const Position& other) const {
+                return board == other.board && turn == other.turn;
+            }
+        };
 
         // Game data
-        Board board {};
-        Player turn {Player::Black};
-        Idx selected_piece_index {NULL_INDEX};
-        std::vector<Move> legal_moves;
-        std::vector<Idx> jump_square_indices;
-        unsigned int plies_without_advancement {0u};
-        GameOver game_over {GameOver::None};
-        std::vector<Move> last_moves;
-
-        struct Repetition {
-            struct Position {
-                Board board {};
-                Player turn {Player::Black};
-
-                bool operator==(const Position& other) const {
-                    return board == other.board && turn == other.turn;
-                }
-            };
-
-            std::vector<Position> positions;
-        } repetition;
+        Board m_board {};
+        Player m_turn {Player::Black};
+        unsigned int m_plies_without_advancement {0};
+        std::vector<Position> m_repetition_positions;
 
         wxDECLARE_EVENT_TABLE();
     };

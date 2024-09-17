@@ -48,27 +48,27 @@ private:
     PlayerType get_player_type(board::CheckersBoard::Player player);
     std::vector<std::string> parse_message(const std::string& message);
 
-    board::CheckersBoard* board {nullptr};
+    board::CheckersBoard* m_board {nullptr};
 
-    wxRadioButton* btn_black_human {nullptr};
-    wxRadioButton* btn_black_computer {nullptr};
+    wxRadioButton* m_btn_black_human {nullptr};
+    wxRadioButton* m_btn_black_computer {nullptr};
 
-    wxRadioButton* btn_white_human {nullptr};
-    wxRadioButton* btn_white_computer {nullptr};
+    wxRadioButton* m_btn_white_human {nullptr};
+    wxRadioButton* m_btn_white_computer {nullptr};
 
-    wxButton* btn_stop {nullptr};
-    wxButton* btn_continue {nullptr};
+    wxButton* m_btn_stop {nullptr};
+    wxButton* m_btn_continue {nullptr};
 
-    PlayerType black {PlayerType::Human};
-    PlayerType white {PlayerType::Computer};
+    PlayerType m_black {PlayerType::Human};
+    PlayerType m_white {PlayerType::Computer};
 
-    wxStaticText* txt_engine {nullptr};
+    wxStaticText* m_txt_engine {nullptr};
 
-    std::unique_ptr<engine::Engine> engine;
+    std::unique_ptr<engine::Engine> m_engine;
 
-    game_state::GameStatePanel* pnl_game_state {nullptr};
-    moves_log::MovesLog* pnl_moves_log {nullptr};
-    parameters::ParametersPanel* pnl_parameters {nullptr};
+    game_state::GameStatePanel* m_pnl_game_state {nullptr};
+    moves_log::MovesLog* m_pnl_moves_log {nullptr};
+    parameters::ParametersPanel* m_pnl_parameters {nullptr};
 
     wxDECLARE_EVENT_TABLE();
 };

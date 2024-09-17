@@ -18,7 +18,7 @@ namespace parameters {
         void clear_parameters();
 
         void set_sizer(wxSizer* sizer);
-        void set_engine(engine::Engine* engine) { this->engine = engine; }
+        void set_engine(engine::Engine* engine) { m_engine = engine; }
     private:
         void setup_integer_parameter_widget(const std::string& name, const std::string& value, int id);
 
@@ -26,10 +26,10 @@ namespace parameters {
             Int
         };
 
-        std::unordered_map<std::string, ParameterType> parameters;
+        std::unordered_map<std::string, ParameterType> m_parameters;
 
-        wxSizer* sizer {nullptr};
-        engine::Engine* engine {nullptr};
-        int id {};
+        wxSizer* m_sizer {nullptr};
+        engine::Engine* m_engine {nullptr};
+        int m_id {};
     };
 }

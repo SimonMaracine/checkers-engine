@@ -43,7 +43,7 @@ MainWindow::MainWindow()
     setup_widgets();
     Center();
 
-    engine = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error); });
+    m_engine = std::make_unique<engine::Engine>([this](const auto& message, bool error) { on_engine_message(message, error); });
 }
 
 void MainWindow::setup_menubar() {
@@ -68,16 +68,16 @@ void MainWindow::setup_widgets() {
     wxBoxSizer* szr_main {new wxBoxSizer(wxHORIZONTAL)};
 
     {
-        board = new board::CheckersBoard(this, -1, -1, 400,
+        m_board = new board::CheckersBoard(this, -1, -1, 400,
             [this](const board::CheckersBoard::Move& move) {
                 return on_piece_move(move);
             }
         );
 
-        szr_main->Add(board, 3, wxEXPAND | wxALL);
+        szr_main->Add(m_board, 3, wxEXPAND | wxALL);
 
         // Initially user input is disabled until an engine is loaded
-        board->set_user_input(false);
+        m_board->set_user_input(false);
     }
 
     szr_main->AddSpacer(30);
@@ -88,9 +88,9 @@ void MainWindow::setup_widgets() {
 
         {
             wxBoxSizer* szr_game_state {new wxBoxSizer(wxVERTICAL)};
-            pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
-            pnl_game_state->SetSizer(szr_game_state);
-            szr_right_side->Add(pnl_game_state);
+            m_pnl_game_state = new game_state::GameStatePanel(pnl_right_side, szr_game_state);
+            m_pnl_game_state->SetSizer(szr_game_state);
+            szr_right_side->Add(m_pnl_game_state);
         }
 
         szr_right_side->AddSpacer(10);
@@ -107,11 +107,11 @@ void MainWindow::setup_widgets() {
 
                 szr_black->Add(new wxStaticText(pnl_black, wxID_ANY, "Black"), 1);
 
-                btn_black_human = new wxRadioButton(pnl_black, BLACK, "Human");
-                szr_black->Add(btn_black_human, 1);
+                m_btn_black_human = new wxRadioButton(pnl_black, BLACK, "Human");
+                szr_black->Add(m_btn_black_human, 1);
 
-                btn_black_computer = new wxRadioButton(pnl_black, BLACK, "Computer");
-                szr_black->Add(btn_black_computer, 1);
+                m_btn_black_computer = new wxRadioButton(pnl_black, BLACK, "Computer");
+                szr_black->Add(m_btn_black_computer, 1);
 
                 pnl_black->SetSizer(szr_black);
 
@@ -124,12 +124,12 @@ void MainWindow::setup_widgets() {
 
                 szr_white->Add(new wxStaticText(pnl_white, wxID_ANY, "White"), 1);
 
-                btn_white_human = new wxRadioButton(pnl_white, WHITE, "Human");
-                szr_white->Add(btn_white_human, 1);
+                m_btn_white_human = new wxRadioButton(pnl_white, WHITE, "Human");
+                szr_white->Add(m_btn_white_human, 1);
 
-                btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
-                btn_white_computer->SetValue(true);
-                szr_white->Add(btn_white_computer, 1);
+                m_btn_white_computer = new wxRadioButton(pnl_white, WHITE, "Computer");
+                m_btn_white_computer->SetValue(true);
+                szr_white->Add(m_btn_white_computer, 1);
 
                 pnl_white->SetSizer(szr_white);
 
@@ -141,10 +141,10 @@ void MainWindow::setup_widgets() {
             szr_right_side->Add(pnl_players);
 
             // Initially these are disabled until an engine is loaded
-            btn_black_human->Disable();
-            btn_black_computer->Disable();
-            btn_white_human->Disable();
-            btn_white_computer->Disable();
+            m_btn_black_human->Disable();
+            m_btn_black_computer->Disable();
+            m_btn_white_human->Disable();
+            m_btn_white_computer->Disable();
         }
 
         szr_right_side->AddSpacer(10);
@@ -155,21 +155,21 @@ void MainWindow::setup_widgets() {
             wxPanel* pnl_control_buttons {new wxPanel(pnl_right_side)};
             wxBoxSizer* szr_control_buttons {new wxBoxSizer(wxHORIZONTAL)};
 
-            btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
-            szr_control_buttons->Add(btn_stop, 1);
+            m_btn_stop = new wxButton(pnl_control_buttons, STOP, "Stop");
+            szr_control_buttons->Add(m_btn_stop, 1);
 
             szr_control_buttons->AddSpacer(10);
 
-            btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
-            szr_control_buttons->Add(btn_continue, 1);
+            m_btn_continue = new wxButton(pnl_control_buttons, CONTINUE, "Continue");
+            szr_control_buttons->Add(m_btn_continue, 1);
 
             pnl_control_buttons->SetSizer(szr_control_buttons);
 
             szr_right_side->Add(pnl_control_buttons);
 
             // Initially these are disabled until an engine is loaded
-            btn_stop->Disable();
-            btn_continue->Disable();
+            m_btn_stop->Disable();
+            m_btn_continue->Disable();
         }
 
         szr_right_side->AddSpacer(10);
@@ -177,8 +177,8 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
-            szr_right_side->Add(txt_engine);
+            m_txt_engine = new wxStaticText(pnl_right_side, wxID_ANY, ENGINE);
+            szr_right_side->Add(m_txt_engine);
         }
 
         szr_right_side->AddSpacer(10);
@@ -186,9 +186,9 @@ void MainWindow::setup_widgets() {
         szr_right_side->AddSpacer(10);
 
         {
-            pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
-            pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
-            szr_right_side->Add(pnl_parameters, 1, wxEXPAND | wxALL);
+            m_pnl_parameters = new parameters::ParametersPanel(pnl_right_side, 30);
+            m_pnl_parameters->set_sizer(new wxBoxSizer(wxVERTICAL));
+            szr_right_side->Add(m_pnl_parameters, 1, wxEXPAND | wxALL);
         }
 
         pnl_right_side->SetSizer(szr_right_side);
@@ -199,9 +199,9 @@ void MainWindow::setup_widgets() {
     szr_main->AddSpacer(30);
 
     {
-        pnl_moves_log = new moves_log::MovesLog(this);
-        pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
-        szr_main->Add(pnl_moves_log, 1, wxEXPAND | wxDOWN);
+        m_pnl_moves_log = new moves_log::MovesLog(this);
+        m_pnl_moves_log->set_sizer(new wxBoxSizer(wxVERTICAL));
+        szr_main->Add(m_pnl_moves_log, 1, wxEXPAND | wxDOWN);
     }
 
     SetSizer(szr_main);
@@ -229,7 +229,7 @@ void MainWindow::on_start_engine(wxCommandEvent&) {
     stop_engine();
 
     try {
-        engine->start_engine(dialog.GetPath().ToStdString(), dialog.GetFilename().ToStdString());
+        m_engine->start_engine(dialog.GetPath().ToStdString(), dialog.GetFilename().ToStdString());
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
@@ -250,7 +250,7 @@ void MainWindow::on_set_position(wxCommandEvent&) {
 void MainWindow::on_show_indices(wxCommandEvent&) {
     static bool show_indices {false};
 
-    board->set_show_indices(!std::exchange(show_indices, !show_indices));
+    m_board->set_show_indices(!std::exchange(show_indices, !show_indices));
 }
 
 void MainWindow::on_about(wxCommandEvent&) {
@@ -263,106 +263,106 @@ void MainWindow::on_about(wxCommandEvent&) {
 
 void MainWindow::on_window_resize(wxSizeEvent& event) {
     // This function may be called before board is initialized
-    if (board != nullptr) {
+    if (m_board != nullptr) {
         Layout();
-        board->set_board_size(get_ideal_board_size());
+        m_board->set_board_size(get_ideal_board_size());
     }
 
     event.Skip();
 }
 
 void MainWindow::on_black_change(wxCommandEvent&) {
-    if (btn_black_human->GetValue()) {
-        black = PlayerType::Human;
+    if (m_btn_black_human->GetValue()) {
+        m_black = PlayerType::Human;
 
-        if (board->get_player() == board::CheckersBoard::Player::Black) {
-            board->set_user_input(true);
+        if (m_board->get_player() == board::CheckersBoard::Player::Black) {
+            m_board->set_user_input(true);
         }
     } else {
-        black = PlayerType::Computer;
+        m_black = PlayerType::Computer;
 
-        if (board->get_player() == board::CheckersBoard::Player::Black) {
-            board->set_user_input(false);
+        if (m_board->get_player() == board::CheckersBoard::Player::Black) {
+            m_board->set_user_input(false);
         }
     }
 }
 
 void MainWindow::on_white_change(wxCommandEvent&) {
-    if (btn_white_human->GetValue()) {
-        white = PlayerType::Human;
+    if (m_btn_white_human->GetValue()) {
+        m_white = PlayerType::Human;
 
-        if (board->get_player() == board::CheckersBoard::Player::White) {
-            board->set_user_input(true);
+        if (m_board->get_player() == board::CheckersBoard::Player::White) {
+            m_board->set_user_input(true);
         }
     } else {
-        white = PlayerType::Computer;
+        m_white = PlayerType::Computer;
 
-        if (board->get_player() == board::CheckersBoard::Player::White) {
-            board->set_user_input(false);
+        if (m_board->get_player() == board::CheckersBoard::Player::White) {
+            m_board->set_user_input(false);
         }
     }
 }
 
 void MainWindow::on_stop(wxCommandEvent&) {
     try {
-        engine->stop();
+        m_engine->stop();
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 }
 
 void MainWindow::on_continue(wxCommandEvent&) {
-    if (get_player_type(board->get_player()) != PlayerType::Computer) {
+    if (get_player_type(m_board->get_player()) != PlayerType::Computer) {
         return;
     }
 
     try {
-        engine->go(false);
+        m_engine->go(false);
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 
-    btn_continue->Disable();
+    m_btn_continue->Disable();
 }
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
-    pnl_moves_log->log_move(move);
+    m_pnl_moves_log->log_move(move);
 
-    pnl_game_state->update(board);
+    m_pnl_game_state->update(m_board);
 
-    if (get_player_type(board->get_player()) == PlayerType::Computer) {
-        if (get_player_type(board::CheckersBoard::opponent(board->get_player())) == PlayerType::Human) {
+    if (get_player_type(m_board->get_player()) == PlayerType::Computer) {
+        if (get_player_type(board::CheckersBoard::opponent(m_board->get_player())) == PlayerType::Human) {
             try {
-                engine->move(board::CheckersBoard::move_to_string(move));
+                m_engine->move(board::CheckersBoard::move_to_string(move));
             } catch (const engine::Engine::Error& e) {
                 std::cerr << e.what() << '\n';
             }
         }
     }
 
-    if (board->get_game_over() != board::CheckersBoard::GameOver::None) {
+    if (m_board->get_game_over() != board::CheckersBoard::GameOver::None) {
         return;
     }
 
-    if (get_player_type(board->get_player()) == PlayerType::Computer) {
+    if (get_player_type(m_board->get_player()) == PlayerType::Computer) {
         try {
-            engine->go(false);
+            m_engine->go(false);
         } catch (const engine::Engine::Error& e) {
             std::cerr << e.what() << '\n';
         }
 
-        board->set_user_input(false);
+        m_board->set_user_input(false);
     } else {
-        board->set_user_input(true);
+        m_board->set_user_input(true);
     }
 
     // It's okay to disable these over and over again
-    btn_black_human->Disable();
-    btn_black_computer->Disable();
-    btn_white_human->Disable();
-    btn_white_computer->Disable();
+    m_btn_black_human->Disable();
+    m_btn_black_computer->Disable();
+    m_btn_white_human->Disable();
+    m_btn_white_computer->Disable();
 
-    btn_continue->Disable();
+    m_btn_continue->Disable();
 }
 
 void MainWindow::on_engine_message(const std::string& message, bool error) {
@@ -378,44 +378,44 @@ void MainWindow::on_engine_message(const std::string& message, bool error) {
     }
 
     // Remove new line from the last token
-    tokens.back() = tokens.back().substr(0u, tokens.back().size() - 1u);
+    tokens.back() = tokens.back().substr(0, tokens.back().size() - 1);
 
-    if (tokens.at(0u) == "READY") {
+    if (tokens.at(0) == "READY") {
         initialize_engine();
-    } else if (tokens.at(0u) == "BESTMOVE") {
-        if (tokens.size() > 1u) {
-            board->play_move(tokens.at(1u));
+    } else if (tokens.at(0) == "BESTMOVE") {
+        if (tokens.size() > 1) {
+            m_board->play_move(tokens.at(1));
         }
-    } else if (tokens.at(0u) == "PARAMETERS") {
+    } else if (tokens.at(0) == "PARAMETERS") {
         std::vector<std::pair<std::string, std::string>> parameters;
-        auto i {tokens.size() - 1u};
+        auto i {tokens.size() - 1};
 
-        while (i > 0u) {
+        while (i > 0) {
             const auto name = tokens.at(tokens.size() - i--);
             const auto type = tokens.at(tokens.size() - i--);
 
             parameters.push_back(std::make_pair(name, type));
         }
 
-        pnl_parameters->get_engine_parameters(std::move(parameters));
-    } else if (tokens.at(0u) == "PARAMETER") {
-        pnl_parameters->add_parameter(tokens.at(1u), tokens.at(2u));
+        m_pnl_parameters->get_engine_parameters(std::move(parameters));
+    } else if (tokens.at(0) == "PARAMETER") {
+        m_pnl_parameters->add_parameter(tokens.at(1), tokens.at(2));
 
         Layout();
-    } else if (tokens.at(0u) == "INFO") {
+    } else if (tokens.at(0) == "INFO") {
         std::cout << message;  // It already has a new line
     }
 }
 
 void MainWindow::stop_engine() {
     try {
-        engine->quit();
+        m_engine->quit();
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 
     try {
-        engine->stop_engine();
+        m_engine->stop_engine();
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
@@ -426,81 +426,81 @@ void MainWindow::initialize_engine() {
     set_position(std::nullopt);
 
     try {
-        engine->init();
+        m_engine->init();
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
         return;
     }
 
-    txt_engine->SetLabelText(ENGINE + engine->get_name());
+    m_txt_engine->SetLabelText(ENGINE + m_engine->get_name());
 
-    pnl_parameters->clear_parameters();
-    pnl_parameters->set_engine(engine.get());
+    m_pnl_parameters->clear_parameters();
+    m_pnl_parameters->set_engine(m_engine.get());
 
     try {
-        engine->getparameters();
+        m_engine->getparameters();
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 
     // Don't tell the engine to go now, if it's their turn; wait until the continue button is pressed
 
-    if (get_player_type(board->get_player()) == PlayerType::Human) {
+    if (get_player_type(m_board->get_player()) == PlayerType::Human) {
         // Finally enable user input
-        board->set_user_input(true);
+        m_board->set_user_input(true);
     }
 
     // Finally enable these as well
-    btn_black_human->Enable();
-    btn_black_computer->Enable();
-    btn_white_human->Enable();
-    btn_white_computer->Enable();
+    m_btn_black_human->Enable();
+    m_btn_black_computer->Enable();
+    m_btn_white_human->Enable();
+    m_btn_white_computer->Enable();
 
-    btn_stop->Enable();
-    btn_continue->Enable();
+    m_btn_stop->Enable();
+    m_btn_continue->Enable();
 }
 
 void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     if (!fen_string) {
-        board->reset_position();
+        m_board->reset_position();
     } else {
-        board->set_position(*fen_string);
+        m_board->set_position(*fen_string);
     }
 
-    pnl_moves_log->clear_log();
+    m_pnl_moves_log->clear_log();
 
-    pnl_game_state->reset(board);
+    m_pnl_game_state->reset(m_board);
 
     try {
-        engine->newgame(fen_string);
+        m_engine->newgame(fen_string);
     } catch (const engine::Engine::Error& e) {
         std::cerr << e.what() << '\n';
     }
 
-    if (get_player_type(board->get_player()) == PlayerType::Computer) {
-        board->set_user_input(false);
+    if (get_player_type(m_board->get_player()) == PlayerType::Computer) {
+        m_board->set_user_input(false);
     } else {
-        board->set_user_input(true);
+        m_board->set_user_input(true);
     }
 
-    btn_black_human->Enable();
-    btn_black_computer->Enable();
-    btn_white_human->Enable();
-    btn_white_computer->Enable();
+    m_btn_black_human->Enable();
+    m_btn_black_computer->Enable();
+    m_btn_white_human->Enable();
+    m_btn_white_computer->Enable();
 
-    btn_continue->Enable();
+    m_btn_continue->Enable();
 }
 
 int MainWindow::get_ideal_board_size() {
-    const wxSize size {board->GetSize()};
+    const wxSize size {m_board->GetSize()};
 
     return std::min(size.GetHeight(), size.GetWidth());
 }
 
 MainWindow::PlayerType MainWindow::get_player_type(board::CheckersBoard::Player player) {
-    const PlayerType PLAYERS[2u] { black, white };
+    const PlayerType PLAYERS[2] { m_black, m_white };
 
-    return PLAYERS[static_cast<unsigned int>(player) - 1u];
+    return PLAYERS[static_cast<unsigned int>(player) - 1];
 }
 
 std::vector<std::string> MainWindow::parse_message(const std::string& message) {

@@ -4588,4 +4588,4 @@ inline constexpr unsigned char wood_click_wav[] {
   0xfe, 0xff, 0x03, 0x00, 0x00, 0x00, 0xff, 0xff
 };
 
-inline constexpr unsigned int wood_click_wav_len {54992u};
+inline constexpr unsigned int wood_click_wav_len {54992};

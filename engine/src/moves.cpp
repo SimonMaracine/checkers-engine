@@ -31,28 +31,28 @@ namespace moves {
         assert(move.type == game::MoveType::Capture);
 
         assert(
-            board[move.capture.destination_indices[0u]] == game::Square::None ||
-            move.capture.source_index == move.capture.destination_indices[0u]
+            board[move.capture.destination_indices[0]] == game::Square::None ||
+            move.capture.source_index == move.capture.destination_indices[0]
         );
 
         const auto index {get_jumped_piece_index(
             game::to_1_32(move.capture.source_index),
-            game::to_1_32(move.capture.destination_indices[0u])
+            game::to_1_32(move.capture.destination_indices[0])
         )};
 
         assert(board[game::to_0_31(index)] != game::Square::None);
 
         board[game::to_0_31(index)] = game::Square::None;
 
-        for (unsigned char i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+        for (unsigned char i {0}; i < move.capture.destination_indices_size - 1; i++) {
             assert(
-                board[move.capture.destination_indices[i + 1u]] == game::Square::None ||
-                move.capture.source_index == move.capture.destination_indices[i + 1u]
+                board[move.capture.destination_indices[i + 1]] == game::Square::None ||
+                move.capture.source_index == move.capture.destination_indices[i + 1]
             );
 
             const auto index {get_jumped_piece_index(
                 game::to_1_32(move.capture.destination_indices[i]),
-                game::to_1_32(move.capture.destination_indices[i + 1u])
+                game::to_1_32(move.capture.destination_indices[i + 1])
             )};
 
             assert(board[game::to_0_31(index)] != game::Square::None);
@@ -139,8 +139,8 @@ namespace moves {
         bool king,
         JumpCtx& ctx
     ) {
-        Direction directions[4u] {};
-        std::size_t index {0u};
+        Direction directions[4] {};
+        std::size_t index {0};
 
         if (king) {
             directions[index++] = Direction::NorthEast;
@@ -197,7 +197,7 @@ namespace moves {
                 move.capture.source_index = ctx.source_index;
                 move.capture.destination_indices_size = static_cast<unsigned char>(ctx.destination_indices.size());
 
-                for (std::size_t i {0u}; i < ctx.destination_indices.size(); i++) {
+                for (std::size_t i {0}; i < ctx.destination_indices.size(); i++) {
                     move.capture.destination_indices[i] = ctx.destination_indices[i];
                 }
 
@@ -237,8 +237,8 @@ namespace moves {
         bool king,
         std::vector<game::Move>& moves
     ) {
-        Direction directions[4u] {};
-        std::size_t index {0u};
+        Direction directions[4] {};
+        std::size_t index {0};
 
         if (king) {
             directions[index++] = Direction::NorthEast;
@@ -306,7 +306,7 @@ namespace moves {
                 std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 
                 if (!game::is_king_piece(board[move.normal.destination_index])) {
-                    position.plies_without_advancement = 0u;
+                    position.plies_without_advancement = 0;
                 } else {
                     position.plies_without_advancement++;
                 }
@@ -317,19 +317,19 @@ namespace moves {
             case game::MoveType::Capture:
                 assert(board[move.capture.source_index] != game::Square::None);
                 assert(
-                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None ||
-                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == game::Square::None ||
+                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]
                 );
 
                 remove_jumped_pieces(board, move);
                 std::swap(
                     board[move.capture.source_index],
-                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
+                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1]]
                 );
 
-                position.plies_without_advancement = 0u;
+                position.plies_without_advancement = 0;
 
-                check_piece_crowning(board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
+                check_piece_crowning(board, move.capture.destination_indices[move.capture.destination_indices_size - 1]);
 
                 break;
         }
@@ -347,7 +347,7 @@ namespace moves {
                 std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);
 
                 if (!game::is_king_piece(node.board[move.normal.destination_index])) {
-                    node.plies_without_advancement = 0u;
+                    node.plies_without_advancement = 0;
                     node.previous = nullptr;
                 } else {
                     node.plies_without_advancement++;
@@ -359,20 +359,20 @@ namespace moves {
             case game::MoveType::Capture:
                 assert(node.board[move.capture.source_index] != game::Square::None);
                 assert(
-                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]] == game::Square::None ||
-                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == game::Square::None ||
+                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]
                 );
 
                 remove_jumped_pieces(node.board, move);
                 std::swap(
                     node.board[move.capture.source_index],
-                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1u]]
+                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1]]
                 );
 
-                node.plies_without_advancement = 0u;
+                node.plies_without_advancement = 0;
                 node.previous = nullptr;
 
-                check_piece_crowning(node.board, move.capture.destination_indices[move.capture.destination_indices_size - 1u]);
+                check_piece_crowning(node.board, move.capture.destination_indices[move.capture.destination_indices_size - 1]);
 
                 break;
         }

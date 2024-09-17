@@ -13,7 +13,7 @@ namespace engine {
     class EngineReader : public wxTimer {
     public:
         EngineReader(subprocess::Subprocess& process, const ReadCallback& callback)
-            : process(process), callback(callback) {}
+            : m_process(process), m_callback(callback) {}
 
         EngineReader(const EngineReader&) = delete;
         EngineReader& operator=(const EngineReader&) = delete;
@@ -22,8 +22,8 @@ namespace engine {
 
         void Notify() override;
     private:
-        subprocess::Subprocess& process;  // Reference is okay
-        ReadCallback callback;
+        subprocess::Subprocess& m_process;  // Reference is okay
+        ReadCallback m_callback;
     };
 
     class Engine {
@@ -31,15 +31,15 @@ namespace engine {
         using Error = subprocess::Error;
 
         explicit Engine(const ReadCallback& callback)
-            : reader(process, callback) {}
+            : m_reader(m_process, callback) {}
 
         Engine(const Engine&) = delete;
         Engine& operator=(const Engine&) = delete;
         Engine(Engine&&) = delete;
         Engine& operator=(Engine&&) = delete;
 
-        bool is_started() const { return started; }
-        const std::string& get_name() const { return name; }
+        bool is_started() const { return m_started; }
+        const std::string& get_name() const { return m_name; }
 
         void start_engine(const std::string& file_path, const std::string& name);
         void stop_engine();
@@ -56,9 +56,9 @@ namespace engine {
     private:
         void try_terminate();
 
-        subprocess::Subprocess process;
-        EngineReader reader;
-        std::string name;
-        bool started {false};
+        subprocess::Subprocess m_process;
+        EngineReader m_reader;
+        std::string m_name;
+        bool m_started {false};
     };
 }

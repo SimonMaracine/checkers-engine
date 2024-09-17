@@ -7,7 +7,7 @@
 #include <game.hpp>
 
 static void generate_moves(unsigned int depth, game::Position& position) {
-    if (depth == 0u) {
+    if (depth == 0) {
         return;
     }
 
@@ -17,7 +17,7 @@ static void generate_moves(unsigned int depth, game::Position& position) {
         auto new_position {position};
         moves::play_move(new_position, move);
 
-        generate_moves(depth - 1u, new_position);
+        generate_moves(depth - 1, new_position);
     }
 }
 
@@ -39,7 +39,7 @@ int main() {
 
     std::vector<double> times;
 
-    for (unsigned int i {1u}; i <= 11u; i++) {
+    for (unsigned int i {1}; i <= 11; i++) {
         const auto time {test_moves_from_position(i, fen_string)};
 
         times.push_back(time);

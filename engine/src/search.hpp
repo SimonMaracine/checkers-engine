@@ -32,7 +32,7 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
-        bool* get_should_stop() { return &should_stop; }
+        bool* get_should_stop() { return &m_should_stop; }
     private:
         evaluation::Eval minimax(
             unsigned int depth,
@@ -49,19 +49,19 @@ namespace search {
         bool is_advancement(const game::Position& position, const game::Move& move);
         void notify_result_available();
 
-        bool notified_result_available {false};
-        bool should_stop {false};
-        unsigned int nodes_evaluated {};
-        game::Move best_move {};
+        bool m_notified_result_available {false};
+        bool m_should_stop {false};
+        unsigned int m_nodes_evaluated {};
+        game::Move m_best_move {};
 
         // The current position and previous positions (for threefold reptition)
         // position0, position1, position2, ..., positionN (current)
-        std::vector<SearchNode> nodes;
+        std::vector<SearchNode> m_nodes;
 
-        evaluation::Parameters parameters;
+        evaluation::Parameters m_parameters;
 
-        std::condition_variable& cv;
-        std::unique_lock<std::mutex>& lock;
-        bool& result_available;
+        std::condition_variable& m_cv;
+        std::unique_lock<std::mutex>& m_lock;
+        bool& m_result_available;
     };
 }

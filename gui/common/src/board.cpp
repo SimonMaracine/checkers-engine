@@ -8,7 +8,9 @@
 #include <iterator>
 #include <sstream>
 
-#include "wood_click.hpp"
+#if 0
+    #include "common/wood_click.hpp"
+#endif
 
 /*
     branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
@@ -32,12 +34,12 @@ namespace board {
     static constexpr int ERR {0};
 
     CheckersBoard::CheckersBoard(wxFrame* parent, int x, int y, int size, const OnPieceMove& on_piece_move)
-        : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), board_size(size), on_piece_move(on_piece_move) {
+        : wxWindow(parent, wxID_ANY, wxPoint(x, y), wxSize(size, size)), m_board_size(size), m_on_piece_move(on_piece_move) {
         reset_position();
     }
 
     void CheckersBoard::set_board_size(int size) {
-        board_size = std::clamp(size, 200, 2000);
+        m_board_size = std::clamp(size, 200, 2000);
 
         refresh_canvas();
     }
@@ -45,15 +47,15 @@ namespace board {
     void CheckersBoard::reset_position() {
         clear();
 
-        for (Idx i {0}; i < 12; i++) {
-            board[i] = Square::White;
+        for (int i {0}; i < 12; i++) {
+            m_board[i] = Square::White;
         }
 
-        for (Idx i {20}; i < 32; i++) {
-            board[i] = Square::Black;
+        for (int i {20}; i < 32; i++) {
+            m_board[i] = Square::Black;
         }
 
-        legal_moves = generate_moves();
+        m_legal_moves = generate_moves();
 
         refresh_canvas();
     }
@@ -68,9 +70,9 @@ namespace board {
         clear();
 
         try {
-            std::size_t index {0u};
+            std::size_t index {0};
 
-            turn = parse_player(fen_string, index);
+            m_turn = parse_player(fen_string, index);
 
             index++;
             index++;
@@ -92,17 +94,17 @@ namespace board {
             clear();
         }
 
-        legal_moves = generate_moves();
+        m_legal_moves = generate_moves();
 
         refresh_canvas();
     }
 
     void CheckersBoard::set_user_input(bool user_input) {
-        this->user_input = user_input;
+        m_user_input = user_input;
     }
 
     void CheckersBoard::set_show_indices(bool show_indices) {
-        this->show_indices = show_indices;
+        m_show_indices = show_indices;
 
         refresh_canvas();
     }
@@ -117,7 +119,7 @@ namespace board {
                 break;
         }
 
-        legal_moves = generate_moves();
+        m_legal_moves = generate_moves();
 
         refresh_canvas();
     }
@@ -128,9 +130,9 @@ namespace board {
             return;
         }
 
-        std::size_t index {0u};
-        Idx source {};
-        std::vector<Idx> destinations;
+        std::size_t index {0};
+        int source {};
+        std::vector<int> destinations;
 
         try {
             // These are in the range [1, 32]
@@ -143,18 +145,18 @@ namespace board {
         // Construct a move and play it
         Move move;
 
-        if (is_capture_move(source, destinations[0u])) {
+        if (is_capture_move(source, destinations[0])) {
             move.type = MoveType::Capture;
             move.capture.source_index = to_0_31(source);
             move.capture.destination_indices_size = destinations.size();
 
-            for (std::size_t i {0u}; i < destinations.size(); i++) {
+            for (std::size_t i {0}; i < destinations.size(); i++) {
                 move.capture.destination_indices[i] = to_0_31(destinations[i]);
             }
         } else {
             move.type = MoveType::Normal;
             move.normal.source_index = to_0_31(source);
-            move.normal.destination_index = to_0_31(destinations[0u]);
+            move.normal.destination_index = to_0_31(destinations[0]);
         }
 
         play_move(move);
@@ -171,7 +173,7 @@ namespace board {
             case MoveType::Capture:
                 stream << to_1_32(move.capture.source_index);
 
-                for (std::size_t i {0u}; i < move.capture.destination_indices_size; i++) {
+                for (std::size_t i {0}; i < move.capture.destination_indices_size; i++) {
                     stream << 'x' << to_1_32(move.capture.destination_indices[i]);
                 }
 
@@ -191,11 +193,11 @@ namespace board {
     }
 
     void CheckersBoard::on_mouse_left_down(wxMouseEvent& event) {
-        if (!user_input) {
+        if (!m_user_input) {
             return;
         }
 
-        if (game_over != GameOver::None) {
+        if (m_game_over != GameOver::None) {
             return;
         }
 
@@ -205,27 +207,27 @@ namespace board {
             return;
         }
 
-        const Idx square_index {to_0_31(translate_0_64_to_1_32(square))};
+        const int square_index {to_0_31(translate_0_64_to_1_32(square))};
 
         if (select_piece(square_index)) {
             return;
         }
 
-        if (selected_piece_index == NULL_INDEX) {
+        if (m_selected_piece_index == NULL_INDEX) {
             return;
         }
 
-        const bool normal {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Normal; })};
-        const bool capture {std::all_of(legal_moves.cbegin(), legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
+        const bool normal {std::all_of(m_legal_moves.cbegin(), m_legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Normal; })};
+        const bool capture {std::all_of(m_legal_moves.cbegin(), m_legal_moves.cend(), [](const Move& move) { return move.type == MoveType::Capture; })};
 
         if (normal) {
-            for (const Move& move : legal_moves) {
+            for (const Move& move : m_legal_moves) {
                 if (move.type == MoveType::Normal) {
                     if (playable_normal_move(move, square_index)) {
                         play_normal_move(move);
 
-                        legal_moves = generate_moves();
-                        selected_piece_index = NULL_INDEX;
+                        m_legal_moves = generate_moves();
+                        m_selected_piece_index = NULL_INDEX;
 
                         break;
                     }
@@ -234,13 +236,13 @@ namespace board {
         } else if (capture) {
             select_jump_square(square_index);
 
-            for (const Move& move : legal_moves) {
-                if (playable_capture_move(move, jump_square_indices)) {
+            for (const Move& move : m_legal_moves) {
+                if (playable_capture_move(move, m_jump_square_indices)) {
                     play_capture_move(move);
 
-                    legal_moves = generate_moves();
-                    selected_piece_index = NULL_INDEX;
-                    jump_square_indices.clear();
+                    m_legal_moves = generate_moves();
+                    m_selected_piece_index = NULL_INDEX;
+                    m_jump_square_indices.clear();
 
                     break;
                 }
@@ -278,7 +280,7 @@ namespace board {
             return;
         }
 
-        const Idx square_index {to_0_31(translate_0_64_to_1_32(square))};
+        const int square_index {to_0_31(translate_0_64_to_1_32(square))};
 
         deselect_jump_square(square_index);
 
@@ -299,26 +301,26 @@ namespace board {
 #endif
 
     void CheckersBoard::on_mouse_right_down(wxMouseEvent&) {
-        if (!user_input) {
+        if (!m_user_input) {
             return;
         }
 
-        if (game_over != GameOver::None) {
+        if (m_game_over != GameOver::None) {
             return;
         }
 
-        if (selected_piece_index == NULL_INDEX) {
+        if (m_selected_piece_index == NULL_INDEX) {
             return;
         }
 
-        selected_piece_index = NULL_INDEX;
-        jump_square_indices.clear();
+        m_selected_piece_index = NULL_INDEX;
+        m_jump_square_indices.clear();
 
         refresh_canvas();
     }
 
     int CheckersBoard::get_square(wxPoint position) const {
-        const int SQUARE_SIZE {board_size / 8};
+        const int SQUARE_SIZE {m_board_size / 8};
 
         const int file {position.x / SQUARE_SIZE};
         const int rank {position.y / SQUARE_SIZE};
@@ -343,7 +345,7 @@ namespace board {
         }
     }
 
-    bool CheckersBoard::select_piece(Idx square_index) {
+    bool CheckersBoard::select_piece(int square_index) {
 #if 0
         if (selected_piece_index == square_index) {
             selected_piece_index = NULL_INDEX;
@@ -355,9 +357,9 @@ namespace board {
         }
 #endif
 
-        if (board[square_index] != Square::None && selected_piece_index != square_index) {
-            selected_piece_index = square_index;
-            jump_square_indices.clear();
+        if (m_board[square_index] != Square::None && m_selected_piece_index != square_index) {
+            m_selected_piece_index = square_index;
+            m_jump_square_indices.clear();
 
             refresh_canvas();
 
@@ -370,12 +372,12 @@ namespace board {
     std::vector<CheckersBoard::Move> CheckersBoard::generate_moves() const {
         std::vector<Move> moves;
 
-        for (Idx i {0}; i < 32; i++) {
-            const bool king {static_cast<bool>(static_cast<unsigned int>(board[i]) & (1u << 2))};
-            const bool piece {static_cast<bool>(static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn))};
+        for (int i {0}; i < 32; i++) {
+            const bool king {static_cast<bool>(static_cast<unsigned int>(m_board[i]) & (1u << 2))};
+            const bool piece {static_cast<bool>(static_cast<unsigned int>(m_board[i]) & static_cast<unsigned int>(m_turn))};
 
             if (piece) {
-                generate_piece_capture_moves(moves, i, turn, king);
+                generate_piece_capture_moves(moves, i, m_turn, king);
             }
         }
 
@@ -384,29 +386,29 @@ namespace board {
             return moves;
         }
 
-        for (Idx i {0}; i < 32; i++) {
-            const bool king {static_cast<bool>(static_cast<unsigned int>(board[i]) & (1u << 2))};
-            const bool piece {static_cast<bool>(static_cast<unsigned int>(board[i]) & static_cast<unsigned int>(turn))};
+        for (int i {0}; i < 32; i++) {
+            const bool king {static_cast<bool>(static_cast<unsigned int>(m_board[i]) & (1u << 2))};
+            const bool piece {static_cast<bool>(static_cast<unsigned int>(m_board[i]) & static_cast<unsigned int>(m_turn))};
 
             if (piece) {
-                generate_piece_moves(moves, i, turn, king);
+                generate_piece_moves(moves, i, m_turn, king);
             }
         }
 
         return moves;
     }
 
-    void CheckersBoard::generate_piece_capture_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const {
+    void CheckersBoard::generate_piece_capture_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const {
         JumpCtx ctx;
-        ctx.board = board;
+        ctx.board = m_board;
         ctx.source_index = square_index;
 
         check_piece_jumps(moves, square_index, player, king, ctx);
     }
 
-    void CheckersBoard::generate_piece_moves(std::vector<Move>& moves, Idx square_index, Player player, bool king) const {
-        Direction directions[4u] {};
-        std::size_t index {0u};
+    void CheckersBoard::generate_piece_moves(std::vector<Move>& moves, int square_index, Player player, bool king) const {
+        Direction directions[4] {};
+        std::size_t index {0};
 
         if (king) {
             directions[index++] = Direction::NorthEast;
@@ -428,13 +430,13 @@ namespace board {
 
         // Check the squares above or below in diagonal
         for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
-            const Idx target_index {offset(square_index, *iter, Short)};
+            const int target_index {offset_index(square_index, *iter, Short)};
 
             if (target_index == NULL_INDEX) {
                 continue;
             }
 
-            if (board[target_index] != Square::None) {
+            if (m_board[target_index] != Square::None) {
                 continue;
             }
 
@@ -447,9 +449,9 @@ namespace board {
         }
     }
 
-    bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, Idx square_index, Player player, bool king, JumpCtx& ctx) const {
-        Direction directions[4u] {};
-        std::size_t index {0u};
+    bool CheckersBoard::check_piece_jumps(std::vector<Move>& moves, int square_index, Player player, bool king, JumpCtx& ctx) const {
+        Direction directions[4] {};
+        std::size_t index {0};
 
         if (king) {
             directions[index++] = Direction::NorthEast;
@@ -475,8 +477,8 @@ namespace board {
         bool sequence_jumps_ended {true};
 
         for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
-            const Idx enemy_index {offset(square_index, *iter, Short)};
-            const Idx target_index {offset(square_index, *iter, Long)};
+            const int enemy_index {offset_index(square_index, *iter, Short)};
+            const int target_index {offset_index(square_index, *iter, Long)};
 
             if (enemy_index == NULL_INDEX || target_index == NULL_INDEX) {
                 continue;
@@ -506,7 +508,7 @@ namespace board {
                 move.capture.source_index = ctx.source_index;
                 move.capture.destination_indices_size = ctx.destination_indices.size();
 
-                for (std::size_t i {0u}; i < ctx.destination_indices.size(); i++) {
+                for (std::size_t i {0}; i < ctx.destination_indices.size(); i++) {
                     move.capture.destination_indices[i] = ctx.destination_indices[i];
                 }
 
@@ -525,8 +527,8 @@ namespace board {
         return sequence_jumps_ended;
     }
 
-    CheckersBoard::Idx CheckersBoard::offset(Idx square_index, Direction direction, Diagonal diagonal) const {
-        Idx result_index {square_index};
+    int CheckersBoard::offset_index(int square_index, Direction direction, Diagonal diagonal) const {
+        int result_index {square_index};
 
         const bool even_row {(square_index / 4) % 2 == 0};
 
@@ -579,32 +581,32 @@ namespace board {
     }
 
     void CheckersBoard::change_turn() {
-        turn = opponent(turn);
+        m_turn = opponent(m_turn);
     }
 
     void CheckersBoard::check_80_move_rule(bool advancement) {
         if (advancement) {
-            plies_without_advancement = 0u;
+            m_plies_without_advancement = 0;
         } else {
-            if (++plies_without_advancement == 80u) {
-                game_over = GameOver::Tie;
+            if (++m_plies_without_advancement == 80) {
+                m_game_over = GameOver::Tie;
             }
         }
     }
 
-    void CheckersBoard::check_piece_crowning(Idx square_index) {
+    void CheckersBoard::check_piece_crowning(int square_index) {
         const int row {square_index / 4};
 
-        switch (turn) {
+        switch (m_turn) {
             case Player::Black:
                 if (row == 0) {
-                    board[square_index] = Square::BlackKing;
+                    m_board[square_index] = Square::BlackKing;
                 }
 
                 break;
             case Player::White:
                 if (row == 7) {
-                    board[square_index] = Square::WhiteKing;
+                    m_board[square_index] = Square::WhiteKing;
                 }
 
                 break;
@@ -613,36 +615,36 @@ namespace board {
 
     void CheckersBoard::check_legal_moves() {
         // Generate current player's possible moves
-        auto moves {generate_moves()};
+        const auto moves {generate_moves()};
 
         if (moves.empty()) {
             // Either they have no pieces left or they are blocked
-            game_over = turn == Player::Black ? GameOver::WinnerWhite : GameOver::WinnerBlack;
+            m_game_over = m_turn == Player::Black ? GameOver::WinnerWhite : GameOver::WinnerBlack;
         }
     }
 
     void CheckersBoard::check_repetition(bool advancement) {
-        Repetition::Position current;
-        current.board = board;
-        current.turn = turn;
+        Position current;
+        current.board = m_board;
+        current.turn = m_turn;
 
         if (advancement) {
-            repetition.positions.clear();
+            m_repetition_positions.clear();
         } else {
-            const auto count {std::count(repetition.positions.cbegin(), repetition.positions.cend(), current)};
+            const auto count {std::count(m_repetition_positions.cbegin(), m_repetition_positions.cend(), current)};
 
             if (count == 2) {
-                game_over = GameOver::Tie;
+                m_game_over = GameOver::Tie;
                 return;
             }
         }
 
         // Insert current position even after advancement
-        repetition.positions.push_back(current);
+        m_repetition_positions.push_back(current);
     }
 
-    bool CheckersBoard::playable_normal_move(const Move& move, Idx square_index) const {
-        if (move.normal.source_index != selected_piece_index) {
+    bool CheckersBoard::playable_normal_move(const Move& move, int square_index) const {
+        if (move.normal.source_index != m_selected_piece_index) {
             return false;
         }
 
@@ -653,8 +655,8 @@ namespace board {
         return true;
     }
 
-    bool CheckersBoard::playable_capture_move(const Move& move, const std::vector<Idx>& square_indices) const {
-        if (move.capture.source_index != selected_piece_index) {
+    bool CheckersBoard::playable_capture_move(const Move& move, const std::vector<int>& square_indices) const {
+        if (move.capture.source_index != m_selected_piece_index) {
             return false;
         }
 
@@ -673,13 +675,13 @@ namespace board {
     void CheckersBoard::play_normal_move(const Move& move) {
         assert(move.type == MoveType::Normal);
 
-        assert(board[move.normal.destination_index] == Square::None);
+        assert(m_board[move.normal.destination_index] == Square::None);
 
-        std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+        std::swap(m_board[move.normal.source_index], m_board[move.normal.destination_index]);
 
         const bool advancement {
-            board[move.normal.destination_index] == Square::Black ||
-            board[move.normal.destination_index] == Square::White
+            m_board[move.normal.destination_index] == Square::Black ||
+            m_board[move.normal.destination_index] == Square::White
         };
 
         check_piece_crowning(move.normal.destination_index);
@@ -688,7 +690,7 @@ namespace board {
         check_repetition(advancement);
         check_legal_moves();  // This sets game over and has higher precedence
 
-        on_piece_move(move);
+        m_on_piece_move(move);
 
         remember_move(move);
 
@@ -700,15 +702,15 @@ namespace board {
     void CheckersBoard::play_capture_move(const Move& move) {
         assert(move.type == MoveType::Capture);
 
-        const Idx destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1u]};
+        const int destination_index {move.capture.destination_indices[move.capture.destination_indices_size - 1]};
 
         assert(
-            board[destination_index] == Square::None ||
-            move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1u]
+            m_board[destination_index] == Square::None ||
+            move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]
         );
 
         remove_jumped_pieces(move);
-        std::swap(board[move.capture.source_index], board[destination_index]);
+        std::swap(m_board[move.capture.source_index], m_board[destination_index]);
 
         check_piece_crowning(destination_index);
         change_turn();
@@ -716,7 +718,7 @@ namespace board {
         check_repetition(true);
         check_legal_moves();  // This sets game over and has higher precedence
 
-        on_piece_move(move);
+        m_on_piece_move(move);
 
         remember_move(move);
 
@@ -725,63 +727,63 @@ namespace board {
 #endif
     }
 
-    void CheckersBoard::select_jump_square(Idx square_index) {
-        const auto count {std::count(jump_square_indices.cbegin(), jump_square_indices.cend(), square_index)};
+    void CheckersBoard::select_jump_square(int square_index) {
+        const auto count {std::count(m_jump_square_indices.cbegin(), m_jump_square_indices.cend(), square_index)};
 
         if (count < 2) {
-            jump_square_indices.push_back(square_index);
+            m_jump_square_indices.push_back(square_index);
         }
     }
 
-    void CheckersBoard::deselect_jump_square(Idx square_index) {
-        const auto iter {std::find(jump_square_indices.cbegin(), jump_square_indices.cend(), square_index)};
+    void CheckersBoard::deselect_jump_square(int square_index) {
+        const auto iter {std::find(m_jump_square_indices.cbegin(), m_jump_square_indices.cend(), square_index)};
 
-        if (iter != jump_square_indices.cend()) {
-            jump_square_indices.erase(iter);
+        if (iter != m_jump_square_indices.cend()) {
+            m_jump_square_indices.erase(iter);
         }
     }
 
     void CheckersBoard::remove_jumped_pieces(const Move& move) {
         assert(
-            board[move.capture.destination_indices[0u]] == Square::None ||
-            move.capture.source_index == move.capture.destination_indices[0u]
+            m_board[move.capture.destination_indices[0]] == Square::None ||
+            move.capture.source_index == move.capture.destination_indices[0]
         );
 
-        const Idx index {get_jumped_piece_index(
+        const int index {get_jumped_piece_index(
             to_1_32(move.capture.source_index),
-            to_1_32(move.capture.destination_indices[0u])
+            to_1_32(move.capture.destination_indices[0])
         )};
 
-        assert(board[to_0_31(index)] != Square::None);
+        assert(m_board[to_0_31(index)] != Square::None);
 
-        board[to_0_31(index)] = Square::None;
+        m_board[to_0_31(index)] = Square::None;
 
-        for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+        for (std::size_t i {0}; i < move.capture.destination_indices_size - 1; i++) {
             assert(
-                board[move.capture.destination_indices[i + 1u]] == Square::None ||
-                move.capture.source_index == move.capture.destination_indices[i + 1u]
+                m_board[move.capture.destination_indices[i + 1]] == Square::None ||
+                move.capture.source_index == move.capture.destination_indices[i + 1]
             );
 
-            const Idx index {get_jumped_piece_index(
+            const int index {get_jumped_piece_index(
                 to_1_32(move.capture.destination_indices[i]),
-                to_1_32(move.capture.destination_indices[i + 1u])
+                to_1_32(move.capture.destination_indices[i + 1])
             )};
 
-            assert(board[to_0_31(index)] != Square::None);
+            assert(m_board[to_0_31(index)] != Square::None);
 
-            board[to_0_31(index)] = Square::None;
+            m_board[to_0_31(index)] = Square::None;
         }
     }
 
     void CheckersBoard::remember_move(const Move& move) {
-        if (last_moves.size() == 2u) {
-            last_moves.erase(last_moves.cbegin());
+        if (m_last_moves.size() == 2) {
+            m_last_moves.erase(m_last_moves.cbegin());
         }
 
-        last_moves.push_back(move);
+        m_last_moves.push_back(move);
     }
 
-    CheckersBoard::Idx CheckersBoard::get_jumped_piece_index(Idx index1, Idx index2) {
+    int CheckersBoard::get_jumped_piece_index(int index1, int index2) {
         // This works with indices in the range [1, 32]
 
         const auto sum {index1 + index2};
@@ -819,21 +821,21 @@ namespace board {
 
             if (player == Player::White) {
                 if (king) {
-                    board[to_0_31(square)] = Square::WhiteKing;
+                    m_board[to_0_31(square)] = Square::WhiteKing;
                 } else {
-                    board[to_0_31(square)] = Square::White;
+                    m_board[to_0_31(square)] = Square::White;
                 }
             } else {
                 if (king) {
-                    board[to_0_31(square)] = Square::BlackKing;
+                    m_board[to_0_31(square)] = Square::BlackKing;
                 } else {
-                    board[to_0_31(square)] = Square::Black;
+                    m_board[to_0_31(square)] = Square::Black;
                 }
             }
         }
     }
 
-    std::pair<CheckersBoard::Idx, bool> CheckersBoard::parse_piece(const std::string& fen_string, std::size_t& index) {
+    std::pair<int, bool> CheckersBoard::parse_piece(const std::string& fen_string, std::size_t& index) {
         bool scanning {true};
         bool king {false};
         std::string result_number;
@@ -876,7 +878,7 @@ namespace board {
             }
         }
 
-        unsigned long result {0u};
+        unsigned long result {0};
 
         try {
             result = std::stoul(result_number);
@@ -886,10 +888,10 @@ namespace board {
             throw ERR;
         }
 
-        return std::make_pair(static_cast<Idx>(result), king);
+        return std::make_pair(static_cast<int>(result), king);
     }
 
-    int CheckersBoard::translate_1_32_to_0_64(Idx index) {
+    int CheckersBoard::translate_1_32_to_0_64(int index) {
         if (((index - 1) / 4) % 2 == 0) {
             return index * 2 - 1;
         } else {
@@ -897,7 +899,7 @@ namespace board {
         }
     }
 
-    CheckersBoard::Idx CheckersBoard::translate_0_64_to_1_32(int index) {
+    int CheckersBoard::translate_0_64_to_1_32(int index) {
         if (index % 2 == 1) {
             return (index + 1) / 2;
         } else {
@@ -905,11 +907,11 @@ namespace board {
         }
     }
 
-    CheckersBoard::Idx CheckersBoard::to_0_31(Idx index) {
+    int CheckersBoard::to_0_31(int index) {
         return index - 1;
     }
 
-    CheckersBoard::Idx CheckersBoard::to_1_32(Idx index) {
+    int CheckersBoard::to_1_32(int index) {
         return index + 1;
     }
 
@@ -939,7 +941,7 @@ namespace board {
             }
         }
 
-        unsigned long result {0u};
+        unsigned long result {0};
 
         try {
             result = std::stoul(result_number);
@@ -949,21 +951,21 @@ namespace board {
             throw ERR;
         }
 
-        return static_cast<Idx>(result);
+        return static_cast<int>(result);
     }
 
-    CheckersBoard::Idx CheckersBoard::parse_source_square(const std::string& move_string, std::size_t& index) {
+    int CheckersBoard::parse_source_square(const std::string& move_string, std::size_t& index) {
         const auto number {parse_number(move_string, index)};
 
-        if (number > 32u) {
+        if (number > 32) {
             throw ERR;
         }
 
-        return static_cast<Idx>(number);
+        return static_cast<int>(number);
     }
 
-    std::vector<CheckersBoard::Idx> CheckersBoard::parse_destination_squares(const std::string& move_string, std::size_t& index) {
-        std::vector<Idx> destinations;
+    std::vector<int> CheckersBoard::parse_destination_squares(const std::string& move_string, std::size_t& index) {
+        std::vector<int> destinations;
 
         while (true) {
             if (index == move_string.size()) {
@@ -972,17 +974,17 @@ namespace board {
 
             const auto number {parse_number(move_string, index)};
 
-            if (number > 32u) {
+            if (number > 32) {
                 throw ERR;
             }
 
-            destinations.push_back(static_cast<Idx>(number));
+            destinations.push_back(static_cast<int>(number));
         }
 
         return destinations;
     }
 
-    bool CheckersBoard::is_capture_move(Idx source, Idx destination) {
+    bool CheckersBoard::is_capture_move(int source, int destination) {
         // Indices must be in the range [1, 32]
 
         const auto distance {std::abs(to_0_31(source) - to_0_31(destination))};
@@ -998,15 +1000,16 @@ namespace board {
     }
 
     void CheckersBoard::clear() {
-        std::fill(std::begin(board), std::end(board), Square::None);
-        turn = Player::Black;
-        selected_piece_index = NULL_INDEX;
-        legal_moves.clear();
-        jump_square_indices.clear();
-        plies_without_advancement = 0u;
-        game_over = GameOver::None;
-        last_moves = {};
-        repetition.positions.clear();
+        m_selected_piece_index = NULL_INDEX;
+        m_legal_moves.clear();
+        m_last_moves.clear();
+        m_jump_square_indices.clear();
+        m_game_over = GameOver::None;
+
+        std::fill(std::begin(m_board), std::end(m_board), Square::None);
+        m_turn = Player::Black;
+        m_plies_without_advancement = 0;
+        m_repetition_positions.clear();
     }
 
     void CheckersBoard::refresh_canvas() {
@@ -1022,10 +1025,10 @@ namespace board {
         const auto WHITE {wxColour(200, 200, 200)};
         const auto BLACK {wxColour(80, 60, 40)};
         const auto GREEN {wxColour(70, 140, 70)};
-        const int SQUARE_SIZE {board_size / 8};
+        const int SQUARE_SIZE {m_board_size / 8};
 
         {
-            unsigned int index {0u};
+            unsigned int index {0};
 
             for (int y {0}; y < 8; y++) {
                 for (int x {0}; x < 8; x++) {
@@ -1039,7 +1042,7 @@ namespace board {
 
                     dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
 
-                    if (show_indices) {
+                    if (m_show_indices) {
                         if ((x + y) % 2 != 0) {
                             dc.DrawLabel(
                                 std::to_string(++index),
@@ -1052,14 +1055,14 @@ namespace board {
             }
         }
 
-        if (selected_piece_index != NULL_INDEX) {
+        if (m_selected_piece_index != NULL_INDEX) {
             dc.SetBrush(wxBrush(ORANGE));
             dc.SetPen(wxPen(ORANGE));
 
-            for (const Move& move : legal_moves) {
+            for (const Move& move : m_legal_moves) {
                 switch (move.type) {
                     case MoveType::Normal: {
-                        if (move.normal.source_index == selected_piece_index) {
+                        if (move.normal.source_index == m_selected_piece_index) {
                             const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.normal.destination_index)))};
 
                             dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
@@ -1068,8 +1071,8 @@ namespace board {
                         break;
                     }
                     case MoveType::Capture: {
-                        if (move.capture.source_index == selected_piece_index) {
-                            for (std::size_t i {0u}; i < move.capture.destination_indices_size; i++) {
+                        if (move.capture.source_index == m_selected_piece_index) {
+                            for (std::size_t i {0}; i < move.capture.destination_indices_size; i++) {
                                 const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.destination_indices[i])))};
 
                                 dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
@@ -1081,8 +1084,8 @@ namespace board {
                 }
             }
 
-            for (std::size_t i {0u}; i < jump_square_indices.size(); i++) {
-                const auto count {std::count(jump_square_indices.cbegin(), jump_square_indices.cend(), jump_square_indices[i])};
+            for (std::size_t i {0}; i < m_jump_square_indices.size(); i++) {
+                const auto count {std::count(m_jump_square_indices.cbegin(), m_jump_square_indices.cend(), m_jump_square_indices[i])};
 
                 if (count < 2) {
                     dc.SetBrush(wxBrush(REDDISH));
@@ -1092,22 +1095,22 @@ namespace board {
                     dc.SetPen(wxPen(DARKER_REDDISH));
                 }
 
-                const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(jump_square_indices[i])))};
+                const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(m_jump_square_indices[i])))};
 
                 dc.DrawRectangle(wxPoint(SQUARE_SIZE * x, SQUARE_SIZE * y), wxSize(SQUARE_SIZE, SQUARE_SIZE));
             }
 
-            std::vector<Idx> indices_visited;
+            std::vector<int> indices_visited;
 
-            for (std::size_t i {0u}; i < jump_square_indices.size(); i++) {
-                const auto iter {std::find(indices_visited.cbegin(), indices_visited.cend(), jump_square_indices[i])};
+            for (std::size_t i {0}; i < m_jump_square_indices.size(); i++) {
+                const auto iter {std::find(indices_visited.cbegin(), indices_visited.cend(), m_jump_square_indices[i])};
 
                 const int alignment {wxALIGN_TOP | (iter == indices_visited.cend() ? wxALIGN_LEFT : wxALIGN_RIGHT)};
-                const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(jump_square_indices[i])))};
+                const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(m_jump_square_indices[i])))};
 
-                dc.DrawLabel(std::to_string(i + 1u), wxRect(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE, SQUARE_SIZE), alignment);
+                dc.DrawLabel(std::to_string(i + 1), wxRect(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE, SQUARE_SIZE), alignment);
 
-                indices_visited.push_back(jump_square_indices[i]);
+                indices_visited.push_back(m_jump_square_indices[i]);
             }
         }
 
@@ -1116,13 +1119,13 @@ namespace board {
         const int PIECE_SIZE {static_cast<int>(static_cast<float>(SQUARE_SIZE) / 2.5f)};
         const int OFFSET {SQUARE_SIZE / 2};
 
-        for (Idx i {0}; i < 32; i++) {
+        for (int i {0}; i < 32; i++) {
             wxColour brush_color;
             wxColour pen_color;
 
             bool king {false};
 
-            switch (board[i]) {
+            switch (m_board[i]) {
                 case Square::None:
                     continue;
                 case Square::White:
@@ -1145,7 +1148,7 @@ namespace board {
                     break;
             }
 
-            if (selected_piece_index == i) {
+            if (m_selected_piece_index == i) {
                 pen_color = ORANGE;
             }
 
@@ -1164,7 +1167,7 @@ namespace board {
             }
         }
 
-        for (const Move& move : last_moves) {
+        for (const Move& move : m_last_moves) {
             switch (move.type) {
                 case MoveType::Normal: {
                     const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.normal.source_index)))};
@@ -1186,7 +1189,7 @@ namespace board {
                     dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
                     dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
 
-                    for (std::size_t i {0u}; i < move.capture.destination_indices_size - 1u; i++) {
+                    for (std::size_t i {0}; i < move.capture.destination_indices_size - 1; i++) {
                         const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.destination_indices[i])))};
                         const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
 

@@ -4,42 +4,42 @@
 
 namespace engine {
     void EngineReader::Notify() {
-        assert(callback);
+        assert(m_callback);
 
         bool error {false};
         std::optional<std::string> message;
 
         try {
-            message = process.read();
+            message = m_process.read();
         } catch (const subprocess::Error& e) {
-            process.terminate();
+            m_process.terminate();
             Stop();
             error = true;
             message = std::make_optional(e.what());
         }
 
         if (error) {
-            callback(*message, true);
+            m_callback(*message, true);
             return;
         }
 
         if (message) {
-            callback(*message, false);
+            m_callback(*message, false);
         }
     }
 
     void Engine::start_engine(const std::string& file_path, const std::string& name) {
-        if (started) {
+        if (m_started) {
             return;
         }
 
-        this->name = name;
+        m_name = name;
 
-        process = subprocess::Subprocess(file_path);
+        m_process = subprocess::Subprocess(file_path);
 
-        for (unsigned int i {0u}; i < 5u; i++) {
-            if (reader.Start(250)) {
-                started = true;
+        for (unsigned int i {0}; i < 5; i++) {
+            if (m_reader.Start(250)) {
+                m_started = true;
                 return;
             }
         }
@@ -48,29 +48,29 @@ namespace engine {
     }
 
     void Engine::stop_engine() {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
-        reader.Stop();
+        m_reader.Stop();
 
         try {
-            process.wait();
+            m_process.wait();
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error waiting for subprocess: ") + e.what());
         }
 
-        started = false;
+        m_started = false;
     }
 
     void Engine::init() {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("INIT\n");
+            m_process.write("INIT\n");
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error init: ") + e.what());
@@ -78,7 +78,7 @@ namespace engine {
     }
 
     void Engine::newgame(const std::optional<std::string>& fen_string) {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
@@ -91,7 +91,7 @@ namespace engine {
         }
 
         try {
-            process.write(message);
+            m_process.write(message);
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error newgame: ") + e.what());
@@ -99,12 +99,12 @@ namespace engine {
     }
 
     void Engine::move(const std::string& move_string) {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("MOVE " + move_string + '\n');
+            m_process.write("MOVE " + move_string + '\n');
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error move: ") + e.what());
@@ -112,7 +112,7 @@ namespace engine {
     }
 
     void Engine::go(bool dont_play_move) {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
@@ -125,7 +125,7 @@ namespace engine {
         }
 
         try {
-            process.write(message);
+            m_process.write(message);
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error go: ") + e.what());
@@ -133,25 +133,25 @@ namespace engine {
     }
 
     void Engine::stop() {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("STOP\n");
+            m_process.write("STOP\n");
         } catch (const subprocess::Error& e) {
-            process.terminate();
+            m_process.terminate();
             throw subprocess::Error(std::string("Error stop: ") + e.what());
         }
     }
 
     void Engine::getparameters() {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("GETPARAMETERS\n");
+            m_process.write("GETPARAMETERS\n");
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error getparameters: ") + e.what());
@@ -159,12 +159,12 @@ namespace engine {
     }
 
     void Engine::getparameter(const std::string& name) {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("GETPARAMETER " + name + '\n');
+            m_process.write("GETPARAMETER " + name + '\n');
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error getparameter: ") + e.what());
@@ -172,12 +172,12 @@ namespace engine {
     }
 
     void Engine::setparameter(const std::string& name, const std::string& value) {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("SETPARAMETER " + name + ' ' + value + '\n');
+            m_process.write("SETPARAMETER " + name + ' ' + value + '\n');
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error setparameter: ") + e.what());
@@ -185,12 +185,12 @@ namespace engine {
     }
 
     void Engine::quit() {
-        if (!started) {
+        if (!m_started) {
             return;
         }
 
         try {
-            process.write("QUIT\n");
+            m_process.write("QUIT\n");
         } catch (const subprocess::Error& e) {
             try_terminate();
             throw subprocess::Error(std::string("Error quit: ") + e.what());
@@ -199,10 +199,10 @@ namespace engine {
 
     void Engine::try_terminate() {
         try {
-            process.terminate();
+            m_process.terminate();
         } catch (const subprocess::Error&) {}
 
-        reader.Stop();
-        started = false;
+        m_reader.Stop();
+        m_started = false;
     }
 }

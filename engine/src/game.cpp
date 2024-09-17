@@ -72,7 +72,7 @@ namespace game {
             }
         }
 
-        unsigned long result {0u};
+        unsigned long result {0};
 
         try {
             result = std::stoul(result_number);
@@ -132,7 +132,7 @@ namespace game {
             }
         }
 
-        unsigned long result {0u};
+        unsigned long result {0};
 
         try {
             result = std::stoul(result_number);
@@ -148,16 +148,16 @@ namespace game {
     static game::Idx parse_source_square(const std::string& move_string, std::size_t& index) {
         const auto number {parse_number(move_string, index)};
 
-        if (number < 1u || number > 32u) {
+        if (number < 1 || number > 32) {
             throw error::Error();
         }
 
         return static_cast<game::Idx>(number);
     }
 
-    static std::pair<std::array<game::Idx, 9u>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
-        std::array<game::Idx, 9u> indices {};
-        std::size_t count {0u};
+    static std::pair<std::array<game::Idx, 9>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
+        std::array<game::Idx, 9> indices {};
+        std::size_t count {0};
 
         while (true) {
             if (index == move_string.size()) {
@@ -166,7 +166,7 @@ namespace game {
 
             const auto number {parse_number(move_string, index)};
 
-            if (number < 1u || number > 32u) {
+            if (number < 1 || number > 32) {
                 throw error::Error();
             }
 
@@ -199,7 +199,7 @@ namespace game {
         // Clear the board first
         position.board = {};
 
-        std::size_t index {0u};
+        std::size_t index {0};
 
         position.player = parse_player(fen_string, index);
 
@@ -233,30 +233,30 @@ namespace game {
     }
 
     Move parse_move(const std::string& move_string) {
-        std::size_t index {0u};
+        std::size_t index {0};
 
         // These are in the range [1, 32]
         const auto source {parse_source_square(move_string, index)};
         const auto [destinations, count] {parse_destination_squares(move_string, index)};
 
-        if (count == 0u) {
+        if (count == 0) {
             throw error::Error();
         }
 
         game::Move move;
 
-        if (is_capture_move(source, destinations[0u])) {
+        if (is_capture_move(source, destinations[0])) {
             move.type = game::MoveType::Capture;
             move.capture.source_index = to_0_31(source);
             move.capture.destination_indices_size = static_cast<unsigned char>(count);
 
-            for (std::size_t i {0u}; i < count; i++) {
+            for (std::size_t i {0}; i < count; i++) {
                 move.capture.destination_indices[i] = to_0_31(destinations[i]);
             }
         } else {
             move.type = game::MoveType::Normal;
             move.normal.source_index = to_0_31(source);
-            move.normal.destination_index = to_0_31(destinations[0u]);
+            move.normal.destination_index = to_0_31(destinations[0]);
         }
 
         return move;
@@ -284,18 +284,18 @@ namespace game {
     }
 
     bool is_game_over(const search::SearchNode& node) {
-        unsigned int black_pieces {0u};
-        unsigned int white_pieces {0u};
+        unsigned int black_pieces {0};
+        unsigned int white_pieces {0};
 
         for (Idx i {0}; i < 32; i++) {
-            if (static_cast<unsigned char>(node.board[i]) & 1u << 0) {  // TODO opt.
+            if (static_cast<unsigned char>(node.board[i]) & 1 << 0) {  // TODO opt.
                 black_pieces++;
-            } else if (static_cast<unsigned char>(node.board[i]) & 1u << 1) {
+            } else if (static_cast<unsigned char>(node.board[i]) & 1 << 1) {
                 white_pieces++;
             }
         }
 
-        if (black_pieces == 0u || white_pieces == 0u) {
+        if (black_pieces == 0 || white_pieces == 0) {
             return true;
         }
 

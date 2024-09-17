@@ -17,7 +17,7 @@
 namespace loop {
     // Doesn't return the new line
     static std::string read_input() {
-        static constexpr std::size_t CHUNK {256u};
+        static constexpr std::size_t CHUNK {256};
 
         std::string result;
 
@@ -67,7 +67,7 @@ namespace loop {
             { "GETPARAMETER", commands::getparameter }
         };
 
-        const auto command_name {input_tokens[0u]};
+        const auto command_name {input_tokens[0]};
 
         if (COMMANDS.find(command_name) == COMMANDS.cend()) {
             return;
@@ -88,7 +88,7 @@ namespace loop {
             }
 
             // Handle QUIT separately
-            if (tokens[0u] == "QUIT") {
+            if (tokens[0] == "QUIT") {
                 commands::quit(data, tokens);
                 break;
             }
