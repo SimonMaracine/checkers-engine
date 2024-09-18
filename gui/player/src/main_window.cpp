@@ -327,8 +327,17 @@ void MainWindow::on_continue(wxCommandEvent&) {
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     m_pnl_moves_log->log_move(move);
-
     m_pnl_game_state->update(m_board);
+
+    Layout();
+
+    // It's okay to disable these over and over again
+    m_btn_black_human->Disable();
+    m_btn_black_computer->Disable();
+    m_btn_white_human->Disable();
+    m_btn_white_computer->Disable();
+
+    m_btn_continue->Disable();
 
     if (get_player_type(m_board->get_player()) == PlayerType::Computer) {
         if (get_player_type(board::CheckersBoard::opponent(m_board->get_player())) == PlayerType::Human) {
@@ -355,14 +364,6 @@ void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     } else {
         m_board->set_user_input(true);
     }
-
-    // It's okay to disable these over and over again
-    m_btn_black_human->Disable();
-    m_btn_black_computer->Disable();
-    m_btn_white_human->Disable();
-    m_btn_white_computer->Disable();
-
-    m_btn_continue->Disable();
 }
 
 void MainWindow::on_engine_message(const std::string& message, bool error) {
@@ -391,8 +392,8 @@ void MainWindow::on_engine_message(const std::string& message, bool error) {
         auto i {tokens.size() - 1};
 
         while (i > 0) {
-            const auto name = tokens.at(tokens.size() - i--);
-            const auto type = tokens.at(tokens.size() - i--);
+            const auto name {tokens.at(tokens.size() - i--)};
+            const auto type {tokens.at(tokens.size() - i--)};
 
             parameters.push_back(std::make_pair(name, type));
         }
@@ -422,9 +423,6 @@ void MainWindow::stop_engine() {
 }
 
 void MainWindow::initialize_engine() {
-    // Reset the board here in case the engine is reloaded
-    set_position(std::nullopt);
-
     try {
         m_engine->init();
     } catch (const engine::Engine::Error& e) {
@@ -450,14 +448,7 @@ void MainWindow::initialize_engine() {
         m_board->set_user_input(true);
     }
 
-    // Finally enable these as well
-    m_btn_black_human->Enable();
-    m_btn_black_computer->Enable();
-    m_btn_white_human->Enable();
-    m_btn_white_computer->Enable();
-
-    m_btn_stop->Enable();
-    m_btn_continue->Enable();
+    set_position(std::nullopt);
 }
 
 void MainWindow::set_position(const std::optional<std::string>& fen_string) {
@@ -468,7 +459,6 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     }
 
     m_pnl_moves_log->clear_log();
-
     m_pnl_game_state->reset(m_board);
 
     try {
@@ -488,6 +478,7 @@ void MainWindow::set_position(const std::optional<std::string>& fen_string) {
     m_btn_white_human->Enable();
     m_btn_white_computer->Enable();
 
+    m_btn_stop->Enable();
     m_btn_continue->Enable();
 }
 

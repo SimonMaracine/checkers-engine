@@ -252,8 +252,9 @@ void MainWindow::on_stop(wxCommandEvent&) {
 
 void MainWindow::on_piece_move(const board::CheckersBoard::Move& move) {
     m_pnl_moves_log->log_move(move);
-
     m_pnl_game_state->update(m_board);
+
+    Layout();
 
     switch (board::CheckersBoard::opponent(m_board->get_player())) {
         case board::CheckersBoard::Player::Black:
@@ -331,8 +332,8 @@ void MainWindow::on_engine_message(const std::string& message, bool error, Playe
         auto i {tokens.size() - 1};
 
         while (i > 0) {
-            const auto name = tokens.at(tokens.size() - i--);
-            const auto type = tokens.at(tokens.size() - i--);
+            const auto name {tokens.at(tokens.size() - i--)};
+            const auto type {tokens.at(tokens.size() - i--)};
 
             parameters.push_back(std::make_pair(name, type));
         }

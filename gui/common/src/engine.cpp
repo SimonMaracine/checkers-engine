@@ -38,7 +38,7 @@ namespace engine {
         m_process = subprocess::Subprocess(file_path);
 
         for (unsigned int i {0}; i < 5; i++) {
-            if (m_reader.Start(250)) {
+            if (m_reader.Start(100)) {
                 m_started = true;
                 return;
             }
