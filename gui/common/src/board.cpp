@@ -942,6 +942,16 @@ namespace board {
         }
     }
 
+    void CheckersBoard::draw_x(wxDC& dc, int square_index, const wxColour& color, int square_size, int offset, int piece_size) {
+        const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(square_index)))};
+        const auto position {wxPoint(square_size * x + offset, square_size * y + offset)};
+
+        dc.SetBrush(wxBrush(color));
+        dc.SetPen(wxPen(color));
+        dc.DrawLine(position.x - piece_size / 4, position.y, position.x + piece_size / 4, position.y);
+        dc.DrawLine(position.x, position.y - piece_size / 4, position.x, position.y + piece_size / 4);
+    }
+
     void CheckersBoard::clear() {
         m_selected_piece_index = NULL_INDEX;
         m_legal_moves.clear();
@@ -968,6 +978,7 @@ namespace board {
         const auto WHITE {wxColour(200, 200, 200)};
         const auto BLACK {wxColour(80, 60, 40)};
         const auto GREEN {wxColour(70, 140, 70)};
+        const auto PURPLE {wxColour(170, 140, 170)};
         const int SQUARE_SIZE {m_board_size / 8};
 
         {
@@ -1112,38 +1123,19 @@ namespace board {
 
         for (const Move& move : m_last_moves) {
             switch (move.type) {
-                case MoveType::Normal: {
-                    const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.normal.source_index)))};
-                    const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
-
-                    dc.SetBrush(wxBrush(GREEN));
-                    dc.SetPen(wxPen(GREEN));
-                    dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
-                    dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
+                case MoveType::Normal:
+                    draw_x(dc, move.normal.destination_index, GREEN, SQUARE_SIZE, OFFSET, PIECE_SIZE);
+                    draw_x(dc, move.normal.source_index, PURPLE, SQUARE_SIZE, OFFSET, PIECE_SIZE);
 
                     break;
-                }
-                case MoveType::Capture: {
-                    const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.source_index)))};
-                    const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
-
-                    dc.SetBrush(wxBrush(GREEN));
-                    dc.SetPen(wxPen(GREEN));
-                    dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
-                    dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
-
-                    for (std::size_t i {0}; i < move.capture.destination_indices_size - 1; i++) {
-                        const auto [x, y] {get_square(translate_1_32_to_0_64(to_1_32(move.capture.destination_indices[i])))};
-                        const auto position {wxPoint(SQUARE_SIZE * x + OFFSET, SQUARE_SIZE * y + OFFSET)};
-
-                        dc.SetBrush(wxBrush(GREEN));
-                        dc.SetPen(wxPen(GREEN));
-                        dc.DrawLine(position.x - PIECE_SIZE / 4, position.y, position.x + PIECE_SIZE / 4, position.y);
-                        dc.DrawLine(position.x, position.y - PIECE_SIZE / 4, position.x, position.y + PIECE_SIZE / 4);
+                case MoveType::Capture:
+                    for (std::size_t i {0}; i < move.capture.destination_indices_size; i++) {
+                        draw_x(dc, move.capture.destination_indices[i], GREEN, SQUARE_SIZE, OFFSET, PIECE_SIZE);
                     }
 
+                    draw_x(dc, move.capture.source_index, PURPLE, SQUARE_SIZE, OFFSET, PIECE_SIZE);
+
                     break;
-                }
             }
         }
     }

@@ -142,6 +142,7 @@ namespace board {
         static int parse_source_square(const std::string& move_string, std::size_t& index);
         static std::vector<int> parse_destination_squares(const std::string& move_string, std::size_t& index);
         static bool is_capture_move(int source, int destination);
+        static void draw_x(wxDC& dc, int square_index, const wxColour& color, int square_size, int offset, int piece_size);
 
         void clear();
         void refresh();

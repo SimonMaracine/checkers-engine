@@ -130,6 +130,8 @@ command and the **BESTMOVE** response.
 *nodes* represents the number of leaf nodes processed in the minimax algorithm. This value is optional,
 as the engine may not use the minimax algorithm.
 
-*eval* represents how much advantage does the current player have. It is implementation defined and optional.
+*eval* represents how much advantage does the current player have. It is an implementation defined signed integer.
+It is optional.
 
-*time* represents the total elapsed time since the thinking algorithm started (be it minimax or anything else).
+*time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
+started (be it minimax or anything else).
