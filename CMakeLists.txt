@@ -17,7 +17,6 @@ function(set_compile_options_features target)
     set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
 endfunction()
 
-add_subdirectory(gui)
 add_subdirectory(engine)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
