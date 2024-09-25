@@ -1,5 +1,7 @@
 import tkinter as tk
 
+import board
+
 # https://tkdocs.com/tutorial/canvas.html
 
 # TODO
@@ -30,6 +32,7 @@ class MainWindow(tk.Frame):
 
         self._tk = root
         self._return_code = 0
+        self._board = board.CheckersBoard()
 
         self._setup_widgets()
 
