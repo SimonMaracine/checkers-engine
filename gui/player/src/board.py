@@ -1,6 +1,19 @@
+"""
+    branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
+    longest capture W:WK4:B6,7,8,14,15,16,22,23,24
+
+    winner white W:WK7,K8:B16
+    winner black W:W8:BK12,K15
+    winner white B:W1,2,K7:B5,6,15,9
+    winner black W:W25,6:BK14,29,30
+
+    tie W:WK2:BK30
+"""
+
 import enum
 import dataclasses
 import re
+from typing import Callable
 
 NULL_INDEX = -1
 
@@ -54,7 +67,85 @@ class _Square(enum.Enum):
     WhiteKing = 0b0110
 
 
-type _Board = list[_Square]
+class _Board:
+    __slots__ = (
+        "_0",
+        "_1",
+        "_2",
+        "_3",
+        "_4",
+        "_5",
+        "_6",
+        "_7",
+        "_8",
+        "_9",
+        "_10",
+        "_11",
+        "_12",
+        "_13",
+        "_14",
+        "_15",
+        "_16",
+        "_17",
+        "_18",
+        "_19",
+        "_20",
+        "_21",
+        "_22",
+        "_23",
+        "_24",
+        "_25",
+        "_26",
+        "_27",
+        "_28",
+        "_29",
+        "_30",
+        "_31"
+    )
+
+    def __init__(self):
+        self._0 = _Square.None_
+        self._1 = _Square.None_
+        self._2 = _Square.None_
+        self._3 = _Square.None_
+        self._4 = _Square.None_
+        self._5 = _Square.None_
+        self._6 = _Square.None_
+        self._7 = _Square.None_
+        self._8 = _Square.None_
+        self._9 = _Square.None_
+        self._10 = _Square.None_
+        self._11 = _Square.None_
+        self._12 = _Square.None_
+        self._13 = _Square.None_
+        self._14 = _Square.None_
+        self._15 = _Square.None_
+        self._16 = _Square.None_
+        self._17 = _Square.None_
+        self._18 = _Square.None_
+        self._19 = _Square.None_
+        self._20 = _Square.None_
+        self._21 = _Square.None_
+        self._22 = _Square.None_
+        self._23 = _Square.None_
+        self._24 = _Square.None_
+        self._25 = _Square.None_
+        self._26 = _Square.None_
+        self._27 = _Square.None_
+        self._28 = _Square.None_
+        self._29 = _Square.None_
+        self._30 = _Square.None_
+        self._31 = _Square.None_
+
+    def __getitem__(self, index: int) -> _Square:
+        return getattr(self, f"_{index}")
+
+    def __setitem__(self, index: int, value: _Square):
+        setattr(self, f"_{index}", value)
+
+    def clear(self):
+        for i in range(32):
+            setattr(self, f"_{i}", _Square.None_)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -83,9 +174,9 @@ class _Diagonal(enum.Enum):
 
 
 class CheckersBoard:
-    def __init__(self):
+    def __init__(self, on_piece_move: Callable):
         # Game data
-        self._board: _Board = [_Square.None_] * 32
+        self._board = _Board()
         self._turn = Player.Black
         self._plies_without_advancement = 0
         self._repetition_positions: list[_Position] = []
@@ -95,6 +186,7 @@ class CheckersBoard:
         self._legal_moves: list[Move] = []
         self._jump_square_indices: list[int] = []
         self._game_over = GameOver.None_
+        self._on_piece_move = on_piece_move
 
     def press_square(self, square: int):
         pass
@@ -102,12 +194,31 @@ class CheckersBoard:
     def release_square(self, square: int):
         pass
 
-    def reset(self, position: str):
-        pass
+    def reset(self, position: str = None):
+        self._clear()
+
+        if position is not None:
+            # Validate only the format
+            if not CheckersBoard._valid_position_string(position):
+                raise RuntimeError(f"Invalid position string: {position}")
+
+            position: _Position = CheckersBoard._parse_position_string(position)
+
+            self._board = position.board
+            self._turn = position.turn
+        else:
+            for i in range(12):
+                self._board[i] = _Square.White
+
+            for i in range(20, 32):
+                self._board[i] = _Square.Black
+
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
     def play_move(self, move: str):
         # Validate only the format
-        assert CheckersBoard._valid_move_string(move)
+        if not CheckersBoard._valid_move_string(move):
+            raise RuntimeError(f"Invalid move string: {move}")
 
         move: Move = CheckersBoard._parse_move_string(move)
 
@@ -139,9 +250,9 @@ class CheckersBoard:
         advancement = not self._board[move.data.destination_index].value & (1 << 2)
 
         self._check_piece_crowning(move.data.destination_index)
-        self._change_turn()
         self._check_forty_move_rule(advancement)
         self._check_repetition(advancement)
+        self._change_turn()
         self._check_legal_moves()  # This sets game over and has the highest priority
 
         self._on_piece_move(move)
@@ -158,15 +269,23 @@ class CheckersBoard:
         CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
 
         self._check_piece_crowning(move.data.destination_index)
-        self._change_turn()
         self._check_forty_move_rule(True)
         self._check_repetition(True)
+        self._change_turn()
         self._check_legal_moves()  # This sets game over and has the highest priority
 
         self._on_piece_move(move)
 
     def _check_piece_crowning(self, destination_index: int):
-        pass
+        row = destination_index // 4
+
+        match self._turn:
+            case Player.Black:
+                if row == 0:
+                    self._board[destination_index] = _Square.BlackKing
+            case Player.White:
+                if row == 7:
+                    self._board[destination_index] = _Square.WhiteKing
 
     def _change_turn(self):
         match self._turn:
@@ -176,13 +295,46 @@ class CheckersBoard:
                 self._turn = Player.Black
 
     def _check_forty_move_rule(self, advancement: bool):
-        pass
+        if advancement:
+            self._plies_without_advancement = 0
+        else:
+            self._plies_without_advancement += 1
+
+            if self._plies_without_advancement == 80:
+                self._game_over = GameOver.TieBetweenBothPlayers
 
     def _check_repetition(self, advancement: bool):
-        pass
+        current = _Position(self._board, self._turn)
+
+        if advancement:
+            self._repetition_positions.clear()
+        else:
+            if self._repetition_positions.count(current) == 2:
+                self._game_over = GameOver.TieBetweenBothPlayers
+                return
+
+        # Insert current position even after advancement
+        self._repetition_positions.append(current)
 
     def _check_legal_moves(self):
-        pass
+        # Must be called after changing the turn
+
+        moves = CheckersBoard._generate_moves(self._board, self._turn)
+
+        if not moves:
+            # Either they have no pieces left or they are blocked
+            self._game_over = GameOver.WinnerWhite if self._turn == Player.Black else GameOver.WinnerBlack
+
+    def _clear(self):
+        self._board.clear()
+        self._turn = Player.Black
+        self._plies_without_advancement = 0
+        self._repetition_positions.clear()
+
+        self._selected_piece_index = NULL_INDEX
+        self._legal_moves.clear()
+        self._jump_square_indices.clear()
+        self._game_over = GameOver.None_
 
     @staticmethod
     def _get_jumped_piece_index(index1: int, index2: int) -> int:
@@ -384,6 +536,65 @@ class CheckersBoard:
         board[index2] = old_value
 
     @staticmethod
+    def _valid_position_string(string: str) -> bool:
+        return re.match("(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}", string) is not None
+
+    @staticmethod
+    def _parse_position_string(string: str) -> _Position:
+        turn, player1, player2 = string.split(":")
+
+        pieces1 = CheckersBoard._parse_player_pieces(player1)
+        pieces2 = CheckersBoard._parse_player_pieces(player2)
+
+        if player1 == player2:
+            raise RuntimeError(f"Invalid player types: {player1, player2}")
+
+        board = _Board()
+
+        for index, square in pieces1:
+            board[index] = square
+
+        for index, square in pieces2:
+            board[index] = square
+
+        return _Position(board, CheckersBoard._parse_player_type(turn))
+
+    @staticmethod
+    def _parse_player_type(string: str) -> Player:
+        match string:
+            case "B":
+                return Player.Black
+            case "W":
+                return Player.White
+
+        raise RuntimeError(f"Invalid player type: {string}")
+
+    @staticmethod
+    def _parse_player_pieces(string: str) -> list[tuple[int, _Square]]:
+        player_type = CheckersBoard._parse_player_type(string[0])
+
+        return list(map(
+            lambda piece: CheckersBoard._parse_player_piece(piece, player_type),
+            string[1:].split(",")
+        ))
+
+    @staticmethod
+    def _parse_player_piece(string: str, player_type: Player) -> tuple[int, _Square]:
+        king = string[0] == "K"
+
+        match player_type:
+            case Player.Black:
+                if king:
+                    return (int(string[1:]), _Square.BlackKing)
+                else:
+                    return (int(string), _Square.Black)
+            case Player.White:
+                if king:
+                    return (int(string[1:]), _Square.WhiteKing)
+                else:
+                    return (int(string), _Square.White)
+
+    @staticmethod
     def _valid_move_string(string: str) -> bool:
         return re.match("([0-9]+x)+[0-9]+", string) is not None
 
@@ -392,7 +603,7 @@ class CheckersBoard:
         source_index, *destination_indices = CheckersBoard._parse_squares(string)
 
         if CheckersBoard._is_capture_move(source_index, destination_indices[0]):
-            move = Move(Move._Capture(CheckersBoard._to_0_31(source_index), list(map(lambda index: CheckersBoard._to_0_31(index), destination_indices))))
+            move = Move(Move._Capture(CheckersBoard._to_0_31(source_index), list(map(CheckersBoard._to_0_31, destination_indices))))
         else:
             move = Move(Move._Normal(CheckersBoard._to_0_31(source_index), CheckersBoard._to_0_31(destination_indices[0])))
 

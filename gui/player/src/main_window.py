@@ -32,7 +32,7 @@ class MainWindow(tk.Frame):
 
         self._tk = root
         self._return_code = 0
-        self._board = board.CheckersBoard()
+        self._board = board.CheckersBoard(self._on_piece_move)
 
         self._setup_widgets()
 
@@ -209,3 +209,6 @@ class MainWindow(tk.Frame):
             window_height = window_size[1]
 
         return min(window_width, window_height) - 40
+
+    def _on_piece_move(move: board.Move):
+        print(move)
