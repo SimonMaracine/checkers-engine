@@ -182,17 +182,72 @@ class CheckersBoard:
         self._repetition_positions: list[_Position] = []
 
         # Management data
-        self._selected_piece_index = NULL_INDEX
         self._legal_moves: list[Move] = []
-        self._jump_square_indices: list[int] = []
+        self._selected_piece_square = NULL_INDEX
+        self._jump_squares: list[int] = []
         self._game_over = GameOver.None_
         self._on_piece_move = on_piece_move
+        self._user_input = False
+
+    def set_user_input(self, user_input: bool):
+        self._user_input = user_input
 
     def press_square(self, square: int):
-        pass
+        if not self._user_input:
+            return
+
+        # FIXME check game over?
+
+        if not CheckersBoard._is_black_square(square):
+            return
+
+        square = CheckersBoard._1_32_to_0_31(CheckersBoard._0_64_to_1_32(square))
+
+        if CheckersBoard._select_piece(square):
+            return
+
+        # If we just deselected
+        # if self._selected_piece_square == NULL_INDEX:
+        #     return
+
+        normal = all(map(lambda move: move.type() == MoveType.Normal, self._legal_moves))
+        capture = all(map(lambda move: move.type() == MoveType.Capture, self._legal_moves))
+
+        if normal:
+            for move in self._legal_moves:
+                if CheckersBoard._playable_normal_move(move, self._selected_piece_square, square):
+                    self._play_normal_move(move)
+
+                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+                    self._selected_piece_square = NULL_INDEX
+
+                    break
+        elif capture:
+            self._select_jump_square(square)
+
+            for move in self._legal_moves:
+                if CheckersBoard._playable_capture_move(move, self._selected_piece_square, self._jump_squares):
+                    self._play_capture_move(move)
+
+                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+                    self._selected_piece_square = NULL_INDEX
+                    self._jump_squares.clear()
+
+                    break
+        else:
+            assert False
 
     def release_square(self, square: int):
-        pass
+        if not self._user_input:
+            return
+
+        # FIXME check game over?
+
+        # if self._selected_piece_square == NULL_INDEX:
+        #     return
+
+        self._selected_piece_square = NULL_INDEX
+        self._jump_squares.clear()
 
     def reset(self, position: str = None):
         self._clear()
@@ -241,6 +296,15 @@ class CheckersBoard:
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
 
+    def _select_piece(self, square: int) -> bool:
+        if self._board[square] != _Square.None_ and self._selected_piece_square != square:
+            self._selected_piece_square = square
+            self._jump_squares.clear()
+
+            return True
+
+        return False
+
     def _play_normal_move(self, move: Move):
         assert move.type() == MoveType.Normal
         assert self._board[move.data.destination_index] == _Square.None_
@@ -275,6 +339,14 @@ class CheckersBoard:
         self._check_legal_moves()  # This sets game over and has the highest priority
 
         self._on_piece_move(move)
+
+    def _select_jump_square(self, square: int):
+        # A piece may jump on a square twice at most
+
+        count = self._jump_squares.count(square)
+
+        if count < 2:
+            self._jump_squares.append(square)
 
     def _check_piece_crowning(self, destination_index: int):
         row = destination_index // 4
@@ -331,10 +403,36 @@ class CheckersBoard:
         self._plies_without_advancement = 0
         self._repetition_positions.clear()
 
-        self._selected_piece_index = NULL_INDEX
         self._legal_moves.clear()
-        self._jump_square_indices.clear()
+        self._selected_piece_square = NULL_INDEX
+        self._jump_squares.clear()
         self._game_over = GameOver.None_
+
+    @staticmethod
+    def _playable_normal_move(move: Move, source_square: int, destination_square: int) -> bool:
+        if move.type() != MoveType.Normal:
+            return False
+
+        if move.data.source_index != source_square:
+            return False
+
+        if move.data.destination_index != destination_square:
+            return False
+
+        return True
+
+    @staticmethod
+    def _playable_capture_move(move: Move, source_square: int, squares: list[int]) -> bool:
+        if move.type() != MoveType.Capture:
+            return False
+
+        if move.data.source_index != source_square:
+            return False
+
+        if move.data.destination_indices != squares:
+            return False
+
+        return True
 
     @staticmethod
     def _get_jumped_piece_index(index1: int, index2: int) -> int:
@@ -344,7 +442,7 @@ class CheckersBoard:
 
         assert sum % 2 == 1
 
-        if (CheckersBoard._to_0_31(index1) // 4) % 2 == 0:
+        if (CheckersBoard._1_32_to_0_31(index1) // 4) % 2 == 0:
             return (sum + 1) // 2
         else:
             return (sum - 1) // 2
@@ -355,13 +453,13 @@ class CheckersBoard:
         assert board[index2] == _Square.None_ or index2 == source_index
 
         index = CheckersBoard._get_jumped_piece_index(
-            CheckersBoard._to_1_32(index1),
-            CheckersBoard._to_1_32(index2)
+            CheckersBoard._0_31_to_1_32(index1),
+            CheckersBoard._0_31_to_1_32(index2)
         )
 
-        assert board[CheckersBoard._to_0_31(index)] != _Square.None_
+        assert board[CheckersBoard._1_32_to_0_31(index)] != _Square.None_
 
-        board[CheckersBoard._to_0_31(index)] = _Square.None_
+        board[CheckersBoard._1_32_to_0_31(index)] = _Square.None_
 
     @staticmethod
     def _generate_moves(board: _Board, player: Player) -> list[Move]:
@@ -603,9 +701,9 @@ class CheckersBoard:
         source_index, *destination_indices = CheckersBoard._parse_squares(string)
 
         if CheckersBoard._is_capture_move(source_index, destination_indices[0]):
-            move = Move(Move._Capture(CheckersBoard._to_0_31(source_index), list(map(CheckersBoard._to_0_31, destination_indices))))
+            move = Move(Move._Capture(CheckersBoard._1_32_to_0_31(source_index), list(map(CheckersBoard._1_32_to_0_31, destination_indices))))
         else:
-            move = Move(Move._Normal(CheckersBoard._to_0_31(source_index), CheckersBoard._to_0_31(destination_indices[0])))
+            move = Move(Move._Normal(CheckersBoard._1_32_to_0_31(source_index), CheckersBoard._1_32_to_0_31(destination_indices[0])))
 
         return move
 
@@ -625,7 +723,7 @@ class CheckersBoard:
     def _is_capture_move(source_index: int, destination_index: int) -> bool:
         # Indices must be in the range [1, 32]
 
-        distance = abs(CheckersBoard._to_0_31(source_index) - CheckersBoard._to_0_31(destination_index))
+        distance = abs(CheckersBoard._1_32_to_0_31(source_index) - CheckersBoard._1_32_to_0_31(destination_index))
 
         if 3 <= distance <= 5:
             return False
@@ -633,25 +731,40 @@ class CheckersBoard:
             return True
         else:
             assert False
+    @staticmethod
+    def _is_black_square(square: int) -> bool:
+        x, y = CheckersBoard._get_square(square)
+
+        if (x + y) % 2 == 0:
+            return False
+        else:
+            return True
 
     @staticmethod
-    def _translate_1_32_to_0_64(index: int) -> int:
-        if ((index - 1) / 4) % 2 == 0:
+    def _get_square(square: int) -> tuple[int, int]:
+        file = square % 8
+        rank = square // 8
+
+        return (file, rank)
+
+    @staticmethod
+    def _1_32_to_0_64(index: int) -> int:
+        if ((index - 1) // 4) % 2 == 0:
             return index * 2 - 1
         else:
             return (index - 1) * 2
 
     @staticmethod
-    def _translate_0_64_to_1_32(index: int) -> int:
+    def _0_64_to_1_32(index: int) -> int:
         if index % 2 == 1:
-            return (index + 1) / 2
+            return (index + 1) // 2
         else:
-            return (index / 2) + 1
+            return (index // 2) + 1
 
     @staticmethod
-    def _to_0_31(index: int) -> int:
+    def _1_32_to_0_31(index: int) -> int:
         return index - 1
 
     @staticmethod
-    def _to_1_32(index: int) -> int:
+    def _0_31_to_1_32(index: int) -> int:
         return index + 1

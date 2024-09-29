@@ -189,8 +189,12 @@ class MainWindow(tk.Frame):
     def _on_mouse_pressed(self, event):
         print(event)
 
+        self._board.press_square(self._get_square(event.x, event.y))
+
     def _on_mouse_released(self, event):
         print(event)
+
+        self._board.release_square(self._get_square(event.x, event.y))
 
     def _exit_application(self):
         self.destroy()
@@ -209,6 +213,14 @@ class MainWindow(tk.Frame):
             window_height = window_size[1]
 
         return min(window_width, window_height) - 40
+
+    def _get_square(self, x: int, y: int) -> int:
+        square_size = int(self._cvs_board["width"]) // 8
+
+        file = x // square_size
+        rank = y // square_size
+
+        return rank * 8 + file
 
     def _on_piece_move(move: board.Move):
         print(move)
