@@ -16,13 +16,10 @@ class MainWindow(tk.Frame):
     # ORANGE = wxColour(240, 180, 80)
     # REDDISH = wxColour(255, 140, 60)
     # DARKER_REDDISH = wxColour(255, 100, 40)
-    GOLD = "#a0a00a" #wxColour(160, 160, 10)
     # GREEN = wxColour(70, 140, 70)
     # PURPLE = wxColour(170, 140, 170)
     WHITE = "#c8c8c8" #wxColour(200, 200, 200)
     BLACK = "#503c28" #wxColour(80, 60, 40)
-    PIECE_WHITE = "#8c0a0a" #wxColour(140, 10, 10)
-    PIECE_BLACK = "#0a0a0a" #wxColour(10, 10, 10)
 
     HUMAN = 1
     COMPUTER = 2
@@ -32,9 +29,11 @@ class MainWindow(tk.Frame):
 
         self._tk = root
         self._return_code = 0
-        self._board = board.CheckersBoard(self._on_piece_move)
 
         self._setup_widgets()
+
+        self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
+        self._board.set_user_input(True)  # TODO temp
 
     def code(self) -> int:
         return self._return_code
@@ -60,8 +59,8 @@ class MainWindow(tk.Frame):
 
         # Do this after all widgets are configured
         self.bind("<Configure>", self._on_window_resized)
-        self._cvs_board.bind("<Button-1>", self._on_mouse_pressed)
-        self._cvs_board.bind("<ButtonRelease-1>", self._on_mouse_released)
+        self._cvs_board.bind("<Button-1>", self._on_left_mouse_button_pressed)
+        self._cvs_board.bind("<Button-3>", self._on_right_mouse_button_pressed)
 
     def _setup_widgets_menubar(self):
         men_player = tk.Menu(self)
@@ -94,10 +93,10 @@ class MainWindow(tk.Frame):
                     j * self._square_size,
                     i * self._square_size + self._square_size,
                     j * self._square_size + self._square_size,
-                    fill=self.WHITE if (i + j) % 2 != 0 else self.BLACK
+                    fill=self.BLACK if (i + j) % 2 != 0 else self.WHITE,
+                    outline=self.BLACK if (i + j) % 2 != 0 else self.WHITE,
+                    tags="all"
                 )
-
-        self._cvs_board.addtag_all("all")
 
     def _setup_widgets_center(self):
         frm_center = tk.Frame(self, relief="solid", borderwidth=1)
@@ -186,15 +185,11 @@ class MainWindow(tk.Frame):
         self._cvs_board.config(width=size, height=size)
         self._cvs_board.scale("all", 0, 0, scale, scale)
 
-    def _on_mouse_pressed(self, event):
-        print(event)
+    def _on_left_mouse_button_pressed(self, event):
+        self._board.press_square_left_button(self._get_square(event.x, event.y))
 
-        self._board.press_square(self._get_square(event.x, event.y))
-
-    def _on_mouse_released(self, event):
-        print(event)
-
-        self._board.release_square(self._get_square(event.x, event.y))
+    def _on_right_mouse_button_pressed(self, event):
+        self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _exit_application(self):
         self.destroy()
@@ -222,5 +217,5 @@ class MainWindow(tk.Frame):
 
         return rank * 8 + file
 
-    def _on_piece_move(move: board.Move):
+    def _on_piece_move(self, move: board.Move):
         print(move)

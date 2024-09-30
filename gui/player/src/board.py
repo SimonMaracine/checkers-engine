@@ -13,6 +13,7 @@
 import enum
 import dataclasses
 import re
+from tkinter import Canvas
 from typing import Callable
 
 NULL_INDEX = -1
@@ -39,9 +40,9 @@ class Move:
 
     def type(self) -> MoveType:
         match self.data:
-            case self._Normal:
+            case self._Normal():
                 return MoveType.Normal
-            case self._Capture:
+            case self._Capture():
                 return MoveType.Capture
 
     data: _Normal | _Capture
@@ -138,7 +139,12 @@ class _Board:
         self._31 = _Square.None_
 
     def __getitem__(self, index: int) -> _Square:
-        return getattr(self, f"_{index}")
+        # Make this class use the default iterator implementation
+
+        try:
+            return getattr(self, f"_{index}")
+        except AttributeError:
+            raise IndexError
 
     def __setitem__(self, index: int, value: _Square):
         setattr(self, f"_{index}", value)
@@ -174,7 +180,12 @@ class _Diagonal(enum.Enum):
 
 
 class CheckersBoard:
-    def __init__(self, on_piece_move: Callable):
+    PIECE_WHITE = "#8c0a0a" #wxColour(140, 10, 10)
+    PIECE_BLACK = "#0a0a0a" #wxColour(10, 10, 10)
+    GOLD = "#a0a00a" #wxColour(160, 160, 10)
+    ORANGE = "#f0b450"  # {wxColour(240, 180, 80)};
+
+    def __init__(self, on_piece_move: Callable, canvas: Canvas):
         # Game data
         self._board = _Board()
         self._turn = Player.Black
@@ -186,13 +197,16 @@ class CheckersBoard:
         self._selected_piece_square = NULL_INDEX
         self._jump_squares: list[int] = []
         self._game_over = GameOver.None_
-        self._on_piece_move = on_piece_move
         self._user_input = False
+        self._on_piece_move = on_piece_move
+        self._canvas = canvas
+
+        self._setup()
 
     def set_user_input(self, user_input: bool):
         self._user_input = user_input
 
-    def press_square(self, square: int):
+    def press_square_left_button(self, square: int):
         if not self._user_input:
             return
 
@@ -203,15 +217,16 @@ class CheckersBoard:
 
         square = CheckersBoard._1_32_to_0_31(CheckersBoard._0_64_to_1_32(square))
 
-        if CheckersBoard._select_piece(square):
+        if self._select_piece(square):
             return
 
-        # If we just deselected
-        # if self._selected_piece_square == NULL_INDEX:
-        #     return
+        if self._selected_piece_square == NULL_INDEX:
+            return
 
         normal = all(map(lambda move: move.type() == MoveType.Normal, self._legal_moves))
         capture = all(map(lambda move: move.type() == MoveType.Capture, self._legal_moves))
+
+        print("WHAT", normal, capture)
 
         if normal:
             for move in self._legal_moves:
@@ -220,6 +235,8 @@ class CheckersBoard:
 
                     self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
                     self._selected_piece_square = NULL_INDEX
+
+                    self._canvas.delete("selection")  # FIXME maybe make functions out if these
 
                     break
         elif capture:
@@ -233,42 +250,29 @@ class CheckersBoard:
                     self._selected_piece_square = NULL_INDEX
                     self._jump_squares.clear()
 
+                    self._canvas.delete("selection")
+
                     break
         else:
             assert False
 
-    def release_square(self, square: int):
+    def press_square_right_button(self, square: int):
         if not self._user_input:
             return
 
         # FIXME check game over?
 
-        # if self._selected_piece_square == NULL_INDEX:
-        #     return
+        if self._selected_piece_square == NULL_INDEX:
+            return
 
         self._selected_piece_square = NULL_INDEX
         self._jump_squares.clear()
 
+        self._canvas.delete("selection")
+
     def reset(self, position: str = None):
         self._clear()
-
-        if position is not None:
-            # Validate only the format
-            if not CheckersBoard._valid_position_string(position):
-                raise RuntimeError(f"Invalid position string: {position}")
-
-            position: _Position = CheckersBoard._parse_position_string(position)
-
-            self._board = position.board
-            self._turn = position.turn
-        else:
-            for i in range(12):
-                self._board[i] = _Square.White
-
-            for i in range(20, 32):
-                self._board[i] = _Square.Black
-
-        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+        self._setup()
 
     def play_move(self, move: str):
         # Validate only the format
@@ -296,10 +300,44 @@ class CheckersBoard:
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
 
+    def _setup(self, position: str = None):
+        if position is not None:
+            # Validate only the format
+            if not CheckersBoard._valid_position_string(position):
+                raise RuntimeError(f"Invalid position string: {position}")
+
+            position: _Position = CheckersBoard._parse_position_string(position)
+
+            self._board = position.board
+            self._turn = position.turn
+        else:
+            for i in range(12):
+                self._board[i] = _Square.White
+
+            for i in range(20, 32):
+                self._board[i] = _Square.Black
+
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+
+        for i, square in enumerate(self._board):
+            match square:
+                case _Square.None_:
+                    pass
+                case _Square.Black:
+                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_BLACK, False)
+                case _Square.BlackKing:
+                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_BLACK, True)
+                case _Square.White:
+                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, False)
+                case _Square.WhiteKing:
+                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, True)
+
     def _select_piece(self, square: int) -> bool:
         if self._board[square] != _Square.None_ and self._selected_piece_square != square:
             self._selected_piece_square = square
             self._jump_squares.clear()
+
+            CheckersBoard._create_selection(self._canvas, square, self._square_size())
 
             return True
 
@@ -309,7 +347,10 @@ class CheckersBoard:
         assert move.type() == MoveType.Normal
         assert self._board[move.data.destination_index] == _Square.None_
 
-        CheckersBoard._swap(self.board, move.data.source_index, move.data.destination_index)
+        CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
+
+        # TODO move
+        # self._canvas.coords("")
 
         advancement = not self._board[move.data.destination_index].value & (1 << 2)
 
@@ -408,6 +449,12 @@ class CheckersBoard:
         self._jump_squares.clear()
         self._game_over = GameOver.None_
 
+        self._canvas.delete("pieces")
+        self._canvas.delete("selection")
+
+    def _square_size(self) -> float:
+        return float(self._canvas["width"]) / 8.0
+
     @staticmethod
     def _playable_normal_move(move: Move, source_square: int, destination_square: int) -> bool:
         if move.type() != MoveType.Normal:
@@ -433,6 +480,58 @@ class CheckersBoard:
             return False
 
         return True
+
+    @staticmethod
+    def _create_piece(canvas: Canvas, square: int, square_size: float, color: str, king: bool):
+        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+
+        piece_size = square_size / 1.3
+        offset = (square_size - piece_size) / 2.0
+
+        canvas.create_oval(
+            file * square_size + offset,
+            rank * square_size + offset,
+            file * square_size + piece_size + offset,
+            rank * square_size + piece_size + offset,
+            fill=color,
+            outline=color,
+            tags=("all", "pieces")
+        )
+
+        crown_size = square_size / 2.0
+        offset = (square_size - crown_size) / 2.0
+
+        if king:
+            canvas.create_oval(
+                file * square_size + offset,
+                rank * square_size + offset,
+                file * square_size + crown_size + offset,
+                rank * square_size + crown_size + offset,
+                fill=CheckersBoard.GOLD,
+                outline=CheckersBoard.GOLD,
+                tags=("all", "pieces")
+            )
+
+    @staticmethod
+    def _create_selection(canvas: Canvas, square: int, square_size: float):
+        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+
+        piece_size = square_size / 1.22
+        offset = (square_size - piece_size) / 2.0
+
+        canvas.delete("selection")
+
+        canvas.create_oval(
+            file * square_size + offset,
+            rank * square_size + offset,
+            file * square_size + piece_size + offset,
+            rank * square_size + piece_size + offset,
+            fill=CheckersBoard.ORANGE,
+            outline=CheckersBoard.ORANGE,
+            tags=("all", "selection")
+        )
+
+        canvas.tag_raise("pieces")
 
     @staticmethod
     def _get_jumped_piece_index(index1: int, index2: int) -> int:
