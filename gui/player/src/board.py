@@ -13,7 +13,8 @@
 import enum
 import dataclasses
 import re
-from tkinter import Canvas
+import copy
+import tkinter as tk
 from typing import Callable
 
 NULL_INDEX = -1
@@ -179,13 +180,20 @@ class _Diagonal(enum.Enum):
     Long = 2
 
 
-class CheckersBoard:
-    PIECE_WHITE = "#8c0a0a" #wxColour(140, 10, 10)
-    PIECE_BLACK = "#0a0a0a" #wxColour(10, 10, 10)
-    GOLD = "#a0a00a" #wxColour(160, 160, 10)
-    ORANGE = "#f0b450"  # {wxColour(240, 180, 80)};
+@dataclasses.dataclass
+class _Piece:
+    square: int
+    piece_id: int
+    crown_id: int | None
 
-    def __init__(self, on_piece_move: Callable, canvas: Canvas):
+
+class CheckersBoard:
+    PIECE_WHITE = "#8c0a0a"
+    PIECE_BLACK = "#0a0a0a"
+    GOLD = "#a0a00a"
+    ORANGE = "#f0b450"
+
+    def __init__(self, on_piece_move: Callable, canvas: tk.Canvas):
         # Game data
         self._board = _Board()
         self._turn = Player.Black
@@ -197,6 +205,7 @@ class CheckersBoard:
         self._selected_piece_square = NULL_INDEX
         self._jump_squares: list[int] = []
         self._game_over = GameOver.None_
+        self._pieces: list[_Piece] = []
         self._user_input = False
         self._on_piece_move = on_piece_move
         self._canvas = canvas
@@ -225,8 +234,6 @@ class CheckersBoard:
 
         normal = all(map(lambda move: move.type() == MoveType.Normal, self._legal_moves))
         capture = all(map(lambda move: move.type() == MoveType.Capture, self._legal_moves))
-
-        print("WHAT", normal, capture)
 
         if normal:
             for move in self._legal_moves:
@@ -324,13 +331,13 @@ class CheckersBoard:
                 case _Square.None_:
                     pass
                 case _Square.Black:
-                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_BLACK, False)
+                    CheckersBoard._create_piece(self._pieces, self._canvas, i, self._square_size(), self.PIECE_BLACK, False)
                 case _Square.BlackKing:
-                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_BLACK, True)
+                    CheckersBoard._create_piece(self._pieces, self._canvas, i, self._square_size(), self.PIECE_BLACK, True)
                 case _Square.White:
-                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, False)
+                    CheckersBoard._create_piece(self._pieces, self._canvas, i, self._square_size(), self.PIECE_WHITE, False)
                 case _Square.WhiteKing:
-                    CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, True)
+                    CheckersBoard._create_piece(self._pieces, self._canvas, i, self._square_size(), self.PIECE_WHITE, True)
 
     def _select_piece(self, square: int) -> bool:
         if self._board[square] != _Square.None_ and self._selected_piece_square != square:
@@ -350,7 +357,20 @@ class CheckersBoard:
         CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
 
         # TODO move
-        # self._canvas.coords("")
+        for piece in self._pieces:
+            if piece.square == move.data.source_index:
+                piece.square = move.data.destination_index
+
+                x0, y0, x1, y1 = CheckersBoard._piece_coordinates(piece.square, self._square_size(), 1.3)
+
+                self._canvas.coords(piece.piece_id, x0, y0, x1, y1)
+
+                if piece.crown_id is not None:
+                    x0, y0, x1, y1 = CheckersBoard._piece_coordinates(piece.square, self._square_size(), 2.0)
+
+                    self._canvas.coords(piece.crown_id, x0, y0, x1, y1)
+
+                break
 
         advancement = not self._board[move.data.destination_index].value & (1 << 2)
 
@@ -366,14 +386,47 @@ class CheckersBoard:
         assert move.type() == MoveType.Capture
         assert self._board[move.data.destination_indices[-1]] == _Square.None_ or move.data.source_index == move.data.destination_indices[-1]
 
-        CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.source_index, move.data.destination_indices[0])
+        removed_piece_squares = []
 
-        for i in range(len(move.data.destination_indices()) - 1):
-            CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.destination_indices[i], move.data.destination_indices[i + 1])
+        removed_piece_squares.append(
+            CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.source_index, move.data.destination_indices[0])
+        )
 
-        CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
+        for i in range(len(move.data.destination_indices) - 1):
+            removed_piece_squares.append(
+                CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.destination_indices[i], move.data.destination_indices[i + 1])
+            )
 
-        self._check_piece_crowning(move.data.destination_index)
+        CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_indices[-1])
+
+        for removed_piece_square in removed_piece_squares:
+            for piece in self._pieces:
+                if piece.square == removed_piece_square:
+                    self._canvas.delete(piece.piece_id)
+
+                    if piece.crown_id is not None:
+                        self._canvas.delete(piece.crown_id)
+
+                    break
+
+        self._pieces = [piece for piece in self._pieces if piece.square not in removed_piece_squares]
+
+        for piece in self._pieces:
+            if piece.square == move.data.source_index:
+                piece.square = move.data.destination_indices[-1]
+
+                x0, y0, x1, y1 = CheckersBoard._piece_coordinates(piece.square, self._square_size(), 1.3)
+
+                self._canvas.coords(piece.piece_id, x0, y0, x1, y1)
+
+                if piece.crown_id is not None:
+                    x0, y0, x1, y1 = CheckersBoard._piece_coordinates(piece.square, self._square_size(), 2.0)
+
+                    self._canvas.coords(piece.crown_id, x0, y0, x1, y1)
+
+                break
+
+        self._check_piece_crowning(move.data.destination_indices[-1])
         self._check_forty_move_rule(True)
         self._check_repetition(True)
         self._change_turn()
@@ -448,6 +501,7 @@ class CheckersBoard:
         self._selected_piece_square = NULL_INDEX
         self._jump_squares.clear()
         self._game_over = GameOver.None_
+        self._pieces.clear()
 
         self._canvas.delete("pieces")
         self._canvas.delete("selection")
@@ -482,56 +536,67 @@ class CheckersBoard:
         return True
 
     @staticmethod
-    def _create_piece(canvas: Canvas, square: int, square_size: float, color: str, king: bool):
-        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+    def _create_piece(pieces: list[_Piece], canvas: tk.Canvas, square: int, square_size: float, color: str, king: bool):
+        x0, y0, x1, y1 = CheckersBoard._piece_coordinates(square, square_size, 1.3)
 
-        piece_size = square_size / 1.3
-        offset = (square_size - piece_size) / 2.0
-
-        canvas.create_oval(
-            file * square_size + offset,
-            rank * square_size + offset,
-            file * square_size + piece_size + offset,
-            rank * square_size + piece_size + offset,
+        piece_id = canvas.create_oval(
+            x0,
+            y0,
+            x1,
+            y1,
             fill=color,
             outline=color,
             tags=("all", "pieces")
         )
 
-        crown_size = square_size / 2.0
-        offset = (square_size - crown_size) / 2.0
+        x0, y0, x1, y1 = CheckersBoard._piece_coordinates(square, square_size, 2.0)
+
+        crown_id = None
 
         if king:
-            canvas.create_oval(
-                file * square_size + offset,
-                rank * square_size + offset,
-                file * square_size + crown_size + offset,
-                rank * square_size + crown_size + offset,
+            crown_id = canvas.create_oval(
+                x0,
+                y0,
+                x1,
+                y1,
                 fill=CheckersBoard.GOLD,
                 outline=CheckersBoard.GOLD,
                 tags=("all", "pieces")
             )
 
-    @staticmethod
-    def _create_selection(canvas: Canvas, square: int, square_size: float):
-        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+        pieces.append(_Piece(square, piece_id, crown_id))
 
-        piece_size = square_size / 1.22
-        offset = (square_size - piece_size) / 2.0
+    @staticmethod
+    def _create_selection(canvas: tk.Canvas, square: int, square_size: float):
+        x0, y0, x1, y1 = CheckersBoard._piece_coordinates(square, square_size, 1.22)
 
         canvas.delete("selection")
 
         canvas.create_oval(
-            file * square_size + offset,
-            rank * square_size + offset,
-            file * square_size + piece_size + offset,
-            rank * square_size + piece_size + offset,
+            x0,
+            y0,
+            x1,
+            y1,
             fill=CheckersBoard.ORANGE,
             outline=CheckersBoard.ORANGE,
             tags=("all", "selection")
         )
 
         canvas.tag_raise("pieces")
+
+    @staticmethod
+    def _piece_coordinates(square: int, square_size: float, division: float) -> tuple[float, float, float, float]:
+        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+
+        piece_size = square_size / division
+        offset = (square_size - piece_size) / 2.0
+
+        return (
+            file * square_size + offset,
+            rank * square_size + offset,
+            file * square_size + piece_size + offset,
+            rank * square_size + piece_size + offset
+        )
 
     @staticmethod
     def _get_jumped_piece_index(index1: int, index2: int) -> int:
@@ -547,7 +612,7 @@ class CheckersBoard:
             return (sum - 1) // 2
 
     @staticmethod
-    def _remove_piece(board: _Board, source_index: int, index1: int, index2: int):
+    def _remove_piece(board: _Board, source_index: int, index1: int, index2: int) -> int:
         # This assert doesn't always make sense to verify, but when it's not needed, it won't be false
         assert board[index2] == _Square.None_ or index2 == source_index
 
@@ -559,6 +624,8 @@ class CheckersBoard:
         assert board[CheckersBoard._1_32_to_0_31(index)] != _Square.None_
 
         board[CheckersBoard._1_32_to_0_31(index)] = _Square.None_
+
+        return CheckersBoard._1_32_to_0_31(index)
 
     @staticmethod
     def _generate_moves(board: _Board, player: Player) -> list[Move]:
@@ -642,7 +709,7 @@ class CheckersBoard:
             if CheckersBoard._check_piece_jumps(moves, target_index, player, king, ctx):
                 # This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
-                moves.append(Move(Move._Capture(ctx.source_index, ctx.destination_indices)))
+                moves.append(Move(Move._Capture(ctx.source_index, copy.copy(ctx.destination_indices))))
 
             # Restore jumped piece
             CheckersBoard._swap(ctx.board, square_index, target_index)

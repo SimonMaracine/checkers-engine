@@ -18,8 +18,8 @@ class MainWindow(tk.Frame):
     # DARKER_REDDISH = wxColour(255, 100, 40)
     # GREEN = wxColour(70, 140, 70)
     # PURPLE = wxColour(170, 140, 170)
-    WHITE = "#c8c8c8" #wxColour(200, 200, 200)
-    BLACK = "#503c28" #wxColour(80, 60, 40)
+    WHITE = "#c8c8c8"
+    BLACK = "#503c28"
 
     HUMAN = 1
     COMPUTER = 2
