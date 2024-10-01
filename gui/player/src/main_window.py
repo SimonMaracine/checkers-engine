@@ -29,6 +29,7 @@ class MainWindow(tk.Frame):
 
         self._tk = root
         self._return_code = 0
+        self._indices = False
 
         self._setup_widgets()
 
@@ -67,7 +68,7 @@ class MainWindow(tk.Frame):
         men_player.add_command(label="Start Engine", command=None)  # TODO
         men_player.add_command(label="Reset Position", command=None)
         men_player.add_command(label="Set Position", command=None)
-        men_player.add_checkbutton(label="Show Indices", command=None)
+        men_player.add_checkbutton(label="Show Indices", command=self._show_indices)
         men_player.add_command(label="Exit", command=self._exit_application)
 
         men_help = tk.Menu(self)
@@ -191,6 +192,14 @@ class MainWindow(tk.Frame):
     def _on_right_mouse_button_pressed(self, event):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
+    def _show_indices(self):
+        if not self._indices:
+            self._draw_indices()
+        else:
+            self._cvs_board.delete("indices")
+
+        self._indices = not self._indices
+
     def _exit_application(self):
         self.destroy()
         self._tk.destroy()
@@ -216,6 +225,21 @@ class MainWindow(tk.Frame):
         rank = y // square_size
 
         return rank * 8 + file
+
+    def _draw_indices(self):
+        index = 1
+
+        for i in range(8):
+            for j in range(8):
+                if (i + j) % 2 != 0:
+                    self._cvs_board.create_text(
+                        i * self._square_size + self._square_size / 2.0,
+                        j * self._square_size + self._square_size / 2.0,
+                        fill="white",
+                        text=str(index),
+                        tags=("all", "indices")
+                    )
+                    index += 1
 
     def _on_piece_move(self, move: board.Move):
         print(move)
