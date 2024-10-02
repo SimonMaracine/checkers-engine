@@ -1,5 +1,7 @@
 import tkinter as tk
+import tkinter.messagebox
 
+import fen_string_window
 import board
 
 # https://tkdocs.com/tutorial/canvas.html
@@ -66,13 +68,13 @@ class MainWindow(tk.Frame):
     def _setup_widgets_menubar(self):
         men_player = tk.Menu(self)
         men_player.add_command(label="Start Engine", command=None)  # TODO
-        men_player.add_command(label="Reset Position", command=None)
-        men_player.add_command(label="Set Position", command=None)
+        men_player.add_command(label="Reset Position", command=self._reset_position)
+        men_player.add_command(label="Set Position", command=self._set_position)
         men_player.add_checkbutton(label="Show Indices", command=self._show_indices)
         men_player.add_command(label="Exit", command=self._exit_application)
 
         men_help = tk.Menu(self)
-        men_help.add_command(label="About", command=None)
+        men_help.add_command(label="About", command=self._about)
 
         men_main = tk.Menu(self)
         men_main.add_cascade(label="Player", menu=men_player)
@@ -89,13 +91,15 @@ class MainWindow(tk.Frame):
 
         for i in range(8):
             for j in range(8):
+                color = self.BLACK if (i + j) % 2 != 0 else self.WHITE
+
                 self._cvs_board.create_rectangle(
                     i * self._square_size,
                     j * self._square_size,
                     i * self._square_size + self._square_size,
                     j * self._square_size + self._square_size,
-                    fill=self.BLACK if (i + j) % 2 != 0 else self.WHITE,
-                    outline=self.BLACK if (i + j) % 2 != 0 else self.WHITE,
+                    fill=color,
+                    outline=color,
                     tags="all"
                 )
 
@@ -192,6 +196,16 @@ class MainWindow(tk.Frame):
     def _on_right_mouse_button_pressed(self, event):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
+    def _reset_position(self):
+        self._board.reset()
+
+    def _set_position(self):
+        top_level = tk.Toplevel(self)
+        fen_string_window.FenStringWindow(top_level, self._set_position_string)
+
+    def _set_position_string(self, string: str):
+        self._board.reset(string)
+
     def _show_indices(self):
         if not self._indices:
             self._draw_indices()
@@ -203,6 +217,9 @@ class MainWindow(tk.Frame):
     def _exit_application(self):
         self.destroy()
         self._tk.destroy()
+
+    def _about(self):
+        tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
 
     def _calculate_board_size(self, window_size=None) -> int:
         if window_size is None:

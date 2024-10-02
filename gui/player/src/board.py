@@ -185,6 +185,8 @@ class CheckersBoard:
     PIECE_BLACK = "#0a0a0a"
     GOLD = "#a0a00a"
     ORANGE = "#f0b450"
+    REDDISH = "#ff8c3c"
+    DARKER_REDDISH = "#ff6428"
 
     def __init__(self, on_piece_move: Callable, canvas: tk.Canvas):
         # Game data
@@ -236,6 +238,7 @@ class CheckersBoard:
                     self._selected_piece_square = NULL_INDEX
 
                     self._canvas.delete("selection")
+                    self._canvas.delete("tiles")
 
                     break
         elif capture:
@@ -250,6 +253,7 @@ class CheckersBoard:
                     self._jump_squares.clear()
 
                     self._canvas.delete("selection")
+                    self._canvas.delete("tiles")
 
                     break
         else:
@@ -268,6 +272,7 @@ class CheckersBoard:
         self._jump_squares.clear()
 
         self._canvas.delete("selection")
+        self._canvas.delete("tiles")
 
     def reset(self, position_string: str | None = None):
         self._clear()
@@ -326,6 +331,7 @@ class CheckersBoard:
             self._jump_squares.clear()
 
             CheckersBoard._create_selection(self._canvas, square, self._square_size())
+            self._draw_tiles()
 
             return True
 
@@ -377,6 +383,8 @@ class CheckersBoard:
 
         if count < 2:
             self._jump_squares.append(square)
+
+        self._draw_tiles()
 
     def _check_piece_crowning(self, destination_index: int):
         row = destination_index // 4
@@ -437,16 +445,17 @@ class CheckersBoard:
         self._selected_piece_square = NULL_INDEX
         self._jump_squares.clear()
         self._game_over = GameOver.None_
-        self._pieces.clear()
 
         self._canvas.delete("pieces")
         self._canvas.delete("selection")
+        self._canvas.delete("tiles")
 
     def _square_size(self) -> float:
         return float(self._canvas["width"]) / 8.0
 
     def _draw_pieces(self):
         self._canvas.delete("pieces")
+        self._canvas.tag_raise("tiles")
 
         for i, square in enumerate(self._board):
             match square:
@@ -460,6 +469,26 @@ class CheckersBoard:
                     CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, False)
                 case _Square.WhiteKing:
                     CheckersBoard._create_piece(self._canvas, i, self._square_size(), self.PIECE_WHITE, True)
+
+        self._canvas.tag_raise("indices")
+
+    def _draw_tiles(self):
+        self._canvas.delete("tiles")
+
+        for move in self._legal_moves:
+            match move.type():
+                case MoveType.Normal:
+                    if move.data.source_index == self._selected_piece_square:
+                        CheckersBoard._create_tile(self._canvas, move.data.destination_index, self._square_size(), self.ORANGE)
+                case MoveType.Capture:
+                    if move.data.source_index == self._selected_piece_square:
+                        for index in move.data.destination_indices:
+                            CheckersBoard._create_tile(self._canvas, index, self._square_size(), self.ORANGE)
+
+        for square in self._jump_squares:
+            color = self.REDDISH if self._jump_squares.count(square) < 2 else self.DARKER_REDDISH
+
+            CheckersBoard._create_tile(self._canvas, square, self._square_size(), color)
 
         self._canvas.tag_raise("indices")
 
@@ -510,6 +539,20 @@ class CheckersBoard:
 
         canvas.tag_raise("pieces")
         canvas.tag_raise("indices")
+
+    @staticmethod
+    def _create_tile(canvas: tk.Canvas, square: int, square_size: float, color: str):
+        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+
+        canvas.create_rectangle(
+            file * square_size,
+            rank * square_size,
+            file * square_size + square_size,
+            rank * square_size + square_size,
+            fill=color,
+            outline=color,
+            tags=("all", "tiles")
+        )
 
     @staticmethod
     def _piece_coordinates(square: int, square_size: float, division: float) -> tuple[float, float, float, float]:
