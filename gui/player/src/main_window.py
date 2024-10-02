@@ -25,6 +25,10 @@ class MainWindow(tk.Frame):
     HUMAN = 1
     COMPUTER = 2
     DEFAULT_BOARD_SIZE = 400
+    TXT_ENGINE = "Engine:"
+    TXT_STATUS = "Status:"
+    TXT_PLAYER = "Player:"
+    TXT_PLIES_WITHOUT_ADVANCEMENT = "Plies without advancement:"
 
     def __init__(self, root: tk.Tk):
         super().__init__(root)
@@ -112,17 +116,25 @@ class MainWindow(tk.Frame):
         frm_status = tk.Frame(frm_center)
         frm_status.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
-        self._lbl_engine = tk.Label(frm_status, text="Engine:")
-        self._lbl_engine.pack(anchor="w")
+        self._var_engine = tk.StringVar(frm_status, self.TXT_ENGINE)
 
-        self._lbl_status = tk.Label(frm_status, text="Status: game not started")
-        self._lbl_status.pack(anchor="w")
+        lbl_engine = tk.Label(frm_status, textvariable=self._var_engine)
+        lbl_engine.pack(anchor="w")
 
-        self._lbl_player = tk.Label(frm_status, text="Player: black")
-        self._lbl_player.pack(anchor="w")
+        self._var_status = tk.StringVar(frm_status, self.TXT_STATUS + " game not started")
 
-        self._lbl_plies_without_advancement = tk.Label(frm_status, text="Plies without advancement: 0")
-        self._lbl_plies_without_advancement.pack(anchor="w")
+        lbl_status = tk.Label(frm_status, textvariable=self._var_status)
+        lbl_status.pack(anchor="w")
+
+        self._var_player = tk.StringVar(frm_status, self.TXT_PLAYER + " black")
+
+        lbl_player = tk.Label(frm_status, textvariable=self._var_player)
+        lbl_player.pack(anchor="w")
+
+        self._var_plies_without_advancement = tk.StringVar(frm_status, self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+
+        lbl_plies_without_advancement = tk.Label(frm_status, textvariable=self._var_plies_without_advancement)
+        lbl_plies_without_advancement.pack(anchor="w")
 
         frm_players = tk.Frame(frm_center)
         frm_players.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
@@ -217,6 +229,7 @@ class MainWindow(tk.Frame):
 
     def _reset_position(self):
         self._board.reset()
+        self._reset_status()
 
     def _set_position(self):
         top_level = tk.Toplevel(self)
@@ -277,6 +290,32 @@ class MainWindow(tk.Frame):
                     )
                     index += 1
 
+    def _update_status(self):
+        match self._board.get_game_over():
+            case board.GameOver.None_:
+                self._var_status.set(self.TXT_STATUS + " game in progress")
+            case board.GameOver.WinnerBlack:
+                self._var_status.set(self.TXT_STATUS + " black player won the game")
+            case board.GameOver.WinnerWhite:
+                self._var_status.set(self.TXT_STATUS + " white player won the game")
+            case board.GameOver.TieBetweenBothPlayers:
+                self._var_status.set(self.TXT_STATUS + " tie between both players")
+
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._var_player.set(self.TXT_PLAYER + " black")
+            case board.Player.White:
+                self._var_player.set(self.TXT_PLAYER + " white")
+
+        self._var_plies_without_advancement.set(f"{self.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
+
+    def _reset_status(self):
+        self._var_status.set(self.TXT_STATUS + " game not started")
+        self._var_player.set(self.TXT_PLAYER + " black")
+        self._var_plies_without_advancement.set(self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
+        self._update_status()
+
         print(move)
