@@ -1,10 +1,13 @@
 import tkinter as tk
 import tkinter.messagebox
 
+import pygame as pyg
+
 import fen_string_window
 import board
 
 # https://tkdocs.com/tutorial/canvas.html
+# https://freesound.org/people/Samulis/sounds/375743/
 
 # TODO
 # valgrind --tool=callgrind --cache-sim=yes --dump-instr=yes --branch=yes
@@ -34,6 +37,9 @@ class MainWindow(tk.Frame):
 
         self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
         self._board.set_user_input(True)  # TODO temp
+
+        pyg.mixer.init()
+        self._sound = pyg.mixer.Sound("wood_click.wav")
 
     def code(self) -> int:
         return self._return_code
@@ -228,7 +234,7 @@ class MainWindow(tk.Frame):
         self._indices = not self._indices
 
     def _exit_application(self):
-        self.destroy()
+        pyg.mixer.quit()
         self._tk.destroy()
 
     def _about(self):
@@ -272,4 +278,5 @@ class MainWindow(tk.Frame):
                     index += 1
 
     def _on_piece_move(self, move: board.Move):
+        self._sound.play()
         print(move)
