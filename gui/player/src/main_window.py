@@ -15,16 +15,13 @@ import board
 # ldd
 
 class MainWindow(tk.Frame):
-    # ORANGE = wxColour(240, 180, 80)
-    # REDDISH = wxColour(255, 140, 60)
-    # DARKER_REDDISH = wxColour(255, 100, 40)
     # GREEN = wxColour(70, 140, 70)
     # PURPLE = wxColour(170, 140, 170)
     WHITE = "#c8c8c8"
     BLACK = "#503c28"
-
     HUMAN = 1
     COMPUTER = 2
+    DEFAULT_BOARD_SIZE = 400
 
     def __init__(self, root: tk.Tk):
         super().__init__(root)
@@ -44,16 +41,12 @@ class MainWindow(tk.Frame):
     def _setup_widgets(self):
         self._tk.option_add("*tearOff", False)
         self._tk.title("Checkers Player")
-        self._tk.geometry("768x432")
         self._tk.protocol("WM_DELETE_WINDOW", self._exit_application)
         self._tk.minsize(512, 288)
 
         self.pack(fill="both", expand=True)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-
-        # TODO temp
-        self.config(bg="blue")
 
         self._setup_widgets_menubar()
         self._setup_widgets_board()
@@ -83,11 +76,13 @@ class MainWindow(tk.Frame):
         self._tk.config(menu=men_main)
 
     def _setup_widgets_board(self):
-        size = self._calculate_board_size()
-        self._square_size = float(size) / 8.0
+        self._frm_left = tk.Frame(self)
+        self._frm_left.grid(row=0, column=0, sticky="nsew")
 
-        self._cvs_board = tk.Canvas(self, width=size, height=size, background="gray75")
-        self._cvs_board.grid(row=0, column=0)
+        self._square_size = self.DEFAULT_BOARD_SIZE / 8.0
+
+        self._cvs_board = tk.Canvas(self._frm_left, width=self.DEFAULT_BOARD_SIZE, height=self.DEFAULT_BOARD_SIZE, background="gray75")
+        self._cvs_board.pack(expand=True)
 
         for i in range(8):
             for j in range(8):
@@ -105,18 +100,16 @@ class MainWindow(tk.Frame):
 
     def _setup_widgets_center(self):
         frm_center = tk.Frame(self, relief="solid", borderwidth=1)
-        frm_center.grid(row=0, column=1, sticky="ns")
-
-        # TODO temp
-        frm_center.config(bg="red")
+        frm_center.grid(row=0, column=1, sticky="ns", padx=10, pady=10)
+        frm_center.rowconfigure(3, weight=1)
 
         frm_status = tk.Frame(frm_center)
-        frm_status.grid(row=0, column=0, sticky="ew")
+        frm_status.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
         self._lbl_engine = tk.Label(frm_status, text="Engine:")
         self._lbl_engine.pack(anchor="w")
 
-        self._lbl_status = tk.Label(frm_status, text="Status: game no started")
+        self._lbl_status = tk.Label(frm_status, text="Status: game not started")
         self._lbl_status.pack(anchor="w")
 
         self._lbl_player = tk.Label(frm_status, text="Player: black")
@@ -126,7 +119,7 @@ class MainWindow(tk.Frame):
         self._lbl_plies_without_advancement.pack(anchor="w")
 
         frm_players = tk.Frame(frm_center)
-        frm_players.grid(row=1, column=0, sticky="ew")
+        frm_players.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
 
         frm_players_black = tk.Frame(frm_players)
         frm_players_black.grid(row=0, column=0)
@@ -145,7 +138,7 @@ class MainWindow(tk.Frame):
         tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, value=self.COMPUTER, command=None).pack(anchor="w")
 
         frm_buttons = tk.Frame(frm_center)
-        frm_buttons.grid(row=2, column=0, sticky="ew")
+        frm_buttons.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         frm_buttons.columnconfigure(0, weight=1)
         frm_buttons.columnconfigure(1, weight=1)
 
@@ -153,39 +146,59 @@ class MainWindow(tk.Frame):
         tk.Button(frm_buttons, text="Continue", command=None).grid(row=0, column=1, sticky="ew")
 
         frm_parameters = tk.Frame(frm_center)
-        frm_parameters.grid(row=3, column=0, sticky="ew")
+        frm_parameters.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
 
-        tk.Label(frm_parameters, text="params").pack(anchor="w")
+        bar_parameters = tk.Scrollbar(frm_parameters, orient="vertical")
+        bar_parameters.pack(side="right", fill="y")
+
+        self._cvs_parameters = tk.Canvas(frm_parameters, width=250, yscrollcommand=bar_parameters.set)
+        self._cvs_parameters.pack(side="left", fill="both", expand=True)
+
+        bar_parameters.config(command=self._cvs_parameters.yview)
+
+        self._frm_parameters = tk.Frame(self._cvs_parameters)
+        self._frm_parameters.bind("<Configure>", lambda _: self._frame_parameters_configure())
+        self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw")
+
+        # TODO temp
+        self._tk.bind("<Button-1>", lambda _: tk.Label(self._frm_parameters, text="params").pack())
 
     def _setup_widgets_right(self):
-        frm_right = tk.Frame(self)
-        frm_right.grid(row=0, column=2, sticky="nse")
+        frm_right = tk.Frame(self, relief="solid", borderwidth=1)
+        frm_right.grid(row=0, column=2, sticky="nse", padx=10, pady=10)
 
-        # TODO temp
-        frm_right.config(bg="green")
+        frm_moves = tk.Frame(frm_right)
+        frm_moves.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self._frm_moves = tk.Frame(frm_right)
-        self._frm_moves.grid(row=0, column=0)
+        bar_moves = tk.Scrollbar(frm_moves, orient="vertical")  # TODO maybe a horizontal scrollbar will be needed
+        bar_moves.pack(side="right", fill="y")
 
-        # TODO temp
-        tk.Label(self._frm_moves, text="1.").pack()
+        self._cvs_moves = tk.Canvas(frm_moves, width=200, yscrollcommand=bar_moves.set)
+        self._cvs_moves.pack(side="left", fill="both", expand=True)
 
-        self._frm_moves_black = tk.Frame(frm_right)
+        bar_moves.config(command=self._cvs_moves.yview)
+
+        frm_moves_main = tk.Frame(self._cvs_moves)
+        frm_moves_main.bind("<Configure>", lambda _: self._frame_moves_configure())
+        self._cvs_moves.create_window(0.0, 0.0, window=frm_moves_main, anchor="nw")
+
+        self._frm_moves_index = tk.Frame(frm_moves_main)
+        self._frm_moves_index.grid(row=0, column=0)
+
+        self._frm_moves_black = tk.Frame(frm_moves_main)
         self._frm_moves_black.grid(row=0, column=1)
 
-        # TODO temp
-        tk.Label(self._frm_moves_black, text="24x19").pack()
-
-        self._frm_moves_white = tk.Frame(frm_right)
+        self._frm_moves_white = tk.Frame(frm_moves_main)
         self._frm_moves_white.grid(row=0, column=2)
 
         # TODO temp
-        tk.Label(self._frm_moves_white, text="9x14").pack()
+        self._tk.bind("<Button-3>", lambda _: (tk.Label(self._frm_moves_index, text="n.").pack(), tk.Label(self._frm_moves_black, text="NNxMM").pack(), tk.Label(self._frm_moves_white, text="NNxMM").pack()))
 
     def _on_window_resized(self, event):
-        size = self._calculate_board_size((event.width, event.height))
+        size = self._calculate_board_size()
         new_square_size = float(size) / 8.0
         scale = new_square_size / self._square_size
+
         self._square_size = new_square_size
         self._cvs_board.config(width=size, height=size)
         self._cvs_board.scale("all", 0, 0, scale, scale)
@@ -221,19 +234,19 @@ class MainWindow(tk.Frame):
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
 
-    def _calculate_board_size(self, window_size=None) -> int:
-        if window_size is None:
-            self._tk.update()
-            geometry = self._tk.geometry()
-            size = geometry.split("+")[0].split("x")
+    def _frame_parameters_configure(self):
+        self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all"))
 
-            window_width = int(size[0])
-            window_height = int(size[1])
-        else:
-            window_width = window_size[0]
-            window_height = window_size[1]
+    def _frame_moves_configure(self):
+        self._cvs_moves.config(scrollregion=self._cvs_moves.bbox("all"))
 
-        return min(window_width, window_height) - 40
+    def _calculate_board_size(self) -> int:
+        self._frm_left.update()  # This makes things work... I'm very happy that it does
+        size = self._frm_left.winfo_geometry().split("+")[0].split("x")
+
+        PADDING = 40
+
+        return max(min(int(size[0]), int(size[1])) - PADDING, self.DEFAULT_BOARD_SIZE)
 
     def _get_square(self, x: int, y: int) -> int:
         square_size = int(self._cvs_board["width"]) // 8
