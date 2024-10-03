@@ -15,7 +15,7 @@ import dataclasses
 import re
 import copy
 import tkinter as tk
-from typing import Callable
+from typing import Callable, Optional
 
 NULL_INDEX = -1
 
@@ -285,7 +285,7 @@ class CheckersBoard:
         self._canvas.delete("selection")
         self._canvas.delete("tiles")
 
-    def reset(self, position_string: str | None = None):
+    def reset(self, position_string: Optional[str] = None):
         self._clear()
         self._setup(position_string)
 
@@ -315,7 +315,7 @@ class CheckersBoard:
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
 
-    def _setup(self, position_string: str | None = None):
+    def _setup(self, position_string: Optional[str] = None):
         if position_string is not None:
             # Validate only the format
             if not CheckersBoard._valid_position_string(position_string):
