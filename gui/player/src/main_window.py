@@ -36,6 +36,7 @@ class MainWindow(tk.Frame):
         self._tk = root
         self._return_code = 0
         self._indices = False
+        self._move_index = 1
 
         self._setup_widgets()
 
@@ -201,16 +202,13 @@ class MainWindow(tk.Frame):
         self._cvs_moves.create_window(0.0, 0.0, window=frm_moves_main, anchor="nw")
 
         self._frm_moves_index = tk.Frame(frm_moves_main)
-        self._frm_moves_index.grid(row=0, column=0)
+        self._frm_moves_index.grid(row=0, column=0, sticky="n")
 
         self._frm_moves_black = tk.Frame(frm_moves_main)
-        self._frm_moves_black.grid(row=0, column=1)
+        self._frm_moves_black.grid(row=0, column=1, sticky="n")
 
         self._frm_moves_white = tk.Frame(frm_moves_main)
-        self._frm_moves_white.grid(row=0, column=2)
-
-        # TODO temp
-        self._tk.bind("<Button-3>", lambda _: (tk.Label(self._frm_moves_index, text="n.").pack(), tk.Label(self._frm_moves_black, text="NNxMM").pack(), tk.Label(self._frm_moves_white, text="NNxMM").pack()))
+        self._frm_moves_white.grid(row=0, column=2, sticky="n")
 
     def _on_window_resized(self, event):
         size = self._calculate_board_size()
@@ -230,6 +228,7 @@ class MainWindow(tk.Frame):
     def _reset_position(self):
         self._board.reset()
         self._reset_status()
+        self._clear_moves()
 
     def _set_position(self):
         top_level = tk.Toplevel(self)
@@ -237,6 +236,8 @@ class MainWindow(tk.Frame):
 
     def _set_position_string(self, string: str):
         self._board.reset(string)
+        self._reset_status()
+        self._clear_moves()
 
     def _show_indices(self):
         if not self._indices:
@@ -282,8 +283,8 @@ class MainWindow(tk.Frame):
             for j in range(8):
                 if (i + j) % 2 != 0:
                     self._cvs_board.create_text(
-                        i * self._square_size + self._square_size / 2.0,
                         j * self._square_size + self._square_size / 2.0,
+                        i * self._square_size + self._square_size / 2.0,
                         fill="white",
                         text=str(index),
                         tags=("all", "indices")
@@ -314,8 +315,28 @@ class MainWindow(tk.Frame):
         self._var_player.set(self.TXT_PLAYER + " black")
         self._var_plies_without_advancement.set(self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
+    def _record_move(self, move: board.Move, player: board.Player):
+        match player:
+            case board.Player.Black:
+                tk.Label(self._frm_moves_index, text=f"{self._move_index}.").pack(anchor="nw")
+                tk.Label(self._frm_moves_black, text=str(move)).pack(anchor="nw")
+                self._move_index += 1
+            case board.Player.White:
+                tk.Label(self._frm_moves_white, text=str(move)).pack(anchor="nw")
+
+    def _clear_moves(self):
+        for child in self._frm_moves_index.winfo_children():
+            child.destroy()
+
+        for child in self._frm_moves_black.winfo_children():
+            child.destroy()
+
+        for child in self._frm_moves_white.winfo_children():
+            child.destroy()
+
+        self._move_index = 1
+
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
         self._update_status()
-
-        print(move)
+        self._record_move(move, board.CheckersBoard._opponent(self._board.get_turn()))

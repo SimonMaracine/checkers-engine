@@ -46,6 +46,17 @@ class Move:
             case self._Capture():
                 return MoveType.Capture
 
+    def __str__(self) -> str:
+        match self.type():
+            case MoveType.Normal:
+                result = f"{CheckersBoard._0_31_to_1_32(self.data.source_index)}x{CheckersBoard._0_31_to_1_32(self.data.destination_index)}"
+            case MoveType.Capture:
+                result = str(CheckersBoard._0_31_to_1_32(self.data.source_index))
+                for index in self.data.destination_indices:
+                    result += f"x{CheckersBoard._0_31_to_1_32(index)}"
+
+        return result
+
     data: _Normal | _Capture
 
 
