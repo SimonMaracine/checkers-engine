@@ -324,6 +324,13 @@ class MainWindow(tk.Frame):
             case board.Player.White:
                 tk.Label(self._frm_moves_white, text=str(move)).pack(anchor="nw")
 
+        # Make canvas know that it just got new widgets
+        self._cvs_moves.update()
+
+        # Don't make the scrollbar jump for the first few widgets
+        if self._move_index > 4:
+            self._cvs_moves.yview_moveto(1.0)
+
     def _clear_moves(self):
         for child in self._frm_moves_index.winfo_children():
             child.destroy()
@@ -335,6 +342,7 @@ class MainWindow(tk.Frame):
             child.destroy()
 
         self._move_index = 1
+        self._cvs_moves.yview_moveto(0.0)
 
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
