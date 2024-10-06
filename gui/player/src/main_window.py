@@ -1,10 +1,14 @@
+import time
+import sys
 import tkinter as tk
 import tkinter.messagebox
+import tkinter.filedialog
 
 import pygame as pyg
 
 import fen_string_window
 import board
+import checkers_engine
 
 # https://tkdocs.com/tutorial/canvas.html
 # https://freesound.org/people/Samulis/sounds/375743/
@@ -37,6 +41,7 @@ class MainWindow(tk.Frame):
         self._return_code = 0
         self._indices = False
         self._move_index = 1
+        self._engine = checkers_engine.CheckersEngine()
 
         self._setup_widgets()
 
@@ -71,7 +76,7 @@ class MainWindow(tk.Frame):
 
     def _setup_widgets_menubar(self):
         men_player = tk.Menu(self)
-        men_player.add_command(label="Start Engine", command=None)  # TODO
+        men_player.add_command(label="Start Engine", command=self._start_engine)
         men_player.add_command(label="Reset Position", command=self._reset_position)
         men_player.add_command(label="Set Position", command=self._set_position)
         men_player.add_checkbutton(label="Show Indices", command=self._show_indices)
@@ -225,6 +230,17 @@ class MainWindow(tk.Frame):
     def _on_right_mouse_button_pressed(self, event):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
+    def _start_engine(self):
+        file_path = tkinter.filedialog.askopenfilename(defaultextension="", parent=self, title="Start Engine")
+
+        try:
+            self._engine.start(file_path)
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            return
+
+        self._wait_for_engine()
+
     def _reset_position(self):
         self._board.reset()
         self._reset_status()
@@ -249,6 +265,10 @@ class MainWindow(tk.Frame):
 
     def _exit_application(self):
         pyg.mixer.quit()
+
+        if self._engine.running():
+            self._engine.stop(True)
+
         self._tk.destroy()
 
     def _about(self):
@@ -343,6 +363,28 @@ class MainWindow(tk.Frame):
 
         self._move_index = 1
         self._cvs_moves.yview_moveto(0.0)
+
+    def _wait_for_engine(self):
+        time_begin = time.time()
+
+        while True:
+            try:
+                message = self._engine.receive().strip()
+            except checkers_engine.CheckersEngineError as err:
+                print(err, file=sys.stderr)
+                self._engine.stop(True)
+                break
+
+            if "READY" in message:
+                print("Engine started successfully", file=sys.stderr)
+                break
+
+            time_now = time.time()
+
+            if time_begin - time_now > 3.0:
+                print("Engine failed to respond in a timely manner", file=sys.stderr)
+                self._engine.stop(True)
+                break
 
     def _on_piece_move(self, move: board.Move):
         self._sound.play()

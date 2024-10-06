@@ -4,22 +4,45 @@ from typing import Optional
 # https://docs.python.org/3.12/library/subprocess.html/
 # https://docs.python.org/3.12/library/io.html/
 
+
+class CheckersEngineError(RuntimeError):
+    pass
+
+
 class CheckersEngine:
     def __init__(self):
         self._process: Optional[subprocess.Popen] = None
+        self._running = False
 
     def start(self, path: str):
         try:
             self._process = subprocess.Popen(
-                ["python", path],
+                [path],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 text=True,
                 bufsize=1
             )
+
+            self._running = True
         except Exception as err:
-            print(f"Could not start process: {err}")
-            raise
+            raise CheckersEngineError(f"Could not start process: {err}")
+
+    def stop(self, force=False):
+        assert self._process is not None
+
+        if force:
+            self._process.terminate()
+
+        try:
+            self._process.wait(timeout=5)
+        except subprocess.TimeoutExpired as err:
+            self._process.kill()
+
+        self._running = False
+
+    def running(self) -> bool:
+        return self._running
 
     def send(self, command: str):
         assert self._process is not None
@@ -29,11 +52,9 @@ class CheckersEngine:
             self._process.stdin.write(command + "\n")
             self._process.stdin.flush()
         except BrokenPipeError as err:
-            print(f"Could not send command: {err}")
-
+            raise CheckersEngineError(f"Could not send command: {err}")
         except Exception as err:
-            print(f"Could not send command: {err}")
-            raise
+            raise CheckersEngineError(f"Could not send command: {err}")
 
     def receive(self) -> str:
         assert self._process is not None
@@ -42,21 +63,9 @@ class CheckersEngine:
         try:
             data = self._process.stdout.readline()
         except Exception as err:
-            print(f"Could not receive message: {err}")
-            raise
+            raise CheckersEngineError(f"Could not receive message: {err}")
 
         return data
-
-    def stop(self):
-        assert self._process is not None
-
-        self._process.terminate()
-
-        try:
-            self._process.wait(timeout=5)
-        except subprocess.TimeoutExpired as err:
-            print(f"Could not wait for process: {err}")
-            self._process.kill()
 
 
 if __name__ == "__main__":
@@ -98,7 +107,7 @@ if __name__ == "__main__":
                 break
 
         engine.send("QUIT")
-
-        engine.stop()
-    except Exception:
+    except CheckersEngineError:
         print("Really bad")
+
+    engine.stop()
