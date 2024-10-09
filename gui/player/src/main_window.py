@@ -42,6 +42,7 @@ class MainWindow(tk.Frame):
         self._indices = False
         self._move_index = 1
         self._engine = checkers_engine.CheckersEngine()
+        self._stopped = True
 
         self._setup_widgets()
 
@@ -166,8 +167,8 @@ class MainWindow(tk.Frame):
         frm_buttons.columnconfigure(0, weight=1)
         frm_buttons.columnconfigure(1, weight=1)
 
-        tk.Button(frm_buttons, text="Stop", command=None).grid(row=0, column=0, sticky="ew")  # TODO
-        tk.Button(frm_buttons, text="Continue", command=None).grid(row=0, column=1, sticky="ew")
+        tk.Button(frm_buttons, text="Stop", command=self._stop).grid(row=0, column=0, sticky="ew")
+        tk.Button(frm_buttons, text="Continue", command=self._continue).grid(row=0, column=1, sticky="ew")
 
         frm_parameters = tk.Frame(frm_center)
         frm_parameters.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
@@ -231,7 +232,7 @@ class MainWindow(tk.Frame):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
-        file_path = tkinter.filedialog.askopenfilename(defaultextension="", parent=self, title="Start Engine")
+        file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
 
         try:
             self._engine.start(file_path)
@@ -239,7 +240,12 @@ class MainWindow(tk.Frame):
             print(err, file=sys.stderr)
             return
 
-        self._wait_for_engine()
+        self._wait_for_engine_to_start()
+
+        try:
+            self._engine.send("INIT")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
 
     def _reset_position(self):
         self._board.reset()
@@ -273,6 +279,42 @@ class MainWindow(tk.Frame):
 
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
+
+    def _stop(self):
+        self._stopped = True
+
+        try:
+            self._engine.send("STOP")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+
+    def _continue(self):
+        # This button has one job: to control when the computer should begin the game when it's their turn
+        # At the beginning and every time the computer is stopped, the `stopped` flag is set
+
+        if self._stopped:
+            self._stopped = False
+
+            match self._board.get_turn():
+                case board.Player.Black:
+                    if self._var_player_black.get() == self.COMPUTER:
+                        try:
+                            self._engine.send("GO")
+                        except checkers_engine.CheckersEngineError as err:
+                            print(err, file=sys.stderr)
+                            self._engine.stop(True)
+
+                        self._wait_for_engine_best_move()
+                case board.Player.White:
+                    if self._var_player_white.get() == self.COMPUTER:
+                        try:
+                            self._engine.send("GO")
+                        except checkers_engine.CheckersEngineError as err:
+                            print(err, file=sys.stderr)
+                            self._engine.stop(True)
+
+                        self._wait_for_engine_best_move()
 
     def _frame_parameters_configure(self):
         self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all"))
@@ -364,7 +406,7 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._cvs_moves.yview_moveto(0.0)
 
-    def _wait_for_engine(self):
+    def _wait_for_engine_to_start(self):
         time_begin = time.time()
 
         while True:
@@ -386,7 +428,85 @@ class MainWindow(tk.Frame):
                 self._engine.stop(True)
                 break
 
+    def _wait_for_engine_best_move(self):
+        self.after(50, self._check_for_engine_best_move)
+
+    def _check_for_engine_best_move(self):
+        try:
+            message = self._engine.receive().strip()
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+
+        if "BESTMOVE" in message:
+            if "none" in message:
+                print("Engine thinks it's game over", file=sys.stderr)
+            else:
+                self._board.play_move(message.split()[1])
+
+            return
+        elif "INFO" in message:
+            print(message, file=sys.stderr)
+
+        self._wait_for_engine_best_move()
+
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
         self._update_status()
         self._record_move(move, board.CheckersBoard._opponent(self._board.get_turn()))
+
+        # Match on the current player
+
+        match board.CheckersBoard._opponent(self._board.get_turn()):
+            case board.Player.Black:
+                if self._var_player_black.get() == self.HUMAN:
+                    try:
+                        self._engine.send(f"MOVE {move}")
+                    except checkers_engine.CheckersEngineError as err:
+                        print(err, file=sys.stderr)
+                        self._engine.stop(True)
+
+                    self._stopped = False
+            case board.Player.White:
+                if self._var_player_white.get() == self.HUMAN:
+                    try:
+                        self._engine.send(f"MOVE {move}")
+                    except checkers_engine.CheckersEngineError as err:
+                        print(err, file=sys.stderr)
+                        self._engine.stop(True)
+
+                    self._stopped = False
+
+        # Match on the next player
+
+        match self._board.get_turn():
+            case board.Player.Black:
+                match self._var_player_black.get():
+                    case self.HUMAN:
+                        self._board.set_user_input(True)
+                    case self.COMPUTER:
+                        self._board.set_user_input(False)
+
+                        if not self._stopped:
+                            try:
+                                self._engine.send("GO")
+                            except checkers_engine.CheckersEngineError as err:
+                                print(err, file=sys.stderr)
+                                self._engine.stop(True)
+
+                            self._wait_for_engine_best_move()
+            case board.Player.White:
+                match self._var_player_white.get():
+                    case self.HUMAN:
+                        self._board.set_user_input(True)
+                    case self.COMPUTER:
+                        self._board.set_user_input(False)
+
+                        if not self._stopped:
+                            try:
+                                self._engine.send("GO")
+                            except checkers_engine.CheckersEngineError as err:
+                                print(err, file=sys.stderr)
+                                self._engine.stop(True)
+
+                            self._wait_for_engine_best_move()

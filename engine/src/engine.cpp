@@ -153,7 +153,7 @@ namespace engine {
                     instance.search(data.game.position, previous_positions, data.game.moves_played)
                 };
 
-                assert(!game::is_move_invalid(best_move));
+                assert(!game::is_move_invalid(best_move));  // FIXME this failed at the very end of a game
 
                 // Must reset this back to null
                 data.minimax.should_stop = nullptr;
