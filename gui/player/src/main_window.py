@@ -43,11 +43,12 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._engine = checkers_engine.CheckersEngine()
         self._stopped = True
+        self._game_over = False  # TODO use this to stop the game and prohibit action when the game is over
 
         self._setup_widgets()
 
         self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
-        self._board.set_user_input(True)  # TODO temp
+        # self._board.set_user_input(True)  # TODO temp
 
         pyg.mixer.init()
         self._sound = pyg.mixer.Sound("wood_click.wav")
@@ -151,24 +152,30 @@ class MainWindow(tk.Frame):
 
         self._var_player_black = tk.IntVar(frm_players_black, value=self.HUMAN)
         tk.Label(frm_players_black, text="Black").pack()
-        tk.Radiobutton(frm_players_black, text="Human", variable=self._var_player_black, value=self.HUMAN, command=None).pack(anchor="w")  # TODO
-        tk.Radiobutton(frm_players_black, text="Computer", variable=self._var_player_black, value=self.COMPUTER, command=None).pack(anchor="w")
+        self._btn_black_human = tk.Radiobutton(frm_players_black, text="Human", variable=self._var_player_black, value=self.HUMAN)
+        self._btn_black_human.pack(anchor="w")
+        self._btn_black_computer = tk.Radiobutton(frm_players_black, text="Computer", variable=self._var_player_black, value=self.COMPUTER)
+        self._btn_black_computer.pack(anchor="w")
 
         frm_players_white = tk.Frame(frm_players)
         frm_players_white.grid(row=0, column=1, sticky="ew")
 
         self._var_player_white = tk.IntVar(frm_players_white, value=self.COMPUTER)
         tk.Label(frm_players_white, text="White").pack()
-        tk.Radiobutton(frm_players_white, text="Human", variable=self._var_player_white, value=self.HUMAN, command=None).pack(anchor="w")  # TODO
-        tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, value=self.COMPUTER, command=None).pack(anchor="w")
+        self._btn_white_human = tk.Radiobutton(frm_players_white, text="Human", variable=self._var_player_white, value=self.HUMAN)
+        self._btn_white_human.pack(anchor="w")
+        self._btn_white_computer = tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, value=self.COMPUTER)
+        self._btn_white_computer.pack(anchor="w")
 
         frm_buttons = tk.Frame(frm_center)
         frm_buttons.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         frm_buttons.columnconfigure(0, weight=1)
         frm_buttons.columnconfigure(1, weight=1)
 
-        tk.Button(frm_buttons, text="Stop", command=self._stop).grid(row=0, column=0, sticky="ew")
-        tk.Button(frm_buttons, text="Continue", command=self._continue).grid(row=0, column=1, sticky="ew")
+        self._btn_stop = tk.Button(frm_buttons, text="Stop", command=self._stop)
+        self._btn_stop.grid(row=0, column=0, sticky="ew")
+        self._btn_continue = tk.Button(frm_buttons, text="Continue", command=self._continue)
+        self._btn_continue.grid(row=0, column=1, sticky="ew")
 
         frm_parameters = tk.Frame(frm_center)
         frm_parameters.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
@@ -184,6 +191,14 @@ class MainWindow(tk.Frame):
         self._frm_parameters = tk.Frame(self._cvs_parameters)
         self._frm_parameters.bind("<Configure>", lambda _: self._frame_parameters_configure())
         self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw")
+
+        self._btn_black_human.config(state="disabled")
+        self._btn_black_computer.config(state="disabled")
+        self._btn_white_human.config(state="disabled")
+        self._btn_white_computer.config(state="disabled")
+
+        self._btn_stop.config(state="disabled")
+        self._btn_continue.config(state="disabled")
 
         # TODO temp
         self._tk.bind("<Button-1>", lambda _: tk.Label(self._frm_parameters, text="params").pack())
@@ -247,6 +262,17 @@ class MainWindow(tk.Frame):
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
 
+        if self._var_player_black.get() == self.HUMAN:
+            self._board.set_user_input(True)
+
+        self._btn_black_human.config(state="active")
+        self._btn_black_computer.config(state="active")
+        self._btn_white_human.config(state="active")
+        self._btn_white_computer.config(state="active")
+
+        self._btn_stop.config(state="active")
+        self._btn_continue.config(state="active")
+
     def _reset_position(self):
         self._board.reset()
         self._reset_status()
@@ -281,13 +307,19 @@ class MainWindow(tk.Frame):
         tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
 
     def _stop(self):
-        self._stopped = True
+        if not self._stopped:
+            self._stopped = True
 
-        try:
-            self._engine.send("STOP")
-        except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
+            try:
+                self._engine.send("STOP")
+            except checkers_engine.CheckersEngineError as err:
+                print(err, file=sys.stderr)
+                self._engine.stop(True)
+
+            self._btn_black_human.config(state="active")
+            self._btn_black_computer.config(state="active")
+            self._btn_white_human.config(state="active")
+            self._btn_white_computer.config(state="active")
 
     def _continue(self):
         # This button has one job: to control when the computer should begin the game when it's their turn
@@ -315,6 +347,11 @@ class MainWindow(tk.Frame):
                             self._engine.stop(True)
 
                         self._wait_for_engine_best_move()
+
+            self._btn_black_human.config(state="disabled")
+            self._btn_black_computer.config(state="disabled")
+            self._btn_white_human.config(state="disabled")
+            self._btn_white_computer.config(state="disabled")
 
     def _frame_parameters_configure(self):
         self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all"))
@@ -442,7 +479,7 @@ class MainWindow(tk.Frame):
             if "none" in message:
                 print("Engine thinks it's game over", file=sys.stderr)
             else:
-                self._board.play_move(message.split()[1])
+                self._board.play_move(message.split()[1])  # FIXME assertion failed in here
 
             return
         elif "INFO" in message:
@@ -460,20 +497,22 @@ class MainWindow(tk.Frame):
         match board.CheckersBoard._opponent(self._board.get_turn()):
             case board.Player.Black:
                 if self._var_player_black.get() == self.HUMAN:
-                    try:
-                        self._engine.send(f"MOVE {move}")
-                    except checkers_engine.CheckersEngineError as err:
-                        print(err, file=sys.stderr)
-                        self._engine.stop(True)
+                    if self._var_player_white.get() == self.COMPUTER:
+                        try:
+                            self._engine.send(f"MOVE {move}")
+                        except checkers_engine.CheckersEngineError as err:
+                            print(err, file=sys.stderr)
+                            self._engine.stop(True)
 
                     self._stopped = False
             case board.Player.White:
                 if self._var_player_white.get() == self.HUMAN:
-                    try:
-                        self._engine.send(f"MOVE {move}")
-                    except checkers_engine.CheckersEngineError as err:
-                        print(err, file=sys.stderr)
-                        self._engine.stop(True)
+                    if self._var_player_black.get() == self.COMPUTER:
+                        try:
+                            self._engine.send(f"MOVE {move}")
+                        except checkers_engine.CheckersEngineError as err:
+                            print(err, file=sys.stderr)
+                            self._engine.stop(True)
 
                     self._stopped = False
 
@@ -510,3 +549,11 @@ class MainWindow(tk.Frame):
                                 self._engine.stop(True)
 
                             self._wait_for_engine_best_move()
+
+        self._btn_black_human.config(state="disabled")
+        self._btn_black_computer.config(state="disabled")
+        self._btn_white_human.config(state="disabled")
+        self._btn_white_computer.config(state="disabled")
+
+# FIXME the engine seems to not check for threefold repetition correctly
+# TODO implement BESTMOVE none and check if the engine responded with none
