@@ -284,6 +284,8 @@ namespace game {
     }
 
     bool is_game_over(const search::SearchNode& node) {
+        // Check only the material
+
         unsigned int black_pieces {0};
         unsigned int white_pieces {0};
 

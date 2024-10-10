@@ -3,6 +3,7 @@
 #include <vector>
 #include <condition_variable>
 #include <mutex>
+#include <optional>
 
 #include "game.hpp"
 #include "search_node.hpp"
@@ -26,7 +27,7 @@ namespace search {
         Search(Search&&) = delete;
         Search& operator=(Search&&) = delete;
 
-        game::Move search(
+        std::optional<game::Move> search(
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played
@@ -37,7 +38,7 @@ namespace search {
         evaluation::Eval minimax(
             unsigned int depth,
             unsigned int plies_from_root,
-            SearchNode& current_node
+            const SearchNode& current_node
         );
 
         SearchNode& setup_nodes(
@@ -46,7 +47,7 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
-        bool is_advancement(const game::Position& position, const game::Move& move);
+        bool is_advancement(const game::Board& board, const game::Move& move);
         void notify_result_available();
 
         bool m_notified_result_available {false};

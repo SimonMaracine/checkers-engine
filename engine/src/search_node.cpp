@@ -1,6 +1,15 @@
 #include "search_node.hpp"
 
 namespace search {
+    SearchNode create_node(const game::Board& board, game::Player player, unsigned int plies, unsigned int plies_without_advancement) {
+        return {
+            board,
+            player,
+            plies,
+            plies_without_advancement
+        };
+    }
+
     void fill_node(SearchNode& current, const SearchNode& previous) {
         current.board = previous.board;
         current.player = previous.player;

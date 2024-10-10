@@ -43,12 +43,11 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._engine = checkers_engine.CheckersEngine()
         self._stopped = True
-        self._game_over = False  # TODO use this to stop the game and prohibit action when the game is over
+        self._game_over = False  # TODO use this to prohibit action when the game is over
 
         self._setup_widgets()
 
         self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
-        # self._board.set_user_input(True)  # TODO temp
 
         pyg.mixer.init()
         self._sound = pyg.mixer.Sound("wood_click.wav")
@@ -249,6 +248,9 @@ class MainWindow(tk.Frame):
     def _start_engine(self):
         file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
 
+        if file_path == ():
+            return
+
         try:
             self._engine.start(file_path)
         except checkers_engine.CheckersEngineError as err:
@@ -322,7 +324,7 @@ class MainWindow(tk.Frame):
             self._btn_white_computer.config(state="active")
 
     def _continue(self):
-        # This button has one job: to control when the computer should begin the game when it's their turn
+        # This button has one job: to control when the computer should begin or continue the game when it's their turn
         # At the beginning and every time the computer is stopped, the `stopped` flag is set
 
         if self._stopped:
@@ -474,6 +476,7 @@ class MainWindow(tk.Frame):
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
             self._engine.stop(True)
+            return
 
         if "BESTMOVE" in message:
             if "none" in message:
@@ -487,6 +490,35 @@ class MainWindow(tk.Frame):
 
         self._wait_for_engine_best_move()
 
+    def _inform_engine_about_user_move(self, current_player: tk.IntVar, next_player: tk.IntVar, move: board.Move):
+        if current_player.get() == self.HUMAN:
+            if next_player.get() == self.COMPUTER:
+                try:
+                    self._engine.send(f"MOVE {move}")
+                except checkers_engine.CheckersEngineError as err:
+                    print(err, file=sys.stderr)
+                    self._engine.stop(True)
+
+            self._stopped = False
+
+    def _start_engine_thinking(self, next_player: tk.IntVar):
+        if next_player.get() == self.COMPUTER:
+            if not self._stopped:
+                try:
+                    self._engine.send("GO")
+                except checkers_engine.CheckersEngineError as err:
+                    print(err, file=sys.stderr)
+                    self._engine.stop(True)
+
+                self._wait_for_engine_best_move()
+
+    def _enable_or_disable_user_input(self, next_player: tk.IntVar):
+        match self._var_player_black.get():
+            case self.HUMAN:
+                self._board.set_user_input(True)
+            case self.COMPUTER:
+                self._board.set_user_input(False)
+
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
         self._update_status()
@@ -496,64 +528,21 @@ class MainWindow(tk.Frame):
 
         match board.CheckersBoard._opponent(self._board.get_turn()):
             case board.Player.Black:
-                if self._var_player_black.get() == self.HUMAN:
-                    if self._var_player_white.get() == self.COMPUTER:
-                        try:
-                            self._engine.send(f"MOVE {move}")
-                        except checkers_engine.CheckersEngineError as err:
-                            print(err, file=sys.stderr)
-                            self._engine.stop(True)
-
-                    self._stopped = False
+                self._inform_engine_about_user_move(self._var_player_black, self._var_player_white, move)
             case board.Player.White:
-                if self._var_player_white.get() == self.HUMAN:
-                    if self._var_player_black.get() == self.COMPUTER:
-                        try:
-                            self._engine.send(f"MOVE {move}")
-                        except checkers_engine.CheckersEngineError as err:
-                            print(err, file=sys.stderr)
-                            self._engine.stop(True)
-
-                    self._stopped = False
+                self._inform_engine_about_user_move(self._var_player_white, self._var_player_black, move)
 
         # Match on the next player
 
         match self._board.get_turn():
             case board.Player.Black:
-                match self._var_player_black.get():
-                    case self.HUMAN:
-                        self._board.set_user_input(True)
-                    case self.COMPUTER:
-                        self._board.set_user_input(False)
-
-                        if not self._stopped:
-                            try:
-                                self._engine.send("GO")
-                            except checkers_engine.CheckersEngineError as err:
-                                print(err, file=sys.stderr)
-                                self._engine.stop(True)
-
-                            self._wait_for_engine_best_move()
+                self._enable_or_disable_user_input(self._var_player_black)
+                self._start_engine_thinking(self._var_player_black)
             case board.Player.White:
-                match self._var_player_white.get():
-                    case self.HUMAN:
-                        self._board.set_user_input(True)
-                    case self.COMPUTER:
-                        self._board.set_user_input(False)
-
-                        if not self._stopped:
-                            try:
-                                self._engine.send("GO")
-                            except checkers_engine.CheckersEngineError as err:
-                                print(err, file=sys.stderr)
-                                self._engine.stop(True)
-
-                            self._wait_for_engine_best_move()
+                self._enable_or_disable_user_input(self._var_player_white)
+                self._start_engine_thinking(self._var_player_white)
 
         self._btn_black_human.config(state="disabled")
         self._btn_black_computer.config(state="disabled")
         self._btn_white_human.config(state="disabled")
         self._btn_white_computer.config(state="disabled")
-
-# FIXME the engine seems to not check for threefold repetition correctly
-# TODO implement BESTMOVE none and check if the engine responded with none

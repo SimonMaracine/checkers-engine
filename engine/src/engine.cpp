@@ -62,19 +62,24 @@ namespace engine {
                     break;
                 }
 
+                // Do the actual work now
+                // Search returns a valid result or nothing, if the game is over
                 const auto [best_move, dont_play] {data.minimax.search_func(lock)};
 
                 if (!dont_play) {
-                    moves::play_move(data.game.position, best_move);
+                    if (best_move) {
+                        moves::play_move(data.game.position, *best_move);
 
-                    data.game.previous_positions.push_back(data.game.position);
-                    data.game.moves_played.push_back(best_move);
+                        data.game.previous_positions.push_back(data.game.position);
+                        data.game.moves_played.push_back(*best_move);
+                    }
                 }
 
                 // Reset the search function as a signal for the cv
                 data.minimax.search_func = {};
 
                 // Message the GUI only now, to indicate that we are ready for another GO
+                // Best move is already something or nothing
                 messages::bestmove(best_move);
             }
         });
@@ -149,13 +154,11 @@ namespace engine {
                 auto previous_positions {data.game.previous_positions};
                 previous_positions.pop_back();
 
-                const game::Move best_move {
+                const auto best_move {
                     instance.search(data.game.position, previous_positions, data.game.moves_played)
                 };
 
-                assert(!game::is_move_invalid(best_move));  // FIXME this failed at the very end of a game
-
-                // Must reset this back to null
+                // Must reset this back to null here, after the search
                 data.minimax.should_stop = nullptr;
 
                 return std::make_pair(best_move, dont_play_move);
@@ -169,7 +172,8 @@ namespace engine {
         }
         data.minimax.cv.notify_one();
 
-        // Wait for the first result to become available
+        // Wait for the first result to become available; thus the engine cannot process a stop command and thus
+        // the resulting move must be valid, or the game is over
         {
             std::unique_lock<std::mutex> lock {data.minimax.mutex};
             data.minimax.cv.wait(lock, [&result_available]() { return result_available; });

@@ -43,10 +43,16 @@ namespace messages {
         std::cout << "READY" << std::endl;
     }
 
-    void bestmove(const game::Move& move) {
+    void bestmove(const std::optional<game::Move>& move) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        std::cout << "BESTMOVE " << move_to_string(move) << std::endl;
+        std::cout << "BESTMOVE ";
+
+        if (move) {
+            std::cout << move_to_string(*move) << std::endl;
+        } else {
+            std::cout << "none" << std::endl;
+        }
     }
 
     void parameters(const std::unordered_map<std::string, engine::Param>& parameters) {

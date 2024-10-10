@@ -40,7 +40,7 @@ Tells the engine to play the move on the internal board.
 It is GUI's responsability to send correct move commands. The engine is not obligated to do error checking. If it
 does check for invalid move commands, it is encouraged to immediately respond with the message **ALERT**.
 
-### GO [don't play move]
+### GO [dontplaymove]
 
 Tells the engine to think, play and return the best move of its current internal position. It should optionally not
 play the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
@@ -109,9 +109,9 @@ The engine is free to never send this message to GUI. It exists solely as a debu
 at any time, for any sensible reason. For example: it couldn't process a command, the requested parameter
 doesn't exist, the parameter value is invalid etc.
 
-### BESTMOVE \<move\>
+### BESTMOVE (\<move\> | none)
 
-Responds with the best move calculated after a **GO** command.
+Responds with the best move calculated after a **GO** command, or with the string *none*, if the game is over.
 
 ### PARAMETERS \<(name 1) (type 1) (name 2) (type 2) ...\>
 

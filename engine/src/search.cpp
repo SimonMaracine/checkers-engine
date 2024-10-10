@@ -21,7 +21,7 @@ namespace search {
         m_parameters.DEPTH = parameter_depth;
     }
 
-    game::Move Search::search(
+    std::optional<game::Move> Search::search(
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played
@@ -37,16 +37,23 @@ namespace search {
 
         messages::info(m_nodes_evaluated, evaluation, time);
 
-        return m_best_move;
+        // If move is invalid, then the game must be over
+        // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
+        if (game::is_move_invalid(m_best_move)) {
+            return std::nullopt;
+        }
+
+        return std::make_optional(m_best_move);
     }
 
     evaluation::Eval Search::minimax(
         unsigned int depth,
         unsigned int plies_from_root,
-        SearchNode& current_node
+        const SearchNode& current_node
     ) {
         if (m_should_stop) {
-            return 0;
+            m_nodes_evaluated++;
+            return evaluation::static_evaluation(current_node, m_parameters);
         }
 
         if (depth == 0 || game::is_game_over(current_node)) {
@@ -54,13 +61,11 @@ namespace search {
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        if (forty_move_rule(current_node)) {
-            m_nodes_evaluated++;
+        if (forty_move_rule(current_node)) {  // Game over
             return 0;
         }
 
-        if (threefold_repetition_rule(current_node)) {
-            m_nodes_evaluated++;
+        if (threefold_repetition_rule(current_node)) {  // Game over
             return 0;
         }
 
@@ -140,26 +145,15 @@ namespace search {
             const game::Position& position {previous_positions[i]};
             const game::Move& move {moves_played[i]};
 
-            if (is_advancement(position, move)) {
+            if (is_advancement(position.board, move)) {
+                // Clear any previous inserted nodes, as they don't need to be checked
                 m_nodes.clear();
             } else {
-                SearchNode node;
-                node.board = position.board;
-                node.player = position.player;
-                node.plies = position.plies;
-                node.plies_without_advancement = position.plies_without_advancement;
-
-                m_nodes.push_back(node);
+                m_nodes.push_back(create_node(position.board, position.player, position.plies, position.plies_without_advancement));
             }
         }
 
-        SearchNode current_node;
-        current_node.board = position.board;
-        current_node.player = position.player;
-        current_node.plies = position.plies;
-        current_node.plies_without_advancement = position.plies_without_advancement;
-
-        m_nodes.push_back(current_node);
+        m_nodes.push_back(create_node(position.board, position.player, position.plies, position.plies_without_advancement));
 
         // Go backwards and link the nodes
         for (std::size_t i {m_nodes.size() - 1}; i > 0; i--) {
@@ -171,9 +165,11 @@ namespace search {
         return m_nodes.back();
     }
 
-    bool Search::is_advancement(const game::Position& position, const game::Move& move) {
+    bool Search::is_advancement(const game::Board& board, const game::Move& move) {
+        // Must be called before the move is made
+
         if (move.type == game::MoveType::Normal) {
-            return !game::is_king_piece(position.board[move.normal.destination_index]);
+            return !game::is_king_piece(board[move.normal.source_index]);
         } else {
             return true;
         }

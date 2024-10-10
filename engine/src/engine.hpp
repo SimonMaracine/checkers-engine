@@ -15,7 +15,7 @@
 
 namespace engine {
     using Param = std::variant<int>;
-    using SearchResult = std::pair<game::Move, bool>;
+    using SearchResult = std::pair<std::optional<game::Move>, bool>;
 
     struct EngineData {
         /* TODO
