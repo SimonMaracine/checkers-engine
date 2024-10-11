@@ -153,21 +153,45 @@ class MainWindow(tk.Frame):
         frm_players_black = tk.Frame(frm_players)
         frm_players_black.grid(row=0, column=0)
 
-        self._var_player_black = tk.IntVar(frm_players_black, value=self.HUMAN)
         tk.Label(frm_players_black, text="Black").pack()
-        self._btn_black_human = tk.Radiobutton(frm_players_black, text="Human", variable=self._var_player_black, command=self._player_changed, value=self.HUMAN)
+        self._var_player_black = tk.IntVar(frm_players_black, value=self.HUMAN)
+        self._btn_black_human = tk.Radiobutton(
+            frm_players_black,
+            text="Human",
+            variable=self._var_player_black,
+            command=self._player_changed,
+            value=self.HUMAN
+        )
         self._btn_black_human.pack(anchor="w")
-        self._btn_black_computer = tk.Radiobutton(frm_players_black, text="Computer", variable=self._var_player_black, command=self._player_changed, value=self.COMPUTER)
+        self._btn_black_computer = tk.Radiobutton(
+            frm_players_black,
+            text="Computer",
+            variable=self._var_player_black,
+            command=self._player_changed,
+            value=self.COMPUTER
+        )
         self._btn_black_computer.pack(anchor="w")
 
         frm_players_white = tk.Frame(frm_players)
         frm_players_white.grid(row=0, column=1, sticky="ew")
 
-        self._var_player_white = tk.IntVar(frm_players_white, value=self.COMPUTER)
         tk.Label(frm_players_white, text="White").pack()
-        self._btn_white_human = tk.Radiobutton(frm_players_white, text="Human", variable=self._var_player_white, command=self._player_changed, value=self.HUMAN)
+        self._var_player_white = tk.IntVar(frm_players_white, value=self.COMPUTER)
+        self._btn_white_human = tk.Radiobutton(
+            frm_players_white,
+            text="Human",
+            variable=self._var_player_white,
+            command=self._player_changed,
+            value=self.HUMAN
+        )
         self._btn_white_human.pack(anchor="w")
-        self._btn_white_computer = tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, command=self._player_changed, value=self.COMPUTER)
+        self._btn_white_computer = tk.Radiobutton(
+            frm_players_white,
+            text="Computer",
+            variable=self._var_player_white,
+            command=self._player_changed,
+            value=self.COMPUTER
+        )
         self._btn_white_computer.pack(anchor="w")
 
         frm_buttons = tk.Frame(frm_center)
@@ -479,7 +503,7 @@ class MainWindow(tk.Frame):
 
         while True:
             try:
-                message = self._engine.receive().strip()
+                message = self._engine.receive()
             except checkers_engine.CheckersEngineError as err:
                 print(err, file=sys.stderr)
                 self._engine.stop(True)
@@ -501,7 +525,7 @@ class MainWindow(tk.Frame):
 
     def _check_for_engine_best_move(self):
         try:
-            message = self._engine.receive().strip()
+            message = self._engine.receive()
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
             self._engine.stop(True)
@@ -524,7 +548,7 @@ class MainWindow(tk.Frame):
 
     def _check_for_engine_parameters(self):
         try:
-            message = self._engine.receive().strip()
+            message = self._engine.receive()
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
             self._engine.stop(True)
@@ -540,7 +564,7 @@ class MainWindow(tk.Frame):
 
             return
 
-        self._check_for_engine_parameters()
+        self._wait_for_engine_parameters()
 
     def _get_engine_parameter(self, name: str, type: str):
         try:
@@ -548,7 +572,7 @@ class MainWindow(tk.Frame):
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
             self._engine.stop(True)
-            return False
+            return
 
         # FIXME do this after message comes; change protocol
         match type:
@@ -556,6 +580,8 @@ class MainWindow(tk.Frame):
                 self._add_engine_parameter_int(name)
 
     def _get_engine_parameters(self) -> bool:
+        # Return if the engine successfully started getting parameters or not
+
         try:
             self._engine.send("GETPARAMETERS")
         except checkers_engine.CheckersEngineError as err:
@@ -573,7 +599,13 @@ class MainWindow(tk.Frame):
         tk.Label(frm_parameter, text=name).grid(row=0, column=0)
 
         var_parameter = tk.StringVar(frm_parameter, value=0)
-        tk.Spinbox(frm_parameter, from_=-256, to=256, textvariable=frm_parameter, command=lambda: self._set_engine_parameter_int(name, var_parameter.get())).grid(row=0, column=1)  # FIXME extend protocol to include possible values
+        tk.Spinbox(
+            frm_parameter,
+            from_=-256,
+            to=256,
+            textvariable=frm_parameter,
+            command=lambda: self._set_engine_parameter_int(name, var_parameter.get())
+        ).grid(row=0, column=1)  # FIXME extend protocol to include possible values
 
     def _set_engine_parameter_int(self, name: str, value: int):
         try:
@@ -618,7 +650,6 @@ class MainWindow(tk.Frame):
         self._record_move(move, board.CheckersBoard._opponent(self._board.get_turn()))
 
         # Match on the current player
-
         match board.CheckersBoard._opponent(self._board.get_turn()):
             case board.Player.Black:
                 self._inform_engine_about_user_move(self._var_player_black, self._var_player_white, move)
@@ -626,7 +657,6 @@ class MainWindow(tk.Frame):
                 self._inform_engine_about_user_move(self._var_player_white, self._var_player_black, move)
 
         # Match on the next player
-
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
