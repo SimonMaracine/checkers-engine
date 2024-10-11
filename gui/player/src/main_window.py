@@ -276,6 +276,9 @@ class MainWindow(tk.Frame):
             self._engine.stop(True)
             return
 
+        if not self._get_engine_parameters():
+            return
+
         self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
 
         if self._var_player_black.get() == self.HUMAN:
@@ -515,6 +518,69 @@ class MainWindow(tk.Frame):
             print(" ".join(message.split()[1:]), file=sys.stderr)
 
         self._wait_for_engine_best_move()
+
+    def _wait_for_engine_parameters(self):
+        self.after(25, self._check_for_engine_parameters)
+
+    def _check_for_engine_parameters(self):
+        try:
+            message = self._engine.receive().strip()
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+            return
+
+        if "PARAMETERS" in message:
+            tokens = message.split()
+            token_index = 1
+
+            while token_index < len(tokens):
+                self._get_engine_parameter(tokens[token_index], tokens[token_index + 1])
+                token_index += 2
+
+            return
+
+        self._check_for_engine_parameters()
+
+    def _get_engine_parameter(self, name: str, type: str):
+        try:
+            self._engine.send(f"GETPARAMETER {name}")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+            return False
+
+        # FIXME do this after message comes; change protocol
+        match type:
+            case "int":
+                self._add_engine_parameter_int(name)
+
+    def _get_engine_parameters(self) -> bool:
+        try:
+            self._engine.send("GETPARAMETERS")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+            return False
+
+        self._wait_for_engine_parameters()
+        return True
+
+    def _add_engine_parameter_int(self, name: str):
+        frm_parameter = tk.Frame(self._frm_parameters)
+        frm_parameter.pack()
+
+        tk.Label(frm_parameter, text=name).grid(row=0, column=0)
+
+        var_parameter = tk.StringVar(frm_parameter, value=0)
+        tk.Spinbox(frm_parameter, from_=-256, to=256, textvariable=frm_parameter, command=lambda: self._set_engine_parameter_int(name, var_parameter.get())).grid(row=0, column=1)  # FIXME extend protocol to include possible values
+
+    def _set_engine_parameter_int(self, name: str, value: int):
+        try:
+            self._engine.send(f"SETPARAMETER {name} {value}")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
 
     def _inform_engine_about_user_move(self, var_current_player: tk.IntVar, var_next_player: tk.IntVar, move: board.Move):
         if var_current_player.get() == self.HUMAN:
