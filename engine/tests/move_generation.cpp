@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstddef>
+
 #include <gtest/gtest.h>
+
 #include <moves.hpp>
 #include <game.hpp>
 
@@ -14,7 +16,7 @@ static std::uint64_t count_moves(unsigned int depth, game::Position& position) {
     const auto moves {moves::generate_moves(position.board, position.player)};
 
     for (const game::Move& move : moves) {
-        auto new_position {position};
+        game::Position new_position {position};
         moves::play_move(new_position, move);
 
         total_moves += count_moves(depth - 1, new_position);
@@ -39,7 +41,7 @@ static std::uint64_t test_moves_from_position(unsigned int depth, const char* fe
 TEST(move_generation, move_generation_start) {
     const char* fen_string {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
 
-#if 0
+#if 1
     ASSERT_EQ(test_moves_from_position(1, fen_string), 7);
     ASSERT_EQ(test_moves_from_position(2, fen_string), 49);
     ASSERT_EQ(test_moves_from_position(3, fen_string), 302);
@@ -53,7 +55,7 @@ TEST(move_generation, move_generation_start) {
     ASSERT_EQ(test_moves_from_position(11, fen_string), 85242128);
     ASSERT_EQ(test_moves_from_position(12, fen_string), 388623673);
     ASSERT_EQ(test_moves_from_position(13, fen_string), 1766623630);
-#elif 1
+#elif 0
     ASSERT_EQ(test_moves_from_position(14, fen_string), 7978439499ul);
 #else
     ASSERT_EQ(test_moves_from_position(15, fen_string), 36263167175ul);

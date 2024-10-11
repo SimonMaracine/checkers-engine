@@ -39,7 +39,9 @@ namespace search {
 
         // If move is invalid, then the game must be over
         // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
+        // Notify the other thread that a "result" is available
         if (game::is_move_invalid(m_best_move)) {
+            notify_result_available();
             return std::nullopt;
         }
 

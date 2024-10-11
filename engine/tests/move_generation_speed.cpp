@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
+
 #include <moves.hpp>
 #include <game.hpp>
 
@@ -14,7 +15,7 @@ static void generate_moves(unsigned int depth, game::Position& position) {
     const auto moves {moves::generate_moves(position.board, position.player)};
 
     for (const game::Move& move : moves) {
-        auto new_position {position};
+        game::Position new_position {position};
         moves::play_move(new_position, move);
 
         generate_moves(depth - 1, new_position);

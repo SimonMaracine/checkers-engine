@@ -14,10 +14,10 @@ class CheckersEngine:
         self._process: Optional[subprocess.Popen] = None
         self._running = False
 
-    def start(self, path: str):
+    def start(self, file_path: str):
         try:
             self._process = subprocess.Popen(
-                [path],
+                [file_path],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 text=True,
@@ -35,7 +35,7 @@ class CheckersEngine:
             self._process.terminate()
 
         try:
-            self._process.wait(timeout=5)
+            self._process.wait(timeout=10)
         except subprocess.TimeoutExpired as err:
             self._process.kill()
 

@@ -224,8 +224,6 @@ class CheckersBoard:
         if not self._user_input:
             return
 
-        # FIXME check game over?
-
         if not CheckersBoard._is_black_square(square):
             return
 
@@ -273,8 +271,6 @@ class CheckersBoard:
     def press_square_right_button(self, square: int):
         if not self._user_input:
             return
-
-        # FIXME check game over?
 
         if self._selected_piece_square == NULL_INDEX:
             return
@@ -350,7 +346,7 @@ class CheckersBoard:
 
     def _play_normal_move(self, move: Move):
         assert move.type() == MoveType.Normal
-        assert self._board[move.data.destination_index] == _Square.None_  # FIXME this failed when engine came up with a best move
+        assert self._board[move.data.destination_index] == _Square.None_
 
         CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
 

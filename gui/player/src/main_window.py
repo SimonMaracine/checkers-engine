@@ -1,5 +1,6 @@
 import time
 import sys
+import pathlib
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
@@ -22,14 +23,13 @@ import checkers_engine
 # ldd
 
 class MainWindow(tk.Frame):
-    # GREEN = wxColour(70, 140, 70)
-    # PURPLE = wxColour(170, 140, 170)
     WHITE = "#c8c8c8"
     BLACK = "#503c28"
     HUMAN = 1
     COMPUTER = 2
     DEFAULT_BOARD_SIZE = 400
     TXT_ENGINE = "Engine:"
+    TXT_STOPPED = "Stopped:"
     TXT_STATUS = "Status:"
     TXT_PLAYER = "Player:"
     TXT_PLIES_WITHOUT_ADVANCEMENT = "Plies without advancement:"
@@ -43,7 +43,6 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._engine = checkers_engine.CheckersEngine()
         self._stopped = True
-        self._game_over = False  # TODO use this to prohibit action when the game is over
 
         self._setup_widgets()
 
@@ -123,10 +122,15 @@ class MainWindow(tk.Frame):
         frm_status = tk.Frame(frm_center)
         frm_status.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
-        self._var_engine = tk.StringVar(frm_status, self.TXT_ENGINE)
+        self._var_engine = tk.StringVar(frm_status, self.TXT_ENGINE + " [none]")
 
         lbl_engine = tk.Label(frm_status, textvariable=self._var_engine)
         lbl_engine.pack(anchor="w")
+
+        self._var_stopped = tk.StringVar(frm_status, f"{self.TXT_STOPPED} {self._stopped}")
+
+        lbl_stopped = tk.Label(frm_status, textvariable=self._var_stopped)
+        lbl_stopped.pack(anchor="w")
 
         self._var_status = tk.StringVar(frm_status, self.TXT_STATUS + " game not started")
 
@@ -151,9 +155,9 @@ class MainWindow(tk.Frame):
 
         self._var_player_black = tk.IntVar(frm_players_black, value=self.HUMAN)
         tk.Label(frm_players_black, text="Black").pack()
-        self._btn_black_human = tk.Radiobutton(frm_players_black, text="Human", variable=self._var_player_black, value=self.HUMAN)
+        self._btn_black_human = tk.Radiobutton(frm_players_black, text="Human", variable=self._var_player_black, command=self._player_changed, value=self.HUMAN)
         self._btn_black_human.pack(anchor="w")
-        self._btn_black_computer = tk.Radiobutton(frm_players_black, text="Computer", variable=self._var_player_black, value=self.COMPUTER)
+        self._btn_black_computer = tk.Radiobutton(frm_players_black, text="Computer", variable=self._var_player_black, command=self._player_changed, value=self.COMPUTER)
         self._btn_black_computer.pack(anchor="w")
 
         frm_players_white = tk.Frame(frm_players)
@@ -161,9 +165,9 @@ class MainWindow(tk.Frame):
 
         self._var_player_white = tk.IntVar(frm_players_white, value=self.COMPUTER)
         tk.Label(frm_players_white, text="White").pack()
-        self._btn_white_human = tk.Radiobutton(frm_players_white, text="Human", variable=self._var_player_white, value=self.HUMAN)
+        self._btn_white_human = tk.Radiobutton(frm_players_white, text="Human", variable=self._var_player_white, command=self._player_changed, value=self.HUMAN)
         self._btn_white_human.pack(anchor="w")
-        self._btn_white_computer = tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, value=self.COMPUTER)
+        self._btn_white_computer = tk.Radiobutton(frm_players_white, text="Computer", variable=self._var_player_white, command=self._player_changed, value=self.COMPUTER)
         self._btn_white_computer.pack(anchor="w")
 
         frm_buttons = tk.Frame(frm_center)
@@ -246,6 +250,11 @@ class MainWindow(tk.Frame):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
+        # This button can be used to reload an engine, if one is already running
+        if self._engine.running():
+            self._engine.send("QUIT")
+            self._engine.stop()
+
         file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
 
         if file_path == ():
@@ -257,12 +266,17 @@ class MainWindow(tk.Frame):
             print(err, file=sys.stderr)
             return
 
-        self._wait_for_engine_to_start()
+        if not self._wait_for_engine_to_start():
+            return
 
         try:
             self._engine.send("INIT")
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
+            self._engine.stop(True)
+            return
+
+        self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
 
         if self._var_player_black.get() == self.HUMAN:
             self._board.set_user_input(True)
@@ -301,16 +315,28 @@ class MainWindow(tk.Frame):
         pyg.mixer.quit()
 
         if self._engine.running():
-            self._engine.stop(True)
+            self._engine.send("QUIT")
+            self._engine.stop()
 
         self._tk.destroy()
 
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
 
+    def _player_changed(self):
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
+
     def _stop(self):
+        # This button just stops the engine from thinking, forcing it to make a move
+        # Changing players is not allowed mid-game, because the engine will be out of sync with the game
+
         if not self._stopped:
             self._stopped = True
+            self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
             try:
                 self._engine.send("STOP")
@@ -318,17 +344,13 @@ class MainWindow(tk.Frame):
                 print(err, file=sys.stderr)
                 self._engine.stop(True)
 
-            self._btn_black_human.config(state="active")
-            self._btn_black_computer.config(state="active")
-            self._btn_white_human.config(state="active")
-            self._btn_white_computer.config(state="active")
-
     def _continue(self):
         # This button has one job: to control when the computer should begin or continue the game when it's their turn
         # At the beginning and every time the computer is stopped, the `stopped` flag is set
 
         if self._stopped:
             self._stopped = False
+            self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
             match self._board.get_turn():
                 case board.Player.Black:
@@ -338,8 +360,8 @@ class MainWindow(tk.Frame):
                         except checkers_engine.CheckersEngineError as err:
                             print(err, file=sys.stderr)
                             self._engine.stop(True)
-
-                        self._wait_for_engine_best_move()
+                        else:
+                            self._wait_for_engine_best_move()
                 case board.Player.White:
                     if self._var_player_white.get() == self.COMPUTER:
                         try:
@@ -347,9 +369,11 @@ class MainWindow(tk.Frame):
                         except checkers_engine.CheckersEngineError as err:
                             print(err, file=sys.stderr)
                             self._engine.stop(True)
+                        else:
+                            self._wait_for_engine_best_move()
 
-                        self._wait_for_engine_best_move()
-
+            # Do this here, even though it will be done after the move is played on the board, because the engine may
+            # take quite some time to think
             self._btn_black_human.config(state="disabled")
             self._btn_black_computer.config(state="disabled")
             self._btn_white_human.config(state="disabled")
@@ -445,7 +469,9 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._cvs_moves.yview_moveto(0.0)
 
-    def _wait_for_engine_to_start(self):
+    def _wait_for_engine_to_start(self) -> bool:
+        # Return if the engine started successfully or not
+
         time_begin = time.time()
 
         while True:
@@ -454,21 +480,21 @@ class MainWindow(tk.Frame):
             except checkers_engine.CheckersEngineError as err:
                 print(err, file=sys.stderr)
                 self._engine.stop(True)
-                break
+                return False
 
             if "READY" in message:
                 print("Engine started successfully", file=sys.stderr)
-                break
+                return True
 
             time_now = time.time()
 
             if time_begin - time_now > 3.0:
                 print("Engine failed to respond in a timely manner", file=sys.stderr)
                 self._engine.stop(True)
-                break
+                return False
 
     def _wait_for_engine_best_move(self):
-        self.after(50, self._check_for_engine_best_move)
+        self.after(25, self._check_for_engine_best_move)
 
     def _check_for_engine_best_move(self):
         try:
@@ -482,17 +508,17 @@ class MainWindow(tk.Frame):
             if "none" in message:
                 print("Engine thinks it's game over", file=sys.stderr)
             else:
-                self._board.play_move(message.split()[1])  # FIXME assertion failed in here
+                self._board.play_move(message.split()[1])
 
             return
         elif "INFO" in message:
-            print(message, file=sys.stderr)
+            print(" ".join(message.split()[1:]), file=sys.stderr)
 
         self._wait_for_engine_best_move()
 
-    def _inform_engine_about_user_move(self, current_player: tk.IntVar, next_player: tk.IntVar, move: board.Move):
-        if current_player.get() == self.HUMAN:
-            if next_player.get() == self.COMPUTER:
+    def _inform_engine_about_user_move(self, var_current_player: tk.IntVar, var_next_player: tk.IntVar, move: board.Move):
+        if var_current_player.get() == self.HUMAN:
+            if var_next_player.get() == self.COMPUTER:
                 try:
                     self._engine.send(f"MOVE {move}")
                 except checkers_engine.CheckersEngineError as err:
@@ -500,20 +526,21 @@ class MainWindow(tk.Frame):
                     self._engine.stop(True)
 
             self._stopped = False
+            self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-    def _start_engine_thinking(self, next_player: tk.IntVar):
-        if next_player.get() == self.COMPUTER:
+    def _start_engine_thinking(self, var_next_player: tk.IntVar):
+        if var_next_player.get() == self.COMPUTER:
             if not self._stopped:
                 try:
                     self._engine.send("GO")
                 except checkers_engine.CheckersEngineError as err:
                     print(err, file=sys.stderr)
                     self._engine.stop(True)
+                else:
+                    self._wait_for_engine_best_move()
 
-                self._wait_for_engine_best_move()
-
-    def _enable_or_disable_user_input(self, next_player: tk.IntVar):
-        match self._var_player_black.get():
+    def _enable_or_disable_user_input(self, var_next_player: tk.IntVar):
+        match var_next_player.get():
             case self.HUMAN:
                 self._board.set_user_input(True)
             case self.COMPUTER:
@@ -542,6 +569,13 @@ class MainWindow(tk.Frame):
                 self._enable_or_disable_user_input(self._var_player_white)
                 self._start_engine_thinking(self._var_player_white)
 
+        # Ensure that the game is locked, if it is over
+        if self._board.get_game_over() != board.GameOver.None_:
+            self._board.set_user_input(False)
+            self._btn_stop.config(state="disabled")
+            self._btn_continue.config(state="disabled")
+
+        # Do this primarily for the user move
         self._btn_black_human.config(state="disabled")
         self._btn_black_computer.config(state="disabled")
         self._btn_white_human.config(state="disabled")
