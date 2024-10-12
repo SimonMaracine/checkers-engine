@@ -330,6 +330,17 @@ class MainWindow(tk.Frame):
         self._reset_status()
         self._clear_moves()
 
+        self._btn_black_human.config(state="active")
+        self._btn_black_computer.config(state="active")
+        self._btn_white_human.config(state="active")
+        self._btn_white_computer.config(state="active")
+
+        self._btn_stop.config(state="active")
+        self._btn_continue.config(state="active")
+
+        self._stopped = True
+        self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
+
     def _set_position(self):
         top_level = tk.Toplevel(self)
         fen_string_window.FenStringWindow(top_level, self._set_position_string)
