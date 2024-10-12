@@ -67,11 +67,11 @@ The possible types are:
 - **int**, a signed 32-bit integer
 - **float**, a 32-bit floating point number
 - **bool**, a boolean with values *true* or *false*
-- **string**, an ASCII string of maximum 64 characters
+- **string**, an ASCII string of maximum 10 characters, with no spaces
 
 The types must be spelled just like above.
 
-Parameter names must be no longer than 64 ASCII characters.
+Parameter names must be no longer than 10 ASCII characters.
 
 The engine is encouraged to come with a small documentation that describes all of its parameters and their valid or
 their recommended values.

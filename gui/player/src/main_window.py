@@ -210,14 +210,14 @@ class MainWindow(tk.Frame):
         bar_parameters = tk.Scrollbar(frm_parameters, orient="vertical")
         bar_parameters.pack(side="right", fill="y")
 
-        self._cvs_parameters = tk.Canvas(frm_parameters, width=250, yscrollcommand=bar_parameters.set)
+        self._cvs_parameters = tk.Canvas(frm_parameters, width=240, yscrollcommand=bar_parameters.set)
         self._cvs_parameters.pack(side="left", fill="both", expand=True)
 
         bar_parameters.config(command=self._cvs_parameters.yview)
 
         self._frm_parameters = tk.Frame(self._cvs_parameters)
         self._frm_parameters.bind("<Configure>", lambda _: self._frame_parameters_configure())
-        self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw")
+        self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw", width=240)
 
         self._btn_black_human.config(state="disabled")
         self._btn_black_computer.config(state="disabled")
@@ -226,9 +226,6 @@ class MainWindow(tk.Frame):
 
         self._btn_stop.config(state="disabled")
         self._btn_continue.config(state="disabled")
-
-        # TODO temp
-        self._tk.bind("<Button-1>", lambda _: tk.Label(self._frm_parameters, text="params").pack())
 
     def _setup_widgets_right(self):
         frm_right = tk.Frame(self, relief="solid", borderwidth=1)
@@ -299,6 +296,8 @@ class MainWindow(tk.Frame):
             print(err, file=sys.stderr)
             self._engine.stop(True)
             return
+
+        self._clear_parameters()
 
         if not self._get_engine_parameters():
             return
@@ -496,6 +495,10 @@ class MainWindow(tk.Frame):
         self._move_index = 1
         self._cvs_moves.yview_moveto(0.0)
 
+    def _clear_parameters(self):
+        for child in self._frm_parameters.winfo_children():
+            child.destroy()
+
     def _wait_for_engine_to_start(self) -> bool:
         # Return if the engine started successfully or not
 
@@ -559,14 +562,14 @@ class MainWindow(tk.Frame):
             token_index = 1
 
             while token_index < len(tokens):
-                self._get_engine_parameter(tokens[token_index], tokens[token_index + 1])
-                token_index += 2
+                self._get_engine_parameter(tokens[token_index])
+                token_index += 1
 
             return
 
         self._wait_for_engine_parameters()
 
-    def _get_engine_parameter(self, name: str, type: str):
+    def _get_engine_parameter(self, name: str):
         try:
             self._engine.send(f"GETPARAMETER {name}")
         except checkers_engine.CheckersEngineError as err:
@@ -574,10 +577,38 @@ class MainWindow(tk.Frame):
             self._engine.stop(True)
             return
 
-        # FIXME do this after message comes; change protocol
-        match type:
-            case "int":
-                self._add_engine_parameter_int(name)
+        self._wait_for_engine_parameter()
+
+    def _wait_for_engine_parameter(self):
+        self.after(25, self._check_for_engine_parameter)
+
+    def _check_for_engine_parameter(self):
+        try:
+            message = self._engine.receive()
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
+            return
+
+        if "PARAMETER" in message:
+            tokens = message.split()
+            name = tokens[1]
+            type = tokens[2]
+            value = tokens[3]
+
+            match type:
+                case "int":
+                    self._add_engine_parameter_int(name, value)
+                case "float":
+                    self._add_engine_parameter_float(name, value)
+                case "bool":
+                    self._add_engine_parameter_bool(name, value)
+                case "string":
+                    self._add_engine_parameter_string(name, value)
+
+            return
+
+        self._wait_for_engine_parameter()
 
     def _get_engine_parameters(self) -> bool:
         # Return if the engine successfully started getting parameters or not
@@ -592,22 +623,54 @@ class MainWindow(tk.Frame):
         self._wait_for_engine_parameters()
         return True
 
-    def _add_engine_parameter_int(self, name: str):
-        frm_parameter = tk.Frame(self._frm_parameters)
-        frm_parameter.pack()
+    def _add_engine_parameter_int(self, name: str, value: str):
+        frm_parameter = self._engine_parameter_frame_label(name)
 
-        tk.Label(frm_parameter, text=name).grid(row=0, column=0)
-
-        var_parameter = tk.StringVar(frm_parameter, value=0)
+        var_parameter = tk.StringVar(frm_parameter, value=value)
         tk.Spinbox(
             frm_parameter,
             from_=-256,
             to=256,
-            textvariable=frm_parameter,
-            command=lambda: self._set_engine_parameter_int(name, var_parameter.get())
-        ).grid(row=0, column=1)  # FIXME extend protocol to include possible values
+            textvariable=var_parameter,
+            command=lambda: self._set_engine_parameter(name, var_parameter.get())
+        ).grid(row=0, column=1, sticky="ew")  # FIXME extend protocol to include possible values
 
-    def _set_engine_parameter_int(self, name: str, value: int):
+    def _add_engine_parameter_float(self, name: str, value: str):
+        frm_parameter = self._engine_parameter_frame_label(name)
+
+        var_parameter = tk.StringVar(frm_parameter, value=value)
+        tk.Entry(frm_parameter, textvariable=var_parameter).grid(row=0, column=1, sticky="ew")
+
+        var_parameter.trace_add("write", lambda *args: self._set_engine_parameter(name, var_parameter.get()))
+
+    def _add_engine_parameter_bool(self, name: str, value: str):
+        frm_parameter = self._engine_parameter_frame_label(name)
+
+        var_parameter = tk.IntVar(frm_parameter, value=value)
+        tk.Checkbutton(
+            frm_parameter,
+            variable=var_parameter,
+            command=lambda: self._set_engine_parameter(name, str(var_parameter.get()))
+        ).grid(row=0, column=1, sticky="ew")
+
+    def _add_engine_parameter_string(self, name: str, value: str):
+        frm_parameter = self._engine_parameter_frame_label(name)
+
+        var_parameter = tk.StringVar(frm_parameter, value=value)
+        tk.Entry(frm_parameter, textvariable=var_parameter, ).grid(row=0, column=1, sticky="ew")
+
+        var_parameter.trace_add("write", lambda *args: self._set_engine_parameter(name, var_parameter.get()))
+
+    def _engine_parameter_frame_label(self, name: str) -> tk.Frame:
+        frm_parameter = tk.Frame(self._frm_parameters)
+        frm_parameter.pack(fill="x", expand=True, pady=(0, 8))
+        frm_parameter.columnconfigure(1, weight=1)
+
+        tk.Label(frm_parameter, text=name).grid(row=0, column=0, sticky="w")
+
+        return frm_parameter
+
+    def _set_engine_parameter(self, name: str, value: str):
         try:
             self._engine.send(f"SETPARAMETER {name} {value}")
         except checkers_engine.CheckersEngineError as err:
