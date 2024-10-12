@@ -4,6 +4,7 @@ import pathlib
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
+from typing import Optional
 
 import pygame as pyg
 
@@ -271,15 +272,19 @@ class MainWindow(tk.Frame):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
+        file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
+
+        if file_path == ():
+            return
+
         # This button can be used to reload an engine, if one is already running
         if self._engine.running():
             self._engine.send("QUIT")
             self._engine.stop()
 
-        file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
-
-        if file_path == ():
-            return
+        # Wait for the previous engine to stop; might be dangerous
+        while self._engine.running():
+            pass
 
         try:
             self._engine.start(file_path)
@@ -296,6 +301,10 @@ class MainWindow(tk.Frame):
             print(err, file=sys.stderr)
             self._engine.stop(True)
             return
+
+        # Reset any current game, as the new engine has no knowledge of it
+        # Must be done here after INIT
+        self._reset_position()
 
         self._clear_parameters()
 
@@ -317,6 +326,7 @@ class MainWindow(tk.Frame):
 
     def _reset_position(self):
         self._board.reset()
+        self._reset_engine()
         self._reset_status()
         self._clear_moves()
 
@@ -326,6 +336,7 @@ class MainWindow(tk.Frame):
 
     def _set_position_string(self, string: str):
         self._board.reset(string)
+        self._reset_engine(string)
         self._reset_status()
         self._clear_moves()
 
@@ -498,6 +509,16 @@ class MainWindow(tk.Frame):
     def _clear_parameters(self):
         for child in self._frm_parameters.winfo_children():
             child.destroy()
+
+    def _reset_engine(self, position: Optional[str] = None):
+        try:
+            if position is not None:
+                self._engine.send(f"NEWGAME {position}")  # FIXME not working correctly
+            else:
+                self._engine.send("NEWGAME")
+        except checkers_engine.CheckersEngineError as err:
+            print(err, file=sys.stderr)
+            self._engine.stop(True)
 
     def _wait_for_engine_to_start(self) -> bool:
         # Return if the engine started successfully or not

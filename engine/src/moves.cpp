@@ -315,7 +315,7 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
-                assert(board[move.capture.source_index] != game::Square::None);
+                assert(board[move.capture.source_index] != game::Square::None);  // FIXME failed after sending NEWGAME with position
                 assert(
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == game::Square::None ||
                     move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]

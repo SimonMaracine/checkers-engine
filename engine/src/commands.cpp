@@ -12,7 +12,6 @@ namespace commands {
 
         while (tokens.find(index)) {
             setup_moves.push_back(tokens[index]);
-
             index++;
         }
 
