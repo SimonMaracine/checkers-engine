@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cstddef>
 #include <utility>
 #include <cstring>
 #include <unordered_map>
@@ -17,13 +16,11 @@
 namespace loop {
     // Doesn't return the new line
     static std::string read_input() {
-        static constexpr std::size_t CHUNK {256};
-
         std::string result;
 
         while (true) {
-            char buffer[CHUNK] {};
-            std::cin.getline(buffer, static_cast<std::streamsize>(CHUNK));
+            char buffer[256] {};
+            std::cin.getline(buffer, sizeof(buffer));
 
             result += buffer;
 
@@ -90,16 +87,15 @@ namespace loop {
             // Handle QUIT separately
             if (tokens[0] == "QUIT") {
                 commands::quit(data, tokens);
-                break;
+                return 0;
             }
 
             try {
                 execute_command(data, tokens);
             } catch (error::Error) {
+                commands::quit(data, tokens);
                 return 1;
             }
         }
-
-        return 0;
     }
 }

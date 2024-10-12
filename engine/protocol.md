@@ -8,8 +8,7 @@ Messages from GUI to engine are also called *commands*.
 
 The string of a message can contain arbitrary whitespace around tokens.
 
-If a received command is invalid in any way, it should be ignored completely and the receiver (engine) may respond
-with the message **ALERT**.
+If a received command is invalid in any way, it should be ignored completely by the engine.
 
 Messages can consist of any number of characters and, as a consequence, any number of tokens. Both the GUI and the
 engine should account for messages of any size.
@@ -25,15 +24,15 @@ The engine must process the commands synchronously, in the order that they are r
 
 Tells the engine to initialize itself and get ready to play.
 
-Must be sent at the beginning and only once.
+Must be sent at the beginning and only once. Only **QUIT** may be sent before **INIT**.
 
-### NEWGAME [start position] [(setup move 1) (setup move 2) ...]
+### NEWGAME [`start position`] [`setup move 1` `setup move 2` ...]
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
 (right after **INIT**), as if **INIT** automatically calls **NEWGAME**. Optionally tells it to start from a
 specific position or/and play the setup moves.
 
-### MOVE \<move\>
+### MOVE `move`
 
 Tells the engine to play the move on the internal board.
 
@@ -45,8 +44,8 @@ does check for invalid move commands, it is encouraged to immediately respond wi
 Tells the engine to think, play and return the best move of its current internal position. It should optionally not
 play the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
 
-The GUI is not permitted to send the **GO** command while the engine is still thinking. It can only send another **GO**
-command after it received a **BESTMOVE** message from engine.
+The GUI is not permitted to send the **GO** command while the engine is still thinking. It can only send another
+**GO** command after it received a **BESTMOVE** message from engine.
 
 The engine must not return from processing the **GO** command until it has a valid best move result.
 
@@ -60,8 +59,8 @@ The engine must have a valid result even if it was stopped from thinking very ea
 
 ### GETPARAMETERS
 
-Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero. They must
-be initialized by the time the **INIT** command finishes processing.
+Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero.
+They must be initialized by the time the **INIT** command finishes processing.
 
 The possible types are:
 
@@ -77,11 +76,11 @@ Parameter names must be no longer than 64 ASCII characters.
 The engine is encouraged to come with a small documentation that describes all of its parameters and their valid or
 their recommended values.
 
-### GETPARAMETER \<name\>
+### GETPARAMETER `name`
 
 Asks the engine for that parameter value.
 
-### SETPARAMETER \<name\> \<value\>
+### SETPARAMETER `name` `value`
 
 Tells the engine to set the parameter to that value. The value should pe parsed by the engine according to its type.
 
@@ -100,20 +99,20 @@ This command should shut down the engine nicely, even if it is in the process of
 Informs the GUI that the engine has started. Must be sent once at the very beginning. The GUI should wait for this
 message before sending any other commands.
 
-### BESTMOVE (\<move\> | none)
+### BESTMOVE (`move` | none)
 
 Responds with the best move calculated after a **GO** command, or with the string *none*, if the game is over.
 
-### PARAMETERS \<(name 1) (type 1) (name 2) (type 2) ...\>
+### PARAMETERS (`name 1` `name 2` ...)
 
-Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command. Each entry
-consists of the parameter name and its type. The list can be empty, if the engine has no parameters.
+Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command.
+The list can be empty, if the engine has no parameters.
 
-### PARAMETER \<name\> \<value\>
+### PARAMETER `name` `type` `value`
 
-Responds with the name and value of the requested parameter after a **GETPARAMETER** command.
+Responds with the name, type and value of the requested parameter after a **GETPARAMETER** command.
 
-### INFO [nodes \<value\>] [eval \<value\>] time \<value\>
+### INFO [nodes `value`] [eval `value`] time `value`
 
 Informs the GUI about its progress in calculating the best move. Can be sent at any time between the **GO**
 command and the **BESTMOVE** response.

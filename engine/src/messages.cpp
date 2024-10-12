@@ -31,10 +31,10 @@ namespace messages {
     }
 
     /*
-        Using std::endl is crucial
+        Using std::endl is crucial.
 
         Because multiple threads may print messages and because these are split between multiple << calls,
-        every message function needs to be protected by a mutex
+        every message function needs to be protected by a mutex.
     */
 
     void ready() {
@@ -49,10 +49,12 @@ namespace messages {
         std::cout << "BESTMOVE ";
 
         if (move) {
-            std::cout << move_to_string(*move) << std::endl;
+            std::cout << move_to_string(*move);
         } else {
-            std::cout << "none" << std::endl;
+            std::cout << "none";
         }
+
+        std::cout << std::endl;
     }
 
     void parameters(const std::unordered_map<std::string, engine::Param>& parameters) {
@@ -60,17 +62,8 @@ namespace messages {
 
         std::cout << "PARAMETERS";
 
-        for (const auto& [name, value] : parameters) {
-            std::cout << ' ' << name << ' ';
-
-            switch (value.index()) {
-                case 0:
-                    std::cout << "int";  // Too bad that I can't just use typeid
-                    break;
-                default:
-                    assert(false);
-                    break;
-            }
+        for (const auto& [name, _] : parameters) {
+            std::cout << ' ' << name;
         }
 
         std::cout << std::endl;
@@ -79,11 +72,20 @@ namespace messages {
     void parameter(const std::string& name, const engine::Param& value) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        std::cout << "PARAMETER " << name << ' ';
+        std::cout << "PARAMETER " << name;
 
-        switch (value.index()) {
+        switch (value.index()) {  // Too bad that I can't just use typeid
             case 0:
-                std::cout << std::get<0>(value);
+                std::cout << " int " << std::get<0>(value);
+                break;
+            case 1:
+                std::cout << " float " << std::get<1>(value);
+                break;
+            case 2:
+                std::cout << " bool " << std::get<2>(value);
+                break;
+            case 3:
+                std::cout << " string " << std::get<3>(value);
                 break;
             default:
                 assert(false);

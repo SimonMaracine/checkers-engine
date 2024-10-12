@@ -14,7 +14,7 @@
 #include "game.hpp"
 
 namespace engine {
-    using Param = std::variant<int>;
+    using Param = std::variant<int, float, bool, std::string>;
     using SearchResult = std::pair<std::optional<game::Move>, bool>;
 
     struct EngineData {
@@ -55,11 +55,7 @@ namespace engine {
     // Arguments to these aren't checked
     // May throw errors
     void init(EngineData& data);
-    void newgame(
-        EngineData& data,
-        const std::optional<std::string>& position,
-        const std::optional<std::vector<std::string>>& moves
-    );
+    void newgame(EngineData& data, const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves);
     void move(EngineData& data, const std::string& move);
     void go(EngineData& data, bool dont_play_move);
     void stop(EngineData& data);

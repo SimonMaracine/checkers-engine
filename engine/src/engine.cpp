@@ -27,17 +27,33 @@ namespace engine {
     }
 
     static int parse_int(const std::string& string) {
-        int result {0};
-
         try {
-            result = std::stoi(string);
+            return std::stoi(string);
         } catch (const std::invalid_argument&) {
             throw error::Error();
         } catch (const std::out_of_range&) {
             throw error::Error();
         }
+    }
 
-        return result;
+    static float parse_float(const std::string& string) {
+        try {
+            return std::stof(string);
+        } catch (const std::invalid_argument&) {
+            throw error::Error();
+        } catch (const std::out_of_range&) {
+            throw error::Error();
+        }
+    }
+
+    static bool parse_bool(const std::string& string) {
+        if (string == "true") {
+            return true;
+        } else if (string == "false") {
+            return false;
+        } else {
+            throw error::Error();
+        }
     }
 
     void init(EngineData& data) {
@@ -93,11 +109,7 @@ namespace engine {
         initialize_parameters(data);
     }
 
-    void newgame(
-        EngineData& data,
-        const std::optional<std::string>& position,
-        const std::optional<std::vector<std::string>>& moves
-    ) {
+    void newgame(EngineData& data, const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {
         if (position) {
             reset_position(data, *position);
         } else {
@@ -209,19 +221,31 @@ namespace engine {
 
         Param& parameter {iter->second};
 
-        switch (parameter.index()) {
-            case 0:
-                parameter = parse_int(value);
-                break;
-            default:
-                assert(false);
-                break;
-        }
+        try {
+            switch (parameter.index()) {
+                case 0:
+                    parameter = parse_int(value);
+                    break;
+                case 1:
+                    parameter = parse_float(value);
+                    break;
+                case 2:
+                    parameter = parse_bool(value);
+                    break;
+                case 3:
+                    parameter = value;
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+        } catch (error::Error) {}
     }
 
     void quit(EngineData& data) {
         if (!data.minimax.running) {
-            throw error::Error();
+            // There is nothing to do; the main loop handles the rest of the uninitialization
+            return;
         }
 
         if (data.minimax.search_func) {
