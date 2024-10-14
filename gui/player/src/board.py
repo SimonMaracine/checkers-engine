@@ -10,6 +10,7 @@
     tie W:WK2:BK30
 """
 
+from __future__ import annotations
 import enum
 import dataclasses
 import re
@@ -160,6 +161,9 @@ class _Board:
 
     def __setitem__(self, index: int, value: _Square):
         setattr(self, f"_{index}", value)
+
+    def __eq__(self, other: _Board) -> bool:
+        return all(map(lambda i: self[i] == other[i], range(32)))
 
     def clear(self):
         for i in range(32):
@@ -421,7 +425,7 @@ class CheckersBoard:
                 self._game_over = GameOver.TieBetweenBothPlayers
 
     def _check_repetition(self, advancement: bool):
-        current = _Position(self._board, self._turn)
+        current = _Position(copy.copy(self._board), self._turn)
 
         if advancement:
             self._repetition_positions.clear()
@@ -628,8 +632,9 @@ class CheckersBoard:
 
     @staticmethod
     def _generate_piece_capture_moves(board: _Board, moves: list[Move], square_index: int, player: Player, king: bool):
+        # Board must not be modified here
         # The context is local to these function calls
-        ctx = _JumpCtx(board, square_index, [])
+        ctx = _JumpCtx(copy.copy(board), square_index, [])
 
         # Call recursively
         CheckersBoard._check_piece_jumps(moves, square_index, player, king, ctx)

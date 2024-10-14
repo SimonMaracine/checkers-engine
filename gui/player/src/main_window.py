@@ -279,7 +279,13 @@ class MainWindow(tk.Frame):
 
         # This button can be used to reload an engine, if one is already running
         if self._engine.running():
-            self._engine.send("QUIT")
+            try:
+                self._engine.send("QUIT")
+            except checkers_engine.CheckersEngineError as err:
+                print(err, file=sys.stderr)
+                self._engine.stop(True)
+                return
+
             self._engine.stop()
 
         # Wait for the previous engine to stop; might be dangerous
@@ -363,7 +369,13 @@ class MainWindow(tk.Frame):
         pyg.mixer.quit()
 
         if self._engine.running():
-            self._engine.send("QUIT")
+            try:
+                self._engine.send("QUIT")
+            except checkers_engine.CheckersEngineError as err:
+                print(err, file=sys.stderr)
+                self._engine.stop(True)
+                return
+
             self._engine.stop()
 
         self._tk.destroy()
@@ -569,6 +581,7 @@ class MainWindow(tk.Frame):
         if "BESTMOVE" in message:
             if "none" in message:
                 print("Engine thinks it's game over", file=sys.stderr)
+                print("This is an error, as the GUI should have detected the condition", file=sys.stderr)
             else:
                 self._board.play_move(message.split()[1])
 
@@ -751,6 +764,21 @@ class MainWindow(tk.Frame):
             case board.Player.White:
                 self._inform_engine_about_user_move(self._var_player_white, self._var_player_black, move)
 
+        # Do this primarily for the user move
+        self._btn_black_human.config(state="disabled")
+        self._btn_black_computer.config(state="disabled")
+        self._btn_white_human.config(state="disabled")
+        self._btn_white_computer.config(state="disabled")
+
+        # Ensure that the game is locked, if it is over
+        if self._board.get_game_over() != board.GameOver.None_:
+            self._board.set_user_input(False)
+            self._btn_stop.config(state="disabled")
+            self._btn_continue.config(state="disabled")
+
+            print("GUI thinks it's game over")
+            return
+
         # Match on the next player
         match self._board.get_turn():
             case board.Player.Black:
@@ -759,15 +787,3 @@ class MainWindow(tk.Frame):
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
                 self._start_engine_thinking(self._var_player_white)
-
-        # Ensure that the game is locked, if it is over
-        if self._board.get_game_over() != board.GameOver.None_:
-            self._board.set_user_input(False)
-            self._btn_stop.config(state="disabled")
-            self._btn_continue.config(state="disabled")
-
-        # Do this primarily for the user move
-        self._btn_black_human.config(state="disabled")
-        self._btn_black_computer.config(state="disabled")
-        self._btn_white_human.config(state="disabled")
-        self._btn_white_computer.config(state="disabled")
