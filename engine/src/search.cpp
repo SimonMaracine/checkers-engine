@@ -2,8 +2,8 @@
 
 #include <limits>
 #include <chrono>
-#include <cassert>
 #include <cstddef>
+#include <cassert>
 
 #include "moves.hpp"
 #include "messages.hpp"

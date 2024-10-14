@@ -1,10 +1,10 @@
 #include "moves.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <utility>
+#include <cassert>
 
 /*
     triggered assertions B:W2,3,4,6,7,8,10,11,12,13,14:B17,20,21,25,23,27,28,29,30,31,32
@@ -20,7 +20,7 @@ namespace moves {
 
         assert(sum % 2 == 1);
 
-        if (((game::to_0_31(index1)) / 4) % 2 == 0) {
+        if (((game::_1_32_to_0_31(index1)) / 4) % 2 == 0) {
             return static_cast<game::Idx>((sum + 1) / 2);
         } else {
             return static_cast<game::Idx>((sum - 1) / 2);
@@ -36,13 +36,13 @@ namespace moves {
         );
 
         const auto index {get_jumped_piece_index(
-            game::to_1_32(move.capture.source_index),
-            game::to_1_32(move.capture.destination_indices[0])
+            game::_0_31_to_1_32(move.capture.source_index),
+            game::_0_31_to_1_32(move.capture.destination_indices[0])
         )};
 
-        assert(board[game::to_0_31(index)] != game::Square::None);
+        assert(board[game::_1_32_to_0_31(index)] != game::Square::None);
 
-        board[game::to_0_31(index)] = game::Square::None;
+        board[game::_1_32_to_0_31(index)] = game::Square::None;
 
         for (unsigned char i {0}; i < move.capture.destination_indices_size - 1; i++) {
             assert(
@@ -51,13 +51,13 @@ namespace moves {
             );
 
             const auto index {get_jumped_piece_index(
-                game::to_1_32(move.capture.destination_indices[i]),
-                game::to_1_32(move.capture.destination_indices[i + 1])
+                game::_0_31_to_1_32(move.capture.destination_indices[i]),
+                game::_0_31_to_1_32(move.capture.destination_indices[i + 1])
             )};
 
-            assert(board[game::to_0_31(index)] != game::Square::None);
+            assert(board[game::_1_32_to_0_31(index)] != game::Square::None);
 
-            board[game::to_0_31(index)] = game::Square::None;
+            board[game::_1_32_to_0_31(index)] = game::Square::None;
         }
     }
 
@@ -80,13 +80,13 @@ namespace moves {
     };
 
     static game::Idx offset(game::Idx square_index, Direction direction, Diagonal diagonal) {
-        game::Idx result_index {square_index};
+        int result_index {square_index};
 
         const bool even_row {(square_index / 4) % 2 == 0};
 
         switch (direction) {  // TODO opt.
             case Direction::NorthEast:
-                result_index -= even_row ? 3 : 4;  // TODO fix warnings
+                result_index -= even_row ? 3 : 4;
 
                 if (diagonal == Diagonal::Long) {
                     result_index -= even_row ? 4 : 3;
@@ -129,7 +129,7 @@ namespace moves {
             return game::NULL_INDEX;
         }
 
-        return result_index;
+        return static_cast<game::Idx>(result_index);
     }
 
     static bool check_piece_jumps(
@@ -315,7 +315,7 @@ namespace moves {
 
                 break;
             case game::MoveType::Capture:
-                assert(board[move.capture.source_index] != game::Square::None);  // FIXME failed after sending NEWGAME with position
+                assert(board[move.capture.source_index] != game::Square::None);
                 assert(
                     board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == game::Square::None ||
                     move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]

@@ -1,7 +1,7 @@
 #include "engine.hpp"
 
-#include <cassert>
 #include <stdexcept>
+#include <cassert>
 
 #include "moves.hpp"
 #include "messages.hpp"
@@ -125,7 +125,7 @@ namespace engine {
                 game::make_move(data.game.position, move);
 
                 data.game.previous_positions.push_back(data.game.position);
-                data.game.moves_played.push_back(game::parse_move(move));
+                data.game.moves_played.push_back(game::parse_move_string(move));
             }
         }
     }
@@ -134,7 +134,7 @@ namespace engine {
         game::make_move(data.game.position, move);
 
         data.game.previous_positions.push_back(data.game.position);
-        data.game.moves_played.push_back(game::parse_move(move));
+        data.game.moves_played.push_back(game::parse_move_string(move));  // FIXME handle errors
     }
 
     void go(EngineData& data, bool dont_play_move) {

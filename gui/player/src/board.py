@@ -790,16 +790,16 @@ class CheckersBoard:
         pieces1 = CheckersBoard._parse_player_pieces(player1)
         pieces2 = CheckersBoard._parse_player_pieces(player2)
 
-        if player1 == player2:
+        if player1[0] == player2[0]:
             raise RuntimeError(f"Invalid player types: {player1, player2}")
 
         board = _Board()
 
         for index, square in pieces1:
-            board[index] = square
+            board[CheckersBoard._1_32_to_0_31(index)] = square
 
         for index, square in pieces2:
-            board[index] = square
+            board[CheckersBoard._1_32_to_0_31(index)] = square
 
         return _Position(board, CheckersBoard._parse_player_type(turn))
 
@@ -877,6 +877,7 @@ class CheckersBoard:
             return True
         else:
             assert False
+
     @staticmethod
     def _is_black_square(square: int) -> bool:
         x, y = CheckersBoard._get_square(square)

@@ -321,6 +321,8 @@ class MainWindow(tk.Frame):
 
         if self._var_player_black.get() == self.HUMAN:
             self._board.set_user_input(True)
+        else:
+            self._board.set_user_input(False)
 
         self._btn_black_human.config(state="active")
         self._btn_black_computer.config(state="active")
@@ -352,6 +354,8 @@ class MainWindow(tk.Frame):
 
         if self._var_player_black.get() == self.HUMAN:
             self._board.set_user_input(True)
+        else:
+            self._board.set_user_input(False)
 
     def _set_position(self):
         top_level = tk.Toplevel(self)

@@ -3,8 +3,8 @@
 #include <regex>
 #include <cstddef>
 #include <utility>
-#include <stdexcept>
-#include <cmath>
+#include <cstring>
+#include <vector>
 #include <cassert>
 
 #include "moves.hpp"
@@ -12,98 +12,24 @@
 #include "search_node.hpp"
 
 namespace game {
+    static std::vector<std::string> split(const std::string& string, const char* delimiter) {
+        std::vector<std::string> tokens;
+        std::string buffer {string};
+
+        char* token {std::strtok(buffer.data(), delimiter)};
+
+        while (token != nullptr) {
+            tokens.emplace_back(token);
+            token = std::strtok(nullptr, delimiter);
+        }
+
+        return tokens;
+    }
+
     static bool valid_fen_string(const std::string& fen_string) {
         const std::regex pattern {"(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}"};
 
         return std::regex_match(fen_string, pattern);
-    }
-
-    static game::Player parse_player(const std::string& fen_string, std::size_t index) {
-        switch (fen_string[index]) {
-            case 'B':
-                return game::Player::Black;
-            case 'W':
-                return game::Player::White;
-        }
-
-        throw error::Error();
-    }
-
-    static std::pair<game::Idx, bool> parse_piece(const std::string& fen_string, std::size_t& index) {
-        bool scanning {true};
-        bool king {false};
-        std::string result_number;
-
-        while (scanning) {
-            if (index == fen_string.size()) {
-                // Also stop scanning when going past the string
-                break;
-            }
-
-            switch (fen_string[index]) {
-                case 'K':
-                    king = true;
-                    index++;
-
-                    break;
-                case ',':
-                    scanning = false;
-                    index++;
-
-                    break;
-                case ':':
-                    scanning = false;
-
-                    break;
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    result_number.push_back(fen_string[index]);
-                    index++;
-
-                    break;
-            }
-        }
-
-        unsigned long result {0};
-
-        try {
-            result = std::stoul(result_number);
-        } catch (const std::invalid_argument&) {
-            throw error::Error();
-        } catch (const std::out_of_range&) {
-            throw error::Error();
-        }
-
-        return std::make_pair(static_cast<game::Idx>(result), king);
-    }
-
-    static void parse_pieces(const std::string& fen_string, std::size_t& index, game::Player player, game::Board& board) {
-        while (fen_string[index] != ':' && index != fen_string.size()) {
-            // Squares are in the range [1, 32]
-            const auto [square, king] {parse_piece(fen_string, index)};
-
-            if (player == game::Player::Black) {
-                if (king) {
-                    board[to_0_31(square)] = game::Square::BlackKing;
-                } else {
-                    board[to_0_31(square)] = game::Square::Black;
-                }
-            } else {
-                if (king) {
-                    board[to_0_31(square)] = game::Square::WhiteKing;
-                } else {
-                    board[to_0_31(square)] = game::Square::White;
-                }
-            }
-        }
     }
 
     static bool valid_move_string(const std::string& move_string) {
@@ -112,74 +38,87 @@ namespace game {
         return std::regex_match(move_string, pattern);
     }
 
-    static unsigned int parse_number(const std::string& move_string, std::size_t& index) {
-        std::string result_number;
-
-        while (true) {
-            if (index == move_string.size()) {
-                // Also stop scanning when going past the string
-                break;
-            }
-
-            if (move_string[index] >= '0' && move_string[index] <= '9') {
-                result_number.push_back(move_string[index]);
-                index++;
-            } else if (move_string[index] == 'x') {
-                index++;
-                break;
-            } else {
-                throw error::Error();
-            }
+    static Player parse_player_type(const std::string& string) {
+        if (string == "B") {
+            return Player::Black;
+        } else if (string == "W") {
+            return Player::White;
+        } else {
+            throw error::Error();
         }
+    }
 
-        unsigned long result {0};
+    static std::pair<Idx, Square> parse_player_piece(const std::string& string, Player player_type) {
+        const bool king {string[0] == 'K'};
 
         try {
-            result = std::stoul(result_number);
-        } catch (const std::invalid_argument&) {
-            throw error::Error();
-        } catch (const std::out_of_range&) {
+            switch (player_type) {
+                case Player::Black:
+                    if (king) {
+                        return std::make_pair(static_cast<Idx>(std::stoi(string.substr(1))), Square::BlackKing);
+                    } else {
+                        return std::make_pair(static_cast<Idx>(std::stoi(string)), Square::Black);
+                    }
+                case Player::White:
+                    if (king) {
+                        return std::make_pair(static_cast<Idx>(std::stoi(string.substr(1))), Square::WhiteKing);
+                    } else {
+                        return std::make_pair(static_cast<Idx>(std::stoi(string)), Square::White);
+                    }
+            }
+        } catch (...) {  // stoi
             throw error::Error();
         }
 
-        return static_cast<unsigned int>(result);
+        return {};
     }
 
-    static game::Idx parse_source_square(const std::string& move_string, std::size_t& index) {
-        const auto number {parse_number(move_string, index)};
+    static std::vector<std::pair<Idx, Square>> parse_player_pieces(const std::string& string) {
+        const Player player_type {parse_player_type(string.substr(0, 1))};
 
-        if (number < 1 || number > 32) {
+        const auto tokens {split(string.substr(1), ",")};
+
+        std::vector<std::pair<Idx, Square>> pieces;
+
+        for (const auto& token : tokens) {
+            pieces.push_back(parse_player_piece(token, player_type));
+        }
+
+        return pieces;
+    }
+
+    static std::pair<Board, Player> parse_fen_string(const std::string& fen_string) {
+        const auto tokens {split(fen_string, ":")};
+
+        if (tokens.size() != 3) {
             throw error::Error();
         }
 
-        return static_cast<game::Idx>(number);
-    }
-
-    static std::pair<std::array<game::Idx, 9>, std::size_t> parse_destination_squares(const std::string& move_string, std::size_t& index) {
-        std::array<game::Idx, 9> indices {};
-        std::size_t count {0};
-
-        while (true) {
-            if (index == move_string.size()) {
-                break;
-            }
-
-            const auto number {parse_number(move_string, index)};
-
-            if (number < 1 || number > 32) {
-                throw error::Error();
-            }
-
-            indices[count++] = static_cast<game::Idx>(number);
+        if (tokens[1][0] == tokens[2][0]) {
+            throw error::Error();
         }
 
-        return std::make_pair(indices, count);
+        const Player turn {parse_player_type(tokens[0])};
+        const auto pieces1 {parse_player_pieces(tokens[1])};
+        const auto pieces2 {parse_player_pieces(tokens[2])};
+
+        Board board {};
+
+        for (const auto& [index, square] : pieces1) {
+            board[_1_32_to_0_31(index)] = square;
+        }
+
+        for (const auto& [index, square] : pieces2) {
+            board[_1_32_to_0_31(index)] = square;
+        }
+
+        return std::make_pair(board, turn);
     }
 
     static bool is_capture_move(game::Idx source, game::Idx destination) {
         // Indices must be in the range [1, 32]
 
-        const auto distance {std::abs(to_0_31(source) - to_0_31(destination))};
+        const auto distance {std::abs(_1_32_to_0_31(source) - _1_32_to_0_31(destination))};
 
         if (distance >= 3 && distance <= 5) {
             return false;
@@ -191,34 +130,37 @@ namespace game {
         }
     }
 
+    static std::vector<Idx> parse_squares(const std::string& string) {
+        const auto tokens {split(string, "x")};
+
+        std::vector<Idx> squares;
+
+        try {
+            for (const auto& token : tokens) {
+                squares.push_back(static_cast<Idx>(std::stoi(token)));
+            }
+        } catch (...) {  // stoi
+            throw error::Error();
+        }
+
+        for (const int square : squares) {
+            if (!(square >= 1 && square <= 32)) {
+                throw error::Error();
+            }
+        }
+
+        return squares;
+    }
+
     void set_position(Position& position, const std::string& fen_string) {
         if (!valid_fen_string(fen_string)) {
             throw error::Error();
         }
 
-        // Clear the board first
-        position.board = {};
+        const auto [board, turn] {parse_fen_string(fen_string)};
 
-        std::size_t index {0};
-
-        position.player = parse_player(fen_string, index);
-
-        index++;
-        index++;
-
-        const game::Player player1 {parse_player(fen_string, index)};
-
-        index++;
-
-        parse_pieces(fen_string, index, player1, position.board);
-
-        index++;
-
-        const game::Player player2 {parse_player(fen_string, index)};
-
-        index++;
-
-        parse_pieces(fen_string, index, player2, position.board);
+        position.board = board;
+        position.player = turn;
     }
 
     void make_move(Position& position, const std::string& move_string) {
@@ -226,37 +168,33 @@ namespace game {
             throw error::Error();
         }
 
-        // Construct a move and play it
-        game::Move move {parse_move(move_string)};
+        const game::Move move {parse_move_string(move_string)};
 
         moves::play_move(position, move);
     }
 
-    Move parse_move(const std::string& move_string) {
-        std::size_t index {0};
-
+    Move parse_move_string(const std::string& move_string) {
         // These are in the range [1, 32]
-        const auto source {parse_source_square(move_string, index)};
-        const auto [destinations, count] {parse_destination_squares(move_string, index)};
+        const auto squares {parse_squares(move_string)};
 
-        if (count == 0) {
+        if (squares.size() < 2) {
             throw error::Error();
         }
 
         game::Move move;
 
-        if (is_capture_move(source, destinations[0])) {
+        if (is_capture_move(squares[0], squares[1])) {
             move.type = game::MoveType::Capture;
-            move.capture.source_index = to_0_31(source);
-            move.capture.destination_indices_size = static_cast<unsigned char>(count);
+            move.capture.source_index = _1_32_to_0_31(squares[0]);
+            move.capture.destination_indices_size = static_cast<unsigned char>(squares.size() - 1);
 
-            for (std::size_t i {0}; i < count; i++) {
-                move.capture.destination_indices[i] = to_0_31(destinations[i]);
+            for (std::size_t i {0}; i < squares.size() - 1; i++) {
+                move.capture.destination_indices[i] = _1_32_to_0_31(squares[i + 1]);
             }
         } else {
             move.type = game::MoveType::Normal;
-            move.normal.source_index = to_0_31(source);
-            move.normal.destination_index = to_0_31(destinations[0]);
+            move.normal.source_index = _1_32_to_0_31(squares[0]);
+            move.normal.destination_index = _1_32_to_0_31(squares[1]);
         }
 
         return move;

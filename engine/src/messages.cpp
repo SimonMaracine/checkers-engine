@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <sstream>
-#include <cassert>
 #include <mutex>
+#include <cassert>
 
 namespace messages {
     static std::mutex g_mutex;
@@ -13,15 +13,15 @@ namespace messages {
 
         switch (move.type) {
             case game::MoveType::Normal:
-                stream << static_cast<int>(game::to_1_32(move.normal.source_index))
-                    << 'x' << static_cast<int>(game::to_1_32(move.normal.destination_index));
+                stream << static_cast<int>(game::_0_31_to_1_32(move.normal.source_index))
+                    << 'x' << static_cast<int>(game::_0_31_to_1_32(move.normal.destination_index));
 
                 break;
             case game::MoveType::Capture:
-                stream << static_cast<int>(game::to_1_32(move.capture.source_index));
+                stream << static_cast<int>(game::_0_31_to_1_32(move.capture.source_index));
 
                 for (unsigned char i {0}; i < move.capture.destination_indices_size; i++) {
-                    stream << 'x' << static_cast<int>(game::to_1_32(move.capture.destination_indices[i]));
+                    stream << 'x' << static_cast<int>(game::_0_31_to_1_32(move.capture.destination_indices[i]));
                 }
 
                 break;
