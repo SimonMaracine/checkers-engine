@@ -274,7 +274,7 @@ class MainWindow(tk.Frame):
     def _start_engine(self):
         file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
 
-        if file_path == ():
+        if file_path in ((), ""):  # Stupid
             return
 
         # This button can be used to reload an engine, if one is already running
@@ -331,6 +331,9 @@ class MainWindow(tk.Frame):
         self._btn_continue.config(state="active")
 
     def _reset_position(self):
+        if not self._engine.running():
+            return
+
         self._board.reset()
         self._reset_engine()
         self._reset_status()
@@ -347,15 +350,35 @@ class MainWindow(tk.Frame):
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
+        if self._var_player_black.get() == self.HUMAN:
+            self._board.set_user_input(True)
+
     def _set_position(self):
         top_level = tk.Toplevel(self)
         fen_string_window.FenStringWindow(top_level, self._set_position_string)
 
     def _set_position_string(self, string: str):
+        if not self._engine.running():
+            return
+
         self._board.reset(string)
         self._reset_engine(string)
         self._reset_status()
         self._clear_moves()
+
+        self._btn_black_human.config(state="active")
+        self._btn_black_computer.config(state="active")
+        self._btn_white_human.config(state="active")
+        self._btn_white_computer.config(state="active")
+
+        self._btn_stop.config(state="active")
+        self._btn_continue.config(state="active")
+
+        self._stopped = True
+        self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
+
+        if self._var_player_black.get() == self.HUMAN:
+            self._board.set_user_input(True)
 
     def _show_indices(self):
         if not self._indices:
