@@ -29,6 +29,7 @@ class MainWindow(tk.Frame):
     HUMAN = 1
     COMPUTER = 2
     DEFAULT_BOARD_SIZE = 400
+    CHECK_TIME = 20
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"
     TXT_STATUS = "Status:"
@@ -308,30 +309,15 @@ class MainWindow(tk.Frame):
             self._engine.stop(True)
             return
 
+        if not self._get_engine_parameters():
+            return
+
         # Reset any current game, as the new engine has no knowledge of it
         # Must be done here after INIT
         self._reset_position()
 
         self._clear_parameters()
-
-        if not self._get_engine_parameters():
-            return
-
-        self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
-
-        match self._board.get_turn():
-            case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-            case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-
-        self._btn_black_human.config(state="active")
-        self._btn_black_computer.config(state="active")
-        self._btn_white_human.config(state="active")
-        self._btn_white_computer.config(state="active")
-
-        self._btn_stop.config(state="active")
-        self._btn_continue.config(state="active")
+        self._setup_after_engine_start(file_path)
 
     def _reset_position(self):
         if not self._engine.running():
@@ -341,24 +327,7 @@ class MainWindow(tk.Frame):
         self._reset_engine()
         self._reset_status()
         self._clear_moves()
-
-        self._btn_black_human.config(state="active")
-        self._btn_black_computer.config(state="active")
-        self._btn_white_human.config(state="active")
-        self._btn_white_computer.config(state="active")
-
-        self._btn_stop.config(state="active")
-        self._btn_continue.config(state="active")
-
-        self._stopped = True
-        self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
-
-        match self._board.get_turn():
-            case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-            case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-                self._record_dummy_black_move()
+        self._setup_after_reset()
 
     def _set_position(self):
         top_level = tk.Toplevel(self)
@@ -372,24 +341,7 @@ class MainWindow(tk.Frame):
         self._reset_engine(string)
         self._reset_status()
         self._clear_moves()
-
-        self._btn_black_human.config(state="active")
-        self._btn_black_computer.config(state="active")
-        self._btn_white_human.config(state="active")
-        self._btn_white_computer.config(state="active")
-
-        self._btn_stop.config(state="active")
-        self._btn_continue.config(state="active")
-
-        self._stopped = True
-        self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
-
-        match self._board.get_turn():
-            case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-            case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-                self._record_dummy_black_move()
+        self._setup_after_reset()
 
     def _show_indices(self):
         if not self._indices:
@@ -448,23 +400,9 @@ class MainWindow(tk.Frame):
 
             match self._board.get_turn():
                 case board.Player.Black:
-                    if self._var_player_black.get() == self.COMPUTER:
-                        try:
-                            self._engine.send("GO")
-                        except checkers_engine.CheckersEngineError as err:
-                            print(err, file=sys.stderr)
-                            self._engine.stop(True)
-                        else:
-                            self._wait_for_engine_best_move()
+                    self._start_engine_thinking(self._var_player_black)
                 case board.Player.White:
-                    if self._var_player_white.get() == self.COMPUTER:
-                        try:
-                            self._engine.send("GO")
-                        except checkers_engine.CheckersEngineError as err:
-                            print(err, file=sys.stderr)
-                            self._engine.stop(True)
-                        else:
-                            self._wait_for_engine_best_move()
+                    self._start_engine_thinking(self._var_player_white)
 
             # Do this here, even though it will be done after the move is played on the board, because the engine may
             # take quite some time to think
@@ -472,6 +410,42 @@ class MainWindow(tk.Frame):
             self._btn_black_computer.config(state="disabled")
             self._btn_white_human.config(state="disabled")
             self._btn_white_computer.config(state="disabled")
+
+    def _setup_after_reset(self):
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
+                self._record_dummy_black_move()
+
+        self._stopped = True
+        self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
+
+        self._btn_black_human.config(state="active")
+        self._btn_black_computer.config(state="active")
+        self._btn_white_human.config(state="active")
+        self._btn_white_computer.config(state="active")
+
+        self._btn_stop.config(state="active")
+        self._btn_continue.config(state="active")
+
+    def _setup_after_engine_start(self, file_path: str):
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
+
+        self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
+
+        self._btn_black_human.config(state="active")
+        self._btn_black_computer.config(state="active")
+        self._btn_white_human.config(state="active")
+        self._btn_white_computer.config(state="active")
+
+        self._btn_stop.config(state="active")
+        self._btn_continue.config(state="active")
 
     def _frame_parameters_configure(self):
         self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all"))
@@ -610,7 +584,7 @@ class MainWindow(tk.Frame):
                 return False
 
     def _wait_for_engine_best_move(self):
-        self.after(25, self._check_for_engine_best_move)
+        self.after(self.CHECK_TIME, self._check_for_engine_best_move)
 
     def _check_for_engine_best_move(self):
         try:
@@ -634,7 +608,7 @@ class MainWindow(tk.Frame):
         self._wait_for_engine_best_move()
 
     def _wait_for_engine_parameters(self):
-        self.after(25, self._check_for_engine_parameters)
+        self.after(self.CHECK_TIME, self._check_for_engine_parameters)
 
     def _check_for_engine_parameters(self):
         try:
@@ -662,12 +636,11 @@ class MainWindow(tk.Frame):
         except checkers_engine.CheckersEngineError as err:
             print(err, file=sys.stderr)
             self._engine.stop(True)
-            return
-
-        self._wait_for_engine_parameter()
+        else:
+            self._wait_for_engine_parameter()
 
     def _wait_for_engine_parameter(self):
-        self.after(25, self._check_for_engine_parameter)
+        self.after(self.CHECK_TIME, self._check_for_engine_parameter)
 
     def _check_for_engine_parameter(self):
         try:
@@ -733,7 +706,7 @@ class MainWindow(tk.Frame):
     def _add_engine_parameter_bool(self, name: str, value: str):
         frm_parameter = self._engine_parameter_frame_label(name)
 
-        var_parameter = tk.IntVar(frm_parameter, value=value)
+        var_parameter = tk.IntVar(frm_parameter, value=int(value))
         tk.Checkbutton(
             frm_parameter,
             variable=var_parameter,
