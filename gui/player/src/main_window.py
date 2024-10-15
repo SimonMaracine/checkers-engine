@@ -29,7 +29,7 @@ class MainWindow(tk.Frame):
     HUMAN = 1
     COMPUTER = 2
     DEFAULT_BOARD_SIZE = 400
-    CHECK_TIME = 20
+    CHECK_TIME = 30
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"
     TXT_STATUS = "Status:"
@@ -218,7 +218,7 @@ class MainWindow(tk.Frame):
         bar_parameters.config(command=self._cvs_parameters.yview)
 
         self._frm_parameters = tk.Frame(self._cvs_parameters)
-        self._frm_parameters.bind("<Configure>", lambda _: self._frame_parameters_configure())
+        self._frm_parameters.bind("<Configure>", lambda _: self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all")))
         self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw", width=240)
 
         self._btn_black_human.config(state="disabled")
@@ -236,16 +236,20 @@ class MainWindow(tk.Frame):
         frm_moves = tk.Frame(frm_right)
         frm_moves.pack(fill="both", expand=True, padx=10, pady=10)
 
-        bar_moves = tk.Scrollbar(frm_moves, orient="vertical")  # TODO maybe a horizontal scrollbar will be needed
-        bar_moves.pack(side="right", fill="y")
+        bar_moves_vertical = tk.Scrollbar(frm_moves, orient="vertical")
+        bar_moves_vertical.pack(side="right", fill="y")
 
-        self._cvs_moves = tk.Canvas(frm_moves, width=200, yscrollcommand=bar_moves.set)
+        bar_moves_horizontal = tk.Scrollbar(frm_moves, orient="horizontal")
+        bar_moves_horizontal.pack(side="bottom", fill="x")
+
+        self._cvs_moves = tk.Canvas(frm_moves, width=200, yscrollcommand=bar_moves_vertical.set, xscrollcommand=bar_moves_horizontal.set)
         self._cvs_moves.pack(side="left", fill="both", expand=True)
 
-        bar_moves.config(command=self._cvs_moves.yview)
+        bar_moves_vertical.config(command=self._cvs_moves.yview)
+        bar_moves_horizontal.config(command=self._cvs_moves.xview)
 
         frm_moves_main = tk.Frame(self._cvs_moves)
-        frm_moves_main.bind("<Configure>", lambda _: self._frame_moves_configure())
+        frm_moves_main.bind("<Configure>", lambda _: self._cvs_moves.config(scrollregion=self._cvs_moves.bbox("all")))
         self._cvs_moves.create_window(0.0, 0.0, window=frm_moves_main, anchor="nw")
 
         self._frm_moves_index = tk.Frame(frm_moves_main)
@@ -447,12 +451,6 @@ class MainWindow(tk.Frame):
         self._btn_stop.config(state="active")
         self._btn_continue.config(state="active")
 
-    def _frame_parameters_configure(self):
-        self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all"))
-
-    def _frame_moves_configure(self):
-        self._cvs_moves.config(scrollregion=self._cvs_moves.bbox("all"))
-
     def _calculate_board_size(self) -> int:
         self._frm_left.update()  # This makes things work... I'm very happy that it does
         size = self._frm_left.winfo_geometry().split("+")[0].split("x")
@@ -544,6 +542,7 @@ class MainWindow(tk.Frame):
 
         self._move_index = 1
         self._cvs_moves.yview_moveto(0.0)
+        self._cvs_moves.xview_moveto(0.0)
 
     def _clear_parameters(self):
         for child in self._frm_parameters.winfo_children():

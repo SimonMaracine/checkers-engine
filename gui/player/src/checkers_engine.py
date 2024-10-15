@@ -1,4 +1,6 @@
 import subprocess
+import threading
+import queue
 from typing import Optional
 
 # https://docs.python.org/3.12/library/subprocess.html/
@@ -10,8 +12,11 @@ class CheckersEngineError(RuntimeError):
 
 
 class CheckersEngine:
+    READ_ERROR = object()
+
     def __init__(self):
         self._process: Optional[subprocess.Popen] = None
+        self._reading_queue = queue.Queue()
         self._running = False
 
     def start(self, file_path: str):
@@ -28,7 +33,11 @@ class CheckersEngine:
         except Exception as err:
             raise CheckersEngineError(f"Could not start process: {err}")
 
+        threading.Thread(target=self._read).start()
+
     def stop(self, force=False):
+        # This method must be called
+
         assert self._process is not None
 
         if force:
@@ -57,12 +66,25 @@ class CheckersEngine:
             raise CheckersEngineError(f"Could not send command: {err}")
 
     def receive(self) -> str:
-        assert self._process is not None
-        assert self._process.stdout is not None
-
         try:
-            data = self._process.stdout.readline()
-        except Exception as err:
-            raise CheckersEngineError(f"Could not receive message: {err}")
+            item = self._reading_queue.get_nowait()
+        except queue.Empty:
+            return ""
 
-        return data.strip()
+        if item is self.READ_ERROR:
+            raise CheckersEngineError(self._reading_queue.get())
+
+        return item
+
+    def _read(self):
+        while self._running:
+            assert self._process is not None
+            assert self._process.stdout is not None
+
+            try:
+                data = self._process.stdout.readline()
+            except Exception as err:
+                self._reading_queue.put_nowait(self.READ_ERROR)
+                self._reading_queue.put_nowait(f"Could not receive message: {err}")
+            else:
+                self._reading_queue.put_nowait(data)
