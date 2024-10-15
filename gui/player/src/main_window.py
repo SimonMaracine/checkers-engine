@@ -319,10 +319,11 @@ class MainWindow(tk.Frame):
 
         self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
 
-        if self._var_player_black.get() == self.HUMAN:
-            self._board.set_user_input(True)
-        else:
-            self._board.set_user_input(False)
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
 
         self._btn_black_human.config(state="active")
         self._btn_black_computer.config(state="active")
@@ -352,10 +353,12 @@ class MainWindow(tk.Frame):
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-        if self._var_player_black.get() == self.HUMAN:
-            self._board.set_user_input(True)
-        else:
-            self._board.set_user_input(False)
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
+                self._record_dummy_black_move()
 
     def _set_position(self):
         top_level = tk.Toplevel(self)
@@ -381,8 +384,12 @@ class MainWindow(tk.Frame):
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-        if self._var_player_black.get() == self.HUMAN:
-            self._board.set_user_input(True)
+        match self._board.get_turn():
+            case board.Player.Black:
+                self._enable_or_disable_user_input(self._var_player_black)
+            case board.Player.White:
+                self._enable_or_disable_user_input(self._var_player_white)
+                self._record_dummy_black_move()
 
     def _show_indices(self):
         if not self._indices:
@@ -543,6 +550,14 @@ class MainWindow(tk.Frame):
         if self._move_index > 4:
             self._cvs_moves.yview_moveto(1.0)
 
+    def _record_dummy_black_move(self):
+        tk.Label(self._frm_moves_index, text=f"{self._move_index}.").pack(anchor="nw")
+        tk.Label(self._frm_moves_black, text="--/--").pack(anchor="nw")
+        self._move_index += 1
+
+        # Make canvas know that it just got new widgets
+        self._cvs_moves.update()
+
     def _clear_moves(self):
         for child in self._frm_moves_index.winfo_children():
             child.destroy()
@@ -563,7 +578,7 @@ class MainWindow(tk.Frame):
     def _reset_engine(self, position: Optional[str] = None):
         try:
             if position is not None:
-                self._engine.send(f"NEWGAME {position}")  # FIXME not working correctly
+                self._engine.send(f"NEWGAME {position}")
             else:
                 self._engine.send("NEWGAME")
         except checkers_engine.CheckersEngineError as err:

@@ -303,8 +303,9 @@ class CheckersBoard:
             case MoveType.Capture:
                 self._play_capture_move(move)
 
-        # FIXME move to somewhere else
-        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+        # This needs to be done even for the computer
+        self._canvas.delete("selection")
+        self._canvas.delete("tiles")
 
     def get_game_over(self) -> GameOver:
         return self._game_over
@@ -366,6 +367,8 @@ class CheckersBoard:
 
         self._draw_pieces()
 
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+
     def _play_capture_move(self, move: Move):
         assert move.type() == MoveType.Capture
         assert self._board[move.data.destination_indices[-1]] == _Square.None_ or move.data.source_index == move.data.destination_indices[-1]
@@ -386,6 +389,8 @@ class CheckersBoard:
         self._on_piece_move(move)
 
         self._draw_pieces()
+
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
     def _select_jump_square(self, square: int):
         # A piece may jump on a square twice at most
