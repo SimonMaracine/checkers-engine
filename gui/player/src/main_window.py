@@ -277,6 +277,9 @@ class MainWindow(tk.Frame):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
+        if self._engine_busy():
+            return
+
         file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
 
         if file_path in ((), ""):  # Stupid
@@ -327,6 +330,9 @@ class MainWindow(tk.Frame):
         if not self._engine.running():
             return
 
+        if self._engine_busy():
+            return
+
         self._board.reset()
         self._reset_engine()
         self._reset_status()
@@ -339,6 +345,9 @@ class MainWindow(tk.Frame):
 
     def _set_position_string(self, string: str):
         if not self._engine.running():
+            return
+
+        if self._engine_busy():
             return
 
         self._board.reset(string)
@@ -377,8 +386,10 @@ class MainWindow(tk.Frame):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_continue(self._var_player_white)
 
     def _stop(self):
         # This button just stops the engine from thinking, forcing it to make a move
@@ -393,6 +404,13 @@ class MainWindow(tk.Frame):
             except checkers_engine.CheckersEngineError as err:
                 print(err, file=sys.stderr)
                 self._engine.stop(True)
+
+            # This allows the game to continue
+            match self._board.get_turn():
+                case board.Player.Black:
+                    self._enable_or_disable_continue(self._var_player_black)
+                case board.Player.White:
+                    self._enable_or_disable_continue(self._var_player_white)
 
     def _continue(self):
         # This button has one job: to control when the computer should begin or continue the game when it's their turn
@@ -415,41 +433,46 @@ class MainWindow(tk.Frame):
             self._btn_white_human.config(state="disabled")
             self._btn_white_computer.config(state="disabled")
 
+            # Pressing continue should be done only once
+            self._btn_continue.config(state="disabled")
+
     def _setup_after_reset(self):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_continue(self._var_player_white)
                 self._record_dummy_black_move()
 
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-        self._btn_black_human.config(state="active")
-        self._btn_black_computer.config(state="active")
-        self._btn_white_human.config(state="active")
-        self._btn_white_computer.config(state="active")
+        self._btn_black_human.config(state="normal")
+        self._btn_black_computer.config(state="normal")
+        self._btn_white_human.config(state="normal")
+        self._btn_white_computer.config(state="normal")
 
-        self._btn_stop.config(state="active")
-        self._btn_continue.config(state="active")
+        self._btn_stop.config(state="normal")
 
     def _setup_after_engine_start(self, file_path: str):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_continue(self._var_player_black)
 
         self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
 
-        self._btn_black_human.config(state="active")
-        self._btn_black_computer.config(state="active")
-        self._btn_white_human.config(state="active")
-        self._btn_white_computer.config(state="active")
+        self._btn_black_human.config(state="normal")
+        self._btn_black_computer.config(state="normal")
+        self._btn_white_human.config(state="normal")
+        self._btn_white_computer.config(state="normal")
 
-        self._btn_stop.config(state="active")
-        self._btn_continue.config(state="active")
+        self._btn_stop.config(state="normal")
 
     def _calculate_board_size(self) -> int:
         self._frm_left.update()  # This makes things work... I'm very happy that it does
@@ -765,6 +788,33 @@ class MainWindow(tk.Frame):
                 self._board.set_user_input(True)
             case self.COMPUTER:
                 self._board.set_user_input(False)
+
+    def _enable_or_disable_continue(self, var_next_player: tk.IntVar):
+        match var_next_player.get():
+            case self.HUMAN:
+                self._btn_continue.config(state="disabled")
+            case self.COMPUTER:
+                self._btn_continue.config(state="normal")
+
+    def _engine_busy(self) -> bool:
+        if not self._engine.running():
+            return False
+
+        match self._board.get_turn():
+            case board.Player.Black:
+                match self._var_player_black.get():
+                    case self.HUMAN:
+                        return False
+                    case self.COMPUTER:
+                        return not self._stopped
+            case board.Player.White:
+                match self._var_player_white.get():
+                    case self.HUMAN:
+                        return False
+                    case self.COMPUTER:
+                        return not self._stopped
+
+        return False  # Are you kidding me? :P
 
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
