@@ -11,6 +11,7 @@ import pygame as pyg
 import fen_string_window
 import board
 import checkers_engine
+import saved_data
 
 # https://tkdocs.com/tutorial/canvas.html
 # https://freesound.org/people/Samulis/sounds/375743/
@@ -280,10 +281,17 @@ class MainWindow(tk.Frame):
         if self._engine_busy():
             return
 
-        file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
+        saved_path = saved_data.load_engine_path()
+
+        if saved_path is None:
+            file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine")
+        else:
+            file_path = tkinter.filedialog.askopenfilename(parent=self, title="Start Engine", initialfile=saved_path)
 
         if file_path in ((), ""):  # Stupid
             return
+
+        saved_data.save_engine_path(file_path)
 
         # This button can be used to reload an engine, if one is already running
         if self._engine.running():
@@ -386,9 +394,11 @@ class MainWindow(tk.Frame):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_stop(self._var_player_black)
                 self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_stop(self._var_player_white)
                 self._enable_or_disable_continue(self._var_player_white)
 
     def _stop(self):
@@ -440,10 +450,12 @@ class MainWindow(tk.Frame):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_stop(self._var_player_black)
                 self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
-                self._enable_or_disable_continue(self._var_player_white)
+                self._enable_or_disable_stop(self._var_player_white)
+                self._enable_or_disable_continue(self._var_player_black)
                 self._record_dummy_black_move()
 
         self._stopped = True
@@ -454,15 +466,15 @@ class MainWindow(tk.Frame):
         self._btn_white_human.config(state="normal")
         self._btn_white_computer.config(state="normal")
 
-        self._btn_stop.config(state="normal")
-
     def _setup_after_engine_start(self, file_path: str):
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_stop(self._var_player_black)
                 self._enable_or_disable_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_stop(self._var_player_white)
                 self._enable_or_disable_continue(self._var_player_black)
 
         self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
@@ -471,8 +483,6 @@ class MainWindow(tk.Frame):
         self._btn_black_computer.config(state="normal")
         self._btn_white_human.config(state="normal")
         self._btn_white_computer.config(state="normal")
-
-        self._btn_stop.config(state="normal")
 
     def _calculate_board_size(self) -> int:
         self._frm_left.update()  # This makes things work... I'm very happy that it does
@@ -789,6 +799,13 @@ class MainWindow(tk.Frame):
             case self.COMPUTER:
                 self._board.set_user_input(False)
 
+    def _enable_or_disable_stop(self, var_next_player: tk.IntVar):
+        match var_next_player.get():
+            case self.HUMAN:
+                self._btn_stop.config(state="disabled")
+            case self.COMPUTER:
+                self._btn_stop.config(state="normal")
+
     def _enable_or_disable_continue(self, var_next_player: tk.IntVar):
         match var_next_player.get():
             case self.HUMAN:
@@ -814,7 +831,7 @@ class MainWindow(tk.Frame):
                     case self.COMPUTER:
                         return not self._stopped
 
-        return False  # Are you kidding me? :P
+        assert False
 
     def _on_piece_move(self, move: board.Move):
         self._sound.play()

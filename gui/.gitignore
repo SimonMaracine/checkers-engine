@@ -1,3 +1,4 @@
 env
 __pycache__
 .mypy_cache
+saved_data.json
