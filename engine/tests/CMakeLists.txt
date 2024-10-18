@@ -7,7 +7,7 @@ add_subdirectory(extern/googletest)
 
 # Test
 
-add_executable(move-generation "move_generation.cpp")
+add_executable(move-generation "src/move_generation.cpp")
 
 target_link_libraries(move-generation PRIVATE checkers-engine-core GTest::gtest_main)
 
@@ -15,7 +15,7 @@ set_compile_options_features(move-generation)
 
 # Benchmark
 
-add_executable(move-generation-speed "move_generation_speed.cpp")
+add_executable(move-generation-speed "src/move_generation_speed.cpp")
 
 target_link_libraries(move-generation-speed PRIVATE checkers-engine-core)
 

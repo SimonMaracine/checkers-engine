@@ -4,6 +4,8 @@ project("checkers-artificial-intelligence" LANGUAGES CXX)
 
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Variable used to control the build type")
 
+option(USE_SANITIZERS "Enable sanitizers" OFF)
+
 function(set_compile_options_features target)
     if(UNIX)
         target_compile_options(${target} PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wconversion")
