@@ -149,7 +149,7 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
 - Motorul de joc dame primește comenzi de la interfața grafică GUI și le execută fie setând o anumită stare, fie
   trimițând înapoi mesaje interfeței grafice.
 - Algoritmul minimax este singurul proces, singura comandă care rulează într-un fir de execuție separat. Fiindcă
-  în acest fi trebuie trimise mesaje, scriindu-se în fișierul stdout, și fiindcă între timp și firul principal poate
+  în acest fir trebuie trimise mesaje, scriindu-se în fișierul stdout, și fiindcă între timp și firul principal poate
   trimite mesaje, operație aceasta de scriere trebuie protejată de un simplu mutex.
 
 - Inițial am scris algoritmul minimax într-un fel foarte simplu. De date am avut nevoie doar de un tablou de
@@ -316,3 +316,16 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   adâncime generează toate posibilele poziții ale jocului și returnează numărul acestora. Apoi am comparat câteva
   astfel de numere cu ceea ce alții au calculat deja înaintea mea: C. A. Pickover, The Math Book, Sterling, NY, 2009;
   see p. 512.
+
+- La un moment dat nu am fost mulțumit de programele de interfață grafică pe care le scrisesem. Aveam de terminat
+  programul care compară două motoare. Am decis atunci să rescriu interfața grafică de la zero în limbajul Python,
+  folosind TKinter ca framework. Motivele acestei decizii au fost că wxWidgets în C++ era dificil de folosit și
+  că gestionarea subproceselor în C++ necesita apeluri sistem, ceea ce însemna să scriu două diferite implementări,
+  pentru Linux și Windows.
+- Ceea ce Python cu TKinter mi-a oferit în cele din urmă este un cod mai ușor de citit și de modificat, o dezvoltare
+  mult mai accelerată și o bibliotecă cross-platform foarte robustă și simplă pentru gestionarea subproceselor.
+- Am recscris primul program, care acum este mult mai bun decât cel precedent.
+- Am decis ca programul care compară două motoare să fie un simplu program CLI (Command Line Interface), care să
+  ruleze în fundal. Acesta atunci generează la final un raport cu toate meciurile jucate, cu rezultatele, parametrii
+  folosiți etc. împreună cu toate mutările jucate, pentru redarea meciurilor. Astfel, al doilea program de interfață
+  grafică este devine mai simplu, trebuind doar să redea fiecare moment al unui meci.
