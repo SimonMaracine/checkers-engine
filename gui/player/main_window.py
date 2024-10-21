@@ -8,10 +8,10 @@ from typing import Optional
 
 import pygame as pyg
 
-import fen_string_window
-import board
-import checkers_engine
-import saved_data
+from . import fen_string_window
+from . import board
+from . import saved_data
+from common import checkers_engine
 
 # https://tkdocs.com/tutorial/canvas.html
 # https://freesound.org/people/Samulis/sounds/375743/
@@ -52,7 +52,7 @@ class MainWindow(tk.Frame):
         self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
 
         pyg.mixer.init()
-        self._sound = pyg.mixer.Sound("wood_click.wav")
+        self._sound = pyg.mixer.Sound("common/wood_click.wav")
 
     def code(self) -> int:
         return self._return_code

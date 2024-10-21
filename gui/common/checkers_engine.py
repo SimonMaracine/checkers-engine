@@ -16,7 +16,7 @@ class CheckersEngine:
 
     def __init__(self):
         self._process: Optional[subprocess.Popen] = None
-        self._reading_queue = queue.Queue()
+        self._reading_queue: queue.Queue[str | object] = queue.Queue()
         self._running = False
 
     def start(self, file_path: str):
@@ -73,6 +73,8 @@ class CheckersEngine:
 
         if item is self.READ_ERROR:
             raise CheckersEngineError(self._reading_queue.get())
+
+        assert isinstance(item, str)
 
         return item
 

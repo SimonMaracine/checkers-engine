@@ -162,7 +162,10 @@ class _Board:
     def __setitem__(self, index: int, value: _Square):
         setattr(self, f"_{index}", value)
 
-    def __eq__(self, other: _Board) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, _Board):
+            return NotImplemented
+
         return all(map(lambda i: self[i] == other[i], range(32)))
 
     def clear(self):
