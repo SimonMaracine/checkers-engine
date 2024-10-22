@@ -10,13 +10,14 @@
     tie W:WK2:BK30
 """
 
-from __future__ import annotations
 import enum
 import dataclasses
 import re
 import copy
 import tkinter as tk
 from typing import Callable, Optional
+
+from common.board import GameOver, Player, Square as _Square, Board as _Board, Position as _Position
 
 NULL_INDEX = -1
 
@@ -48,10 +49,10 @@ class Move:
                 return MoveType.Capture
 
     def __str__(self) -> str:
-        match self.type():
-            case MoveType.Normal:
+        match self.data:
+            case self._Normal():
                 result = f"{CheckersBoard._0_31_to_1_32(self.data.source_index)}x{CheckersBoard._0_31_to_1_32(self.data.destination_index)}"
-            case MoveType.Capture:
+            case self._Capture():
                 result = str(CheckersBoard._0_31_to_1_32(self.data.source_index))
                 for index in self.data.destination_indices:
                     result += f"x{CheckersBoard._0_31_to_1_32(index)}"
@@ -59,124 +60,6 @@ class Move:
         return result
 
     data: _Normal | _Capture
-
-
-class Player(enum.Enum):
-    Black = 0b0001
-    White = 0b0010
-
-
-class GameOver(enum.Enum):
-    None_ = enum.auto()
-    WinnerBlack = enum.auto()
-    WinnerWhite = enum.auto()
-    TieBetweenBothPlayers = enum.auto()
-
-
-class _Square(enum.Enum):
-    None_     = 0b0000  # I don't usually align like this :P
-    Black     = 0b0001
-    BlackKing = 0b0101
-    White     = 0b0010
-    WhiteKing = 0b0110
-
-
-class _Board:
-    __slots__ = (
-        "_0",
-        "_1",
-        "_2",
-        "_3",
-        "_4",
-        "_5",
-        "_6",
-        "_7",
-        "_8",
-        "_9",
-        "_10",
-        "_11",
-        "_12",
-        "_13",
-        "_14",
-        "_15",
-        "_16",
-        "_17",
-        "_18",
-        "_19",
-        "_20",
-        "_21",
-        "_22",
-        "_23",
-        "_24",
-        "_25",
-        "_26",
-        "_27",
-        "_28",
-        "_29",
-        "_30",
-        "_31"
-    )
-
-    def __init__(self):
-        self._0 = _Square.None_
-        self._1 = _Square.None_
-        self._2 = _Square.None_
-        self._3 = _Square.None_
-        self._4 = _Square.None_
-        self._5 = _Square.None_
-        self._6 = _Square.None_
-        self._7 = _Square.None_
-        self._8 = _Square.None_
-        self._9 = _Square.None_
-        self._10 = _Square.None_
-        self._11 = _Square.None_
-        self._12 = _Square.None_
-        self._13 = _Square.None_
-        self._14 = _Square.None_
-        self._15 = _Square.None_
-        self._16 = _Square.None_
-        self._17 = _Square.None_
-        self._18 = _Square.None_
-        self._19 = _Square.None_
-        self._20 = _Square.None_
-        self._21 = _Square.None_
-        self._22 = _Square.None_
-        self._23 = _Square.None_
-        self._24 = _Square.None_
-        self._25 = _Square.None_
-        self._26 = _Square.None_
-        self._27 = _Square.None_
-        self._28 = _Square.None_
-        self._29 = _Square.None_
-        self._30 = _Square.None_
-        self._31 = _Square.None_
-
-    def __getitem__(self, index: int) -> _Square:
-        # Make this class use the default iterator implementation
-
-        try:
-            return getattr(self, f"_{index}")
-        except AttributeError:
-            raise IndexError
-
-    def __setitem__(self, index: int, value: _Square):
-        setattr(self, f"_{index}", value)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, _Board):
-            return NotImplemented
-
-        return all(map(lambda i: self[i] == other[i], range(32)))
-
-    def clear(self):
-        for i in range(32):
-            setattr(self, f"_{i}", _Square.None_)
-
-
-@dataclasses.dataclass(frozen=True)
-class _Position:
-    board: _Board
-    turn: Player
 
 
 @dataclasses.dataclass

@@ -4,20 +4,11 @@ import tkinter.filedialog
 
 import pygame as pyg
 
+from common import board
+from common import common
+
 
 class MainWindow(tk.Frame):
-    WHITE = "#c8c8c8"
-    BLACK = "#503c28"
-    HUMAN = 1
-    COMPUTER = 2
-    DEFAULT_BOARD_SIZE = 400
-    CHECK_TIME = 30
-    TXT_ENGINE = "Engine:"
-    TXT_STOPPED = "Stopped:"
-    TXT_STATUS = "Status:"
-    TXT_PLAYER = "Player:"
-    TXT_PLIES_WITHOUT_ADVANCEMENT = "Plies without advancement:"
-
     def __init__(self, root: tk.Tk):
         super().__init__(root)
 
@@ -28,7 +19,7 @@ class MainWindow(tk.Frame):
         self._setup_widgets()
 
         pyg.mixer.init()
-        self._sound = pyg.mixer.Sound("wood_click.wav")
+        self._sound = pyg.mixer.Sound("common/wood_click.wav")
 
     def code(self) -> int:
         return self._return_code
@@ -67,14 +58,14 @@ class MainWindow(tk.Frame):
         self._frm_left = tk.Frame(self)
         self._frm_left.grid(row=0, column=0, sticky="nsew")
 
-        self._square_size = self.DEFAULT_BOARD_SIZE / 8.0
+        self._square_size = common.DEFAULT_BOARD_SIZE / 8.0
 
-        self._cvs_board = tk.Canvas(self._frm_left, width=self.DEFAULT_BOARD_SIZE, height=self.DEFAULT_BOARD_SIZE, background="gray75")
+        self._cvs_board = tk.Canvas(self._frm_left, width=common.DEFAULT_BOARD_SIZE, height=common.DEFAULT_BOARD_SIZE, background="gray75")
         self._cvs_board.pack(expand=True)
 
         for i in range(8):
             for j in range(8):
-                color = self.BLACK if (i + j) % 2 != 0 else self.WHITE
+                color = common.BLACK if (i + j) % 2 != 0 else common.WHITE
 
                 self._cvs_board.create_rectangle(
                     i * self._square_size,
@@ -94,110 +85,33 @@ class MainWindow(tk.Frame):
         frm_status = tk.Frame(frm_center)
         frm_status.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
-        self._var_engine = tk.StringVar(frm_status, self.TXT_ENGINE + " [none]")
-
-        lbl_engine = tk.Label(frm_status, textvariable=self._var_engine)
-        lbl_engine.pack(anchor="w")
-
-        self._var_stopped = tk.StringVar(frm_status, f"{self.TXT_STOPPED} {self._stopped}")
-
-        lbl_stopped = tk.Label(frm_status, textvariable=self._var_stopped)
-        lbl_stopped.pack(anchor="w")
-
-        self._var_status = tk.StringVar(frm_status, self.TXT_STATUS + " game not started")
+        self._var_status = tk.StringVar(frm_status, common.TXT_STATUS + " game not started")
 
         lbl_status = tk.Label(frm_status, textvariable=self._var_status)
         lbl_status.pack(anchor="w")
 
-        self._var_player = tk.StringVar(frm_status, self.TXT_PLAYER + " black")
+        self._var_player = tk.StringVar(frm_status, common.TXT_PLAYER + " black")
 
         lbl_player = tk.Label(frm_status, textvariable=self._var_player)
         lbl_player.pack(anchor="w")
 
-        self._var_plies_without_advancement = tk.StringVar(frm_status, self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+        self._var_plies_without_advancement = tk.StringVar(frm_status, common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
         lbl_plies_without_advancement = tk.Label(frm_status, textvariable=self._var_plies_without_advancement)
         lbl_plies_without_advancement.pack(anchor="w")
-
-        frm_players = tk.Frame(frm_center)
-        frm_players.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
-
-        frm_players_black = tk.Frame(frm_players)
-        frm_players_black.grid(row=0, column=0)
-
-        tk.Label(frm_players_black, text="Black").pack()
-        self._var_player_black = tk.IntVar(frm_players_black, value=self.HUMAN)
-        self._btn_black_human = tk.Radiobutton(
-            frm_players_black,
-            text="Human",
-            variable=self._var_player_black,
-            command=self._player_changed,
-            value=self.HUMAN
-        )
-        self._btn_black_human.pack(anchor="w")
-        self._btn_black_computer = tk.Radiobutton(
-            frm_players_black,
-            text="Computer",
-            variable=self._var_player_black,
-            command=self._player_changed,
-            value=self.COMPUTER
-        )
-        self._btn_black_computer.pack(anchor="w")
-
-        frm_players_white = tk.Frame(frm_players)
-        frm_players_white.grid(row=0, column=1, sticky="ew")
-
-        tk.Label(frm_players_white, text="White").pack()
-        self._var_player_white = tk.IntVar(frm_players_white, value=self.COMPUTER)
-        self._btn_white_human = tk.Radiobutton(
-            frm_players_white,
-            text="Human",
-            variable=self._var_player_white,
-            command=self._player_changed,
-            value=self.HUMAN
-        )
-        self._btn_white_human.pack(anchor="w")
-        self._btn_white_computer = tk.Radiobutton(
-            frm_players_white,
-            text="Computer",
-            variable=self._var_player_white,
-            command=self._player_changed,
-            value=self.COMPUTER
-        )
-        self._btn_white_computer.pack(anchor="w")
 
         frm_buttons = tk.Frame(frm_center)
         frm_buttons.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         frm_buttons.columnconfigure(0, weight=1)
         frm_buttons.columnconfigure(1, weight=1)
 
-        self._btn_stop = tk.Button(frm_buttons, text="Stop", command=self._stop)
-        self._btn_stop.grid(row=0, column=0, sticky="ew")
-        self._btn_continue = tk.Button(frm_buttons, text="Continue", command=self._continue)
-        self._btn_continue.grid(row=0, column=1, sticky="ew")
+        self._btn_previous = tk.Button(frm_buttons, text="Previous", command=self._previous)
+        self._btn_previous.grid(row=0, column=0, sticky="ew")
+        self._btn_next = tk.Button(frm_buttons, text="Next", command=self._next)
+        self._btn_next.grid(row=0, column=1, sticky="ew")
 
-        frm_parameters = tk.Frame(frm_center)
-        frm_parameters.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
-
-        bar_parameters = tk.Scrollbar(frm_parameters, orient="vertical")
-        bar_parameters.pack(side="right", fill="y")
-
-        self._cvs_parameters = tk.Canvas(frm_parameters, width=240, yscrollcommand=bar_parameters.set)
-        self._cvs_parameters.pack(side="left", fill="both", expand=True)
-
-        bar_parameters.config(command=self._cvs_parameters.yview)
-
-        self._frm_parameters = tk.Frame(self._cvs_parameters)
-        self._frm_parameters.bind("<Configure>", lambda _: self._cvs_parameters.config(scrollregion=self._cvs_parameters.bbox("all")))
-        self._cvs_parameters.create_window(0.0, 0.0, window=self._frm_parameters, anchor="nw", width=240)
-
-        self._btn_black_human.config(state="disabled")
-        self._btn_black_computer.config(state="disabled")
-        self._btn_white_human.config(state="disabled")
-        self._btn_white_computer.config(state="disabled")
-
-        self._btn_stop.config(state="disabled")
-        self._btn_continue.config(state="disabled")
+        self._btn_previous.config(state="disabled")
+        self._btn_next.config(state="disabled")
 
     def _setup_widgets_right(self):
         frm_right = tk.Frame(self, relief="solid", borderwidth=1)
@@ -258,10 +172,10 @@ class MainWindow(tk.Frame):
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Replayer, replay games of checkers.")
 
-    def _stop(self):
+    def _previous(self):
         pass
 
-    def _continue(self):
+    def _next(self):
         pass
 
     def _calculate_board_size(self) -> int:
@@ -270,7 +184,7 @@ class MainWindow(tk.Frame):
 
         PADDING = 40
 
-        return max(min(int(size[0]), int(size[1])) - PADDING, self.DEFAULT_BOARD_SIZE)
+        return max(min(int(size[0]), int(size[1])) - PADDING, common.DEFAULT_BOARD_SIZE)
 
     def _draw_indices(self):
         index = 1
@@ -290,23 +204,23 @@ class MainWindow(tk.Frame):
     def _update_status(self):
         match self._board.get_game_over():
             case board.GameOver.None_:
-                self._var_status.set(self.TXT_STATUS + " game in progress")
+                self._var_status.set(common.TXT_STATUS + " game in progress")
             case board.GameOver.WinnerBlack:
-                self._var_status.set(self.TXT_STATUS + " black player won the game")
+                self._var_status.set(common.TXT_STATUS + " black player won the game")
             case board.GameOver.WinnerWhite:
-                self._var_status.set(self.TXT_STATUS + " white player won the game")
+                self._var_status.set(common.TXT_STATUS + " white player won the game")
             case board.GameOver.TieBetweenBothPlayers:
-                self._var_status.set(self.TXT_STATUS + " tie between both players")
+                self._var_status.set(common.TXT_STATUS + " tie between both players")
 
         match self._board.get_turn():
             case board.Player.Black:
-                self._var_player.set(self.TXT_PLAYER + " black")
+                self._var_player.set(common.TXT_PLAYER + " black")
             case board.Player.White:
-                self._var_player.set(self.TXT_PLAYER + " white")
+                self._var_player.set(common.TXT_PLAYER + " white")
 
-        self._var_plies_without_advancement.set(f"{self.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
+        self._var_plies_without_advancement.set(f"{common.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
 
     def _reset_status(self):
-        self._var_status.set(self.TXT_STATUS + " game not started")
-        self._var_player.set(self.TXT_PLAYER + " black")
-        self._var_plies_without_advancement.set(self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+        self._var_status.set(common.TXT_STATUS + " game not started")
+        self._var_player.set(common.TXT_PLAYER + " black")
+        self._var_plies_without_advancement.set(common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")

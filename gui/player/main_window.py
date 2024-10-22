@@ -8,10 +8,11 @@ from typing import Optional
 
 import pygame as pyg
 
+from common import checkers_engine
+from common import common
 from . import fen_string_window
 from . import board
 from . import saved_data
-from common import checkers_engine
 
 # https://tkdocs.com/tutorial/canvas.html
 # https://freesound.org/people/Samulis/sounds/375743/
@@ -25,17 +26,11 @@ from common import checkers_engine
 # ldd
 
 class MainWindow(tk.Frame):
-    WHITE = "#c8c8c8"
-    BLACK = "#503c28"
     HUMAN = 1
     COMPUTER = 2
-    DEFAULT_BOARD_SIZE = 400
     CHECK_TIME = 30
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"
-    TXT_STATUS = "Status:"
-    TXT_PLAYER = "Player:"
-    TXT_PLIES_WITHOUT_ADVANCEMENT = "Plies without advancement:"
 
     def __init__(self, root: tk.Tk):
         super().__init__(root)
@@ -98,14 +93,14 @@ class MainWindow(tk.Frame):
         self._frm_left = tk.Frame(self)
         self._frm_left.grid(row=0, column=0, sticky="nsew")
 
-        self._square_size = self.DEFAULT_BOARD_SIZE / 8.0
+        self._square_size = common.DEFAULT_BOARD_SIZE / 8.0
 
-        self._cvs_board = tk.Canvas(self._frm_left, width=self.DEFAULT_BOARD_SIZE, height=self.DEFAULT_BOARD_SIZE, background="gray75")
+        self._cvs_board = tk.Canvas(self._frm_left, width=common.DEFAULT_BOARD_SIZE, height=common.DEFAULT_BOARD_SIZE, background="gray75")
         self._cvs_board.pack(expand=True)
 
         for i in range(8):
             for j in range(8):
-                color = self.BLACK if (i + j) % 2 != 0 else self.WHITE
+                color = common.BLACK if (i + j) % 2 != 0 else common.WHITE
 
                 self._cvs_board.create_rectangle(
                     i * self._square_size,
@@ -135,17 +130,17 @@ class MainWindow(tk.Frame):
         lbl_stopped = tk.Label(frm_status, textvariable=self._var_stopped)
         lbl_stopped.pack(anchor="w")
 
-        self._var_status = tk.StringVar(frm_status, self.TXT_STATUS + " game not started")
+        self._var_status = tk.StringVar(frm_status, common.TXT_STATUS + " game not started")
 
         lbl_status = tk.Label(frm_status, textvariable=self._var_status)
         lbl_status.pack(anchor="w")
 
-        self._var_player = tk.StringVar(frm_status, self.TXT_PLAYER + " black")
+        self._var_player = tk.StringVar(frm_status, common.TXT_PLAYER + " black")
 
         lbl_player = tk.Label(frm_status, textvariable=self._var_player)
         lbl_player.pack(anchor="w")
 
-        self._var_plies_without_advancement = tk.StringVar(frm_status, self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+        self._var_plies_without_advancement = tk.StringVar(frm_status, common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
         lbl_plies_without_advancement = tk.Label(frm_status, textvariable=self._var_plies_without_advancement)
         lbl_plies_without_advancement.pack(anchor="w")
@@ -278,7 +273,7 @@ class MainWindow(tk.Frame):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
-        if self._engine_busy():
+        if self._engine_busy() and not self._is_game_over():
             return
 
         saved_path = saved_data.load_engine_path()
@@ -338,7 +333,7 @@ class MainWindow(tk.Frame):
         if not self._engine.running():
             return
 
-        if self._engine_busy():
+        if self._engine_busy() and not self._is_game_over():
             return
 
         self._board.reset()
@@ -355,7 +350,7 @@ class MainWindow(tk.Frame):
         if not self._engine.running():
             return
 
-        if self._engine_busy():
+        if self._engine_busy() and not self._is_game_over():
             return
 
         self._board.reset(string)
@@ -490,7 +485,7 @@ class MainWindow(tk.Frame):
 
         PADDING = 40
 
-        return max(min(int(size[0]), int(size[1])) - PADDING, self.DEFAULT_BOARD_SIZE)
+        return max(min(int(size[0]), int(size[1])) - PADDING, common.DEFAULT_BOARD_SIZE)
 
     def _get_square(self, x: int, y: int) -> int:
         square_size = int(self._cvs_board["width"]) // 8
@@ -518,26 +513,26 @@ class MainWindow(tk.Frame):
     def _update_status(self):
         match self._board.get_game_over():
             case board.GameOver.None_:
-                self._var_status.set(self.TXT_STATUS + " game in progress")
+                self._var_status.set(common.TXT_STATUS + " game in progress")
             case board.GameOver.WinnerBlack:
-                self._var_status.set(self.TXT_STATUS + " black player won the game")
+                self._var_status.set(common.TXT_STATUS + " black player won the game")
             case board.GameOver.WinnerWhite:
-                self._var_status.set(self.TXT_STATUS + " white player won the game")
+                self._var_status.set(common.TXT_STATUS + " white player won the game")
             case board.GameOver.TieBetweenBothPlayers:
-                self._var_status.set(self.TXT_STATUS + " tie between both players")
+                self._var_status.set(common.TXT_STATUS + " tie between both players")
 
         match self._board.get_turn():
             case board.Player.Black:
-                self._var_player.set(self.TXT_PLAYER + " black")
+                self._var_player.set(common.TXT_PLAYER + " black")
             case board.Player.White:
-                self._var_player.set(self.TXT_PLAYER + " white")
+                self._var_player.set(common.TXT_PLAYER + " white")
 
-        self._var_plies_without_advancement.set(f"{self.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
+        self._var_plies_without_advancement.set(f"{common.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
 
     def _reset_status(self):
-        self._var_status.set(self.TXT_STATUS + " game not started")
-        self._var_player.set(self.TXT_PLAYER + " black")
-        self._var_plies_without_advancement.set(self.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+        self._var_status.set(common.TXT_STATUS + " game not started")
+        self._var_player.set(common.TXT_PLAYER + " black")
+        self._var_plies_without_advancement.set(common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
     def _record_move(self, move: board.Move, player: board.Player):
         match player:
@@ -833,6 +828,9 @@ class MainWindow(tk.Frame):
 
         assert False
 
+    def _is_game_over(self) -> bool:
+        return self._board.get_game_over() != board.GameOver.None_
+
     def _on_piece_move(self, move: board.Move):
         self._sound.play()
         self._update_status()
@@ -852,7 +850,7 @@ class MainWindow(tk.Frame):
         self._btn_white_computer.config(state="disabled")
 
         # Ensure that the game is locked, if it is over
-        if self._board.get_game_over() != board.GameOver.None_:
+        if self._is_game_over():
             self._board.set_user_input(False)
             self._btn_stop.config(state="disabled")
             self._btn_continue.config(state="disabled")
