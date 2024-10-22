@@ -17,49 +17,11 @@ import copy
 import tkinter as tk
 from typing import Callable, Optional
 
-from common.board import GameOver, Player, Square as _Square, Board as _Board, Position as _Position
+from common.board import GameOver, Player, MoveType, Move, \
+    Square as _Square, Board as _Board, Position as _Position
+from common import common
 
 NULL_INDEX = -1
-
-
-class MoveType(enum.Enum):
-    Normal = enum.auto()
-    Capture = enum.auto()
-
-
-@dataclasses.dataclass
-class Move:
-    # Indices are always in the range [0, 31]
-
-    @dataclasses.dataclass
-    class _Normal:
-        source_index: int
-        destination_index: int
-
-    @dataclasses.dataclass
-    class _Capture:
-        source_index: int
-        destination_indices: list[int]
-
-    def type(self) -> MoveType:
-        match self.data:
-            case self._Normal():
-                return MoveType.Normal
-            case self._Capture():
-                return MoveType.Capture
-
-    def __str__(self) -> str:
-        match self.data:
-            case self._Normal():
-                result = f"{CheckersBoard._0_31_to_1_32(self.data.source_index)}x{CheckersBoard._0_31_to_1_32(self.data.destination_index)}"
-            case self._Capture():
-                result = str(CheckersBoard._0_31_to_1_32(self.data.source_index))
-                for index in self.data.destination_indices:
-                    result += f"x{CheckersBoard._0_31_to_1_32(index)}"
-
-        return result
-
-    data: _Normal | _Capture
 
 
 @dataclasses.dataclass
@@ -117,7 +79,7 @@ class CheckersBoard:
         if not CheckersBoard._is_black_square(square):
             return
 
-        square = CheckersBoard._1_32_to_0_31(CheckersBoard._0_64_to_1_32(square))
+        square = common._1_32_to_0_31(common._0_64_to_1_32(square))
 
         if self._select_piece(square):
             return
@@ -444,7 +406,7 @@ class CheckersBoard:
 
     @staticmethod
     def _create_tile(canvas: tk.Canvas, square: int, square_size: float, color: str):
-        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+        file, rank = CheckersBoard._get_square(common._1_32_to_0_64(common._0_31_to_1_32(square)))
 
         canvas.create_rectangle(
             file * square_size,
@@ -458,7 +420,7 @@ class CheckersBoard:
 
     @staticmethod
     def _piece_coordinates(square: int, square_size: float, division: float) -> tuple[float, float, float, float]:
-        file, rank = CheckersBoard._get_square(CheckersBoard._1_32_to_0_64(CheckersBoard._0_31_to_1_32(square)))
+        file, rank = CheckersBoard._get_square(common._1_32_to_0_64(common._0_31_to_1_32(square)))
 
         piece_size = square_size / division
         offset = (square_size - piece_size) / 2.0
@@ -478,7 +440,7 @@ class CheckersBoard:
 
         assert sum % 2 == 1
 
-        if (CheckersBoard._1_32_to_0_31(index1) // 4) % 2 == 0:
+        if (common._1_32_to_0_31(index1) // 4) % 2 == 0:
             return (sum + 1) // 2
         else:
             return (sum - 1) // 2
@@ -489,13 +451,13 @@ class CheckersBoard:
         assert board[index2] == _Square.None_ or index2 == source_index
 
         index = CheckersBoard._get_jumped_piece_index(
-            CheckersBoard._0_31_to_1_32(index1),
-            CheckersBoard._0_31_to_1_32(index2)
+            common._0_31_to_1_32(index1),
+            common._0_31_to_1_32(index2)
         )
 
-        assert board[CheckersBoard._1_32_to_0_31(index)] != _Square.None_
+        assert board[common._1_32_to_0_31(index)] != _Square.None_
 
-        board[CheckersBoard._1_32_to_0_31(index)] = _Square.None_
+        board[common._1_32_to_0_31(index)] = _Square.None_
 
     @staticmethod
     def _generate_moves(board: _Board, player: Player) -> list[Move]:
@@ -687,10 +649,10 @@ class CheckersBoard:
         board = _Board()
 
         for index, square in pieces1:
-            board[CheckersBoard._1_32_to_0_31(index)] = square
+            board[common._1_32_to_0_31(index)] = square
 
         for index, square in pieces2:
-            board[CheckersBoard._1_32_to_0_31(index)] = square
+            board[common._1_32_to_0_31(index)] = square
 
         return _Position(board, CheckersBoard._parse_player_type(turn))
 
@@ -738,9 +700,9 @@ class CheckersBoard:
         source_index, *destination_indices = CheckersBoard._parse_squares(string)
 
         if CheckersBoard._is_capture_move(source_index, destination_indices[0]):
-            move = Move(Move._Capture(CheckersBoard._1_32_to_0_31(source_index), list(map(CheckersBoard._1_32_to_0_31, destination_indices))))
+            move = Move(Move._Capture(common._1_32_to_0_31(source_index), list(map(common._1_32_to_0_31, destination_indices))))
         else:
-            move = Move(Move._Normal(CheckersBoard._1_32_to_0_31(source_index), CheckersBoard._1_32_to_0_31(destination_indices[0])))
+            move = Move(Move._Normal(common._1_32_to_0_31(source_index), common._1_32_to_0_31(destination_indices[0])))
 
         return move
 
@@ -760,7 +722,7 @@ class CheckersBoard:
     def _is_capture_move(source_index: int, destination_index: int) -> bool:
         # Indices must be in the range [1, 32]
 
-        distance = abs(CheckersBoard._1_32_to_0_31(source_index) - CheckersBoard._1_32_to_0_31(destination_index))
+        distance = abs(common._1_32_to_0_31(source_index) - common._1_32_to_0_31(destination_index))
 
         if 3 <= distance <= 5:
             return False
@@ -784,25 +746,3 @@ class CheckersBoard:
         rank = square // 8
 
         return (file, rank)
-
-    @staticmethod
-    def _1_32_to_0_64(index: int) -> int:
-        if ((index - 1) // 4) % 2 == 0:
-            return index * 2 - 1
-        else:
-            return (index - 1) * 2
-
-    @staticmethod
-    def _0_64_to_1_32(index: int) -> int:
-        if index % 2 == 1:
-            return (index + 1) // 2
-        else:
-            return (index // 2) + 1
-
-    @staticmethod
-    def _1_32_to_0_31(index: int) -> int:
-        return index - 1
-
-    @staticmethod
-    def _0_31_to_1_32(index: int) -> int:
-        return index + 1

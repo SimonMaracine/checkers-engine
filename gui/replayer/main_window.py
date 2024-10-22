@@ -1,11 +1,14 @@
+import sys
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
+from typing import Optional
 
 import pygame as pyg
 
 from common import board
 from common import common
+from common import saved_game
 
 
 class MainWindow(tk.Frame):
@@ -15,6 +18,7 @@ class MainWindow(tk.Frame):
         self._tk = root
         self._return_code = 0
         self._indices = False
+        self._game: Optional[saved_game.Game] = None
 
         self._setup_widgets()
 
@@ -155,7 +159,18 @@ class MainWindow(tk.Frame):
         self._cvs_board.scale("all", 0, 0, scale, scale)
 
     def _load_game(self):
-        pass
+        file_path = tkinter.filedialog.askopenfilename(parent=self, title="Load Game")
+
+        if file_path in ((), ""):
+            return
+
+        try:
+            self._game = saved_game.load_game(file_path)
+        except saved_game.SavedGameError as err:
+            print(err, file=sys.stderr)
+            return
+
+        # TODO reset and setup the new loaded game
 
     def _show_indices(self):
         if not self._indices:

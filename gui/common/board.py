@@ -4,6 +4,8 @@ import dataclasses
 import copy
 from typing import Iterator
 
+from . import common
+
 
 class GameOver(enum.Enum):
     None_ = enum.auto()
@@ -60,3 +62,43 @@ class Board:
 class Position:
     board: Board
     turn: Player
+
+
+class MoveType(enum.Enum):
+    Normal = enum.auto()
+    Capture = enum.auto()
+
+
+@dataclasses.dataclass
+class Move:
+    # Indices are always in the range [0, 31]
+
+    @dataclasses.dataclass
+    class _Normal:
+        source_index: int
+        destination_index: int
+
+    @dataclasses.dataclass
+    class _Capture:
+        source_index: int
+        destination_indices: list[int]
+
+    def type(self) -> MoveType:
+        match self.data:
+            case self._Normal():
+                return MoveType.Normal
+            case self._Capture():
+                return MoveType.Capture
+
+    def __str__(self) -> str:
+        match self.data:
+            case self._Normal():
+                result = f"{common._0_31_to_1_32(self.data.source_index)}x{common._0_31_to_1_32(self.data.destination_index)}"
+            case self._Capture():
+                result = str(common._0_31_to_1_32(self.data.source_index))
+                for index in self.data.destination_indices:
+                    result += f"x{common._0_31_to_1_32(index)}"
+
+        return result
+
+    data: _Normal | _Capture
