@@ -4,47 +4,19 @@ import tkinter.messagebox
 import tkinter.filedialog
 from typing import Optional
 
-import pygame as pyg
-
+from common import base_main_window
 from common import board
 from common import common
 from common import saved_game
 
 
-class MainWindow(tk.Frame):
+class MainWindow(base_main_window.BaseMainWindow):
     def __init__(self, root: tk.Tk):
-        super().__init__(root)
-
-        self._tk = root
-        self._return_code = 0
-        self._indices = False
-        self._game: Optional[saved_game.Game] = None
-        self._move_index = 0
-
-        self._setup_widgets()
+        super().__init__(root, "Checkers Replayer")
 
         self._board = board.CheckersBoard(None, self._cvs_board)
-
-        pyg.mixer.init()
-        self._sound = pyg.mixer.Sound("common/wood_click.wav")  # TODO
-
-    def code(self) -> int:
-        return self._return_code
-
-    def _setup_widgets(self):
-        self._tk.option_add("*tearOff", False)
-        self._tk.title("Checkers Replayer")
-        self._tk.protocol("WM_DELETE_WINDOW", self._exit_application)
-        self._tk.minsize(512, 288)
-
-        self.pack(fill="both", expand=True)
-        self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=1)
-
-        self._setup_widgets_menubar()
-        self._setup_widgets_board()
-        self._setup_widgets_center()
-        self._setup_widgets_right()
+        self._game: Optional[saved_game.Game] = None
+        self._move_index = 0
 
     def _setup_widgets_menubar(self):
         men_replayer = tk.Menu(self)
@@ -60,29 +32,6 @@ class MainWindow(tk.Frame):
         men_main.add_cascade(label="Help", menu=men_help)
 
         self._tk.config(menu=men_main)
-
-    def _setup_widgets_board(self):
-        self._frm_left = tk.Frame(self)
-        self._frm_left.grid(row=0, column=0, sticky="nsew")
-
-        self._square_size = common.DEFAULT_BOARD_SIZE / 8.0
-
-        self._cvs_board = tk.Canvas(self._frm_left, width=common.DEFAULT_BOARD_SIZE, height=common.DEFAULT_BOARD_SIZE, background="gray75")
-        self._cvs_board.pack(expand=True)
-
-        for i in range(8):
-            for j in range(8):
-                color = common.BLACK if (i + j) % 2 != 0 else common.WHITE
-
-                self._cvs_board.create_rectangle(
-                    i * self._square_size,
-                    j * self._square_size,
-                    i * self._square_size + self._square_size,
-                    j * self._square_size + self._square_size,
-                    fill=color,
-                    outline=color,
-                    tags="all"
-                )
 
     def _setup_widgets_center(self):
         frm_center = tk.Frame(self, relief="solid", borderwidth=1)
@@ -152,14 +101,9 @@ class MainWindow(tk.Frame):
         self._frm_moves_white = tk.Frame(frm_moves_main)
         self._frm_moves_white.grid(row=0, column=2, sticky="n")
 
-    def _on_window_resized(self, event):
-        size = self._calculate_board_size()
-        new_square_size = float(size) / 8.0
-        scale = new_square_size / self._square_size
-
-        self._square_size = new_square_size
-        self._cvs_board.config(width=size, height=size)
-        self._cvs_board.scale("all", 0, 0, scale, scale)
+    def _exit_application(self):
+        self._uninitialize_sound()
+        self._tk.destroy()
 
     def _load_game(self):
         file_path = tkinter.filedialog.askopenfilename(parent=self, title="Load Game")
@@ -178,18 +122,6 @@ class MainWindow(tk.Frame):
         self._check_control_buttons_for_next()
 
         print("Successfully loaded game", file=sys.stderr)
-
-    def _show_indices(self):
-        if not self._indices:
-            self._draw_indices()
-        else:
-            self._cvs_board.delete("indices")
-
-        self._indices = not self._indices
-
-    def _exit_application(self):
-        pyg.mixer.quit()
-        self._tk.destroy()
 
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Replayer, replay games of checkers.")
@@ -211,29 +143,6 @@ class MainWindow(tk.Frame):
         self._update_status()
 
         self._check_control_buttons_for_next()
-
-    def _calculate_board_size(self) -> int:
-        self._frm_left.update()  # This makes things work... I'm very happy that it does
-        size = self._frm_left.winfo_geometry().split("+")[0].split("x")
-
-        PADDING = 40
-
-        return max(min(int(size[0]), int(size[1])) - PADDING, common.DEFAULT_BOARD_SIZE)
-
-    def _draw_indices(self):
-        index = 1
-
-        for i in range(8):
-            for j in range(8):
-                if (i + j) % 2 != 0:
-                    self._cvs_board.create_text(
-                        j * self._square_size + self._square_size / 2.0,
-                        i * self._square_size + self._square_size / 2.0,
-                        fill="white",
-                        text=str(index),
-                        tags=("all", "indices")
-                    )
-                    index += 1
 
     def _update_status(self):
         match self._board.get_game_over():
