@@ -1,5 +1,5 @@
 WHITE = "#c8c8c8"
-BLACK = "#503c28"
+BLACK = "#4C3D2F"
 DEFAULT_BOARD_SIZE = 400
 TXT_STATUS = "Status:"
 TXT_PLAYER = "Player:"

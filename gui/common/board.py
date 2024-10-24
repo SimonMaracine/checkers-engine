@@ -151,11 +151,11 @@ class _Diagonal(enum.Enum):
 
 class CheckersBoard:
     PIECE_WHITE = "#8c0a0a"
-    PIECE_BLACK = "#0a0a0a"
-    GOLD = "#a0a00a"
-    ORANGE = "#f0b450"
-    REDDISH = "#ff8c3c"
-    DARKER_REDDISH = "#ff6428"
+    PIECE_BLACK = "#101019"
+    GOLD = "#F3A916"
+    PINK = "#F69A8E"
+    INDIGO = "#958ECD"
+    DARKER_INDIGO = "#6D63BB"
 
     def __init__(self, on_piece_move: Optional[Callable[[Move], None]], canvas: tk.Canvas, redraw=True):
         # Game data
@@ -460,14 +460,14 @@ class CheckersBoard:
             match move.type():
                 case MoveType.Normal:
                     if move.normal().source_index == self._selected_piece_square:
-                        CheckersBoard._create_tile(self._canvas, move.normal().destination_index, self._square_size(), self.ORANGE)
+                        CheckersBoard._create_tile(self._canvas, move.normal().destination_index, self._square_size(), self.PINK)
                 case MoveType.Capture:
                     if move.capture().source_index == self._selected_piece_square:
                         for index in move.capture().destination_indices:
-                            CheckersBoard._create_tile(self._canvas, index, self._square_size(), self.ORANGE)
+                            CheckersBoard._create_tile(self._canvas, index, self._square_size(), self.PINK)
 
         for square in self._jump_squares:
-            color = self.REDDISH if self._jump_squares.count(square) < 2 else self.DARKER_REDDISH
+            color = self.INDIGO if self._jump_squares.count(square) < 2 else self.DARKER_INDIGO
 
             CheckersBoard._create_tile(self._canvas, square, self._square_size(), color)
 
@@ -516,7 +516,7 @@ class CheckersBoard:
 
         canvas.delete("selection")
 
-        canvas.create_oval(x0, y0, x1, y1, fill=CheckersBoard.ORANGE, outline=CheckersBoard.ORANGE, tags=("all", "selection"))
+        canvas.create_oval(x0, y0, x1, y1, fill=CheckersBoard.PINK, outline=CheckersBoard.PINK, tags=("all", "selection"))
 
         canvas.tag_raise("pieces")
         canvas.tag_raise("indices")
