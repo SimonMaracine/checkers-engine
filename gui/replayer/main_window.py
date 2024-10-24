@@ -19,18 +19,21 @@ class MainWindow(tk.Frame):
         self._return_code = 0
         self._indices = False
         self._game: Optional[saved_game.Game] = None
+        self._move_index = 0
 
         self._setup_widgets()
 
+        self._board = board.CheckersBoard(None, self._cvs_board)
+
         pyg.mixer.init()
-        self._sound = pyg.mixer.Sound("common/wood_click.wav")
+        self._sound = pyg.mixer.Sound("common/wood_click.wav")  # TODO
 
     def code(self) -> int:
         return self._return_code
 
     def _setup_widgets(self):
         self._tk.option_add("*tearOff", False)
-        self._tk.title("Checkers Player")
+        self._tk.title("Checkers Replayer")
         self._tk.protocol("WM_DELETE_WINDOW", self._exit_application)
         self._tk.minsize(512, 288)
 
@@ -170,7 +173,11 @@ class MainWindow(tk.Frame):
             print(err, file=sys.stderr)
             return
 
-        # TODO reset and setup the new loaded game
+        self._board.reset(self._game.position)
+        self._check_control_buttons_for_previous()
+        self._check_control_buttons_for_next()
+
+        print("Successfully loaded game", file=sys.stderr)
 
     def _show_indices(self):
         if not self._indices:
@@ -188,10 +195,22 @@ class MainWindow(tk.Frame):
         tkinter.messagebox.showinfo("About", "Checkers Replayer, replay games of checkers.")
 
     def _previous(self):
-        pass
+        assert self._game is not None
+
+        self._move_index -= 1
+        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
+        self._update_status()
+
+        self._check_control_buttons_for_previous()
 
     def _next(self):
-        pass
+        assert self._game is not None
+
+        self._move_index += 1
+        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
+        self._update_status()
+
+        self._check_control_buttons_for_next()
 
     def _calculate_board_size(self) -> int:
         self._frm_left.update()  # This makes things work... I'm very happy that it does
@@ -235,7 +254,26 @@ class MainWindow(tk.Frame):
 
         self._var_plies_without_advancement.set(f"{common.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
 
-    def _reset_status(self):
-        self._var_status.set(common.TXT_STATUS + " game not started")
-        self._var_player.set(common.TXT_PLAYER + " black")
-        self._var_plies_without_advancement.set(common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
+    def _setup_position_and_play_moves(self, position: str, moves: list[str]):
+        self._board.reset(position)
+
+        for move in moves:
+            self._board.play_move(move)
+
+    def _check_control_buttons_for_previous(self):
+        assert self._game is not None
+
+        if self._move_index == 0:
+            self._btn_previous.config(state="disabled")
+
+        if self._move_index < len(self._game.moves):
+            self._btn_next.config(state="normal")
+
+    def _check_control_buttons_for_next(self):
+        assert self._game is not None
+
+        if self._move_index == len(self._game.moves):
+            self._btn_next.config(state="disabled")
+
+        if self._move_index > 0:
+            self._btn_previous.config(state="normal")

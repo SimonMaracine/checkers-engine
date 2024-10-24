@@ -1,17 +1,15 @@
 import json
 import dataclasses
 
-from . import board
-
 
 class SavedGameError(RuntimeError):
     pass
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(slots=True, frozen=True)
 class Game:
-    position: board.Position
-    moves: list[board.Move]
+    position: str
+    moves: list[str]
 
 
 def save_game(file_path: str, game: Game):

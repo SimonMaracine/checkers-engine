@@ -9,9 +9,9 @@ from typing import Optional
 import pygame as pyg
 
 from common import checkers_engine
+from common import board
 from common import common
 from . import fen_string_window
-from . import board
 from . import saved_data
 
 # https://tkdocs.com/tutorial/canvas.html
