@@ -14,7 +14,7 @@ class MainWindow(base_main_window.BaseMainWindow):
     def __init__(self, root: tk.Tk):
         super().__init__(root, "Checkers Replayer")
 
-        self._board = board.CheckersBoard(None, self._cvs_board)
+        self._board = board.CheckersBoard(None, self._cvs_board, False)
         self._game: Optional[saved_game.Game] = None
         self._move_index = 0
 
@@ -118,8 +118,12 @@ class MainWindow(base_main_window.BaseMainWindow):
             return
 
         self._board.reset(self._game.position)
+        self._board.redraw()
         self._check_control_buttons_for_previous()
         self._check_control_buttons_for_next()
+
+        if self._board.get_turn() == board.Player.White:
+            self._record_dummy_black_move(1)
 
         print("Successfully loaded game", file=sys.stderr)
 
@@ -130,8 +134,10 @@ class MainWindow(base_main_window.BaseMainWindow):
         assert self._game is not None
 
         self._move_index -= 1
+        self._clear_moves()
         self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
         self._update_status()
+        self._play_sound()
 
         self._check_control_buttons_for_previous()
 
@@ -139,8 +145,10 @@ class MainWindow(base_main_window.BaseMainWindow):
         assert self._game is not None
 
         self._move_index += 1
+        self._clear_moves()
         self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
         self._update_status()
+        self._play_sound()
 
         self._check_control_buttons_for_next()
 
@@ -163,11 +171,51 @@ class MainWindow(base_main_window.BaseMainWindow):
 
         self._var_plies_without_advancement.set(f"{common.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
 
+    def _record_move(self, move: str, player: board.Player, index: int):
+        match player:
+            case board.Player.Black:
+                tk.Label(self._frm_moves_index, text=f"{index}.").pack(anchor="nw")
+                tk.Label(self._frm_moves_black, text=move).pack(anchor="nw")
+            case board.Player.White:
+                tk.Label(self._frm_moves_white, text=move).pack(anchor="nw")
+
+        # Make canvas know that it just got new widgets
+        self._cvs_moves.update()
+
+        # Don't make the scrollbar jump for the first few widgets
+        if index > 4:
+            self._cvs_moves.yview_moveto(1.0)
+
+    def _record_dummy_black_move(self, index: int):
+        assert index == 1
+
+        tk.Label(self._frm_moves_index, text=f"{index}.").pack(anchor="nw")
+        tk.Label(self._frm_moves_black, text="--/--").pack(anchor="nw")
+
+        # Make canvas know that it just got new widgets
+        self._cvs_moves.update()
+
+    def _clear_moves(self):
+        for child in self._frm_moves_index.winfo_children():
+            child.destroy()
+
+        for child in self._frm_moves_black.winfo_children():
+            child.destroy()
+
+        for child in self._frm_moves_white.winfo_children():
+            child.destroy()
+
+        self._cvs_moves.yview_moveto(0.0)
+        self._cvs_moves.xview_moveto(0.0)
+
     def _setup_position_and_play_moves(self, position: str, moves: list[str]):
         self._board.reset(position)
 
-        for move in moves:
+        for i, move in enumerate(moves):
+            self._record_move(move, self._board.get_turn(), i // 2 + 1)
             self._board.play_move(move)
+
+        self._board.redraw()
 
     def _check_control_buttons_for_previous(self):
         assert self._game is not None

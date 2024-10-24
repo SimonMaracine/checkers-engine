@@ -157,7 +157,7 @@ class CheckersBoard:
     REDDISH = "#ff8c3c"
     DARKER_REDDISH = "#ff6428"
 
-    def __init__(self, on_piece_move: Optional[Callable[[Move], None]], canvas: tk.Canvas):
+    def __init__(self, on_piece_move: Optional[Callable[[Move], None]], canvas: tk.Canvas, redraw=True):
         # Game data
         self._board = _Board()
         self._turn = Player.Black
@@ -172,11 +172,15 @@ class CheckersBoard:
         self._user_input = False
         self._on_piece_move = on_piece_move
         self._canvas = canvas
+        self._redraw = redraw
 
         self._setup()
 
     def set_user_input(self, user_input: bool):
         self._user_input = user_input
+
+    def redraw(self):
+        self._draw_pieces()
 
     def press_square_left_button(self, square: int):
         if not self._user_input:
@@ -204,8 +208,9 @@ class CheckersBoard:
                     self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
                     self._selected_piece_square = NULL_INDEX
 
-                    self._canvas.delete("selection")
-                    self._canvas.delete("tiles")
+                    if self._redraw:
+                        self._canvas.delete("selection")
+                        self._canvas.delete("tiles")
 
                     break
         elif capture:
@@ -219,8 +224,9 @@ class CheckersBoard:
                     self._selected_piece_square = NULL_INDEX
                     self._jump_squares.clear()
 
-                    self._canvas.delete("selection")
-                    self._canvas.delete("tiles")
+                    if self._redraw:
+                        self._canvas.delete("selection")
+                        self._canvas.delete("tiles")
 
                     break
         else:
@@ -236,8 +242,9 @@ class CheckersBoard:
         self._selected_piece_square = NULL_INDEX
         self._jump_squares.clear()
 
-        self._canvas.delete("selection")
-        self._canvas.delete("tiles")
+        if self._redraw:
+            self._canvas.delete("selection")
+            self._canvas.delete("tiles")
 
     def reset(self, position_string: Optional[str] = None):
         self._clear()
@@ -258,8 +265,9 @@ class CheckersBoard:
                 self._play_capture_move(move)
 
         # This needs to be done even for the computer
-        self._canvas.delete("selection")
-        self._canvas.delete("tiles")
+        if self._redraw:
+            self._canvas.delete("selection")
+            self._canvas.delete("tiles")
 
     def get_game_over(self) -> GameOver:
         return self._game_over
@@ -284,15 +292,17 @@ class CheckersBoard:
 
         self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
-        self._draw_pieces()
+        if self._redraw:
+            self._draw_pieces()
 
     def _select_piece(self, square: int) -> bool:
         if self._board[square] != _Square.None_ and self._selected_piece_square != square:
             self._selected_piece_square = square
             self._jump_squares.clear()
 
-            CheckersBoard._create_selection(self._canvas, square, self._square_size())
-            self._draw_tiles()
+            if self._redraw:
+                CheckersBoard._create_selection(self._canvas, square, self._square_size())
+                self._draw_tiles()
 
             return True
 
@@ -315,7 +325,8 @@ class CheckersBoard:
         if self._on_piece_move is not None:
             self._on_piece_move(move)
 
-        self._draw_pieces()
+        if self._redraw:
+            self._draw_pieces()
 
         self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
@@ -339,7 +350,8 @@ class CheckersBoard:
         if self._on_piece_move is not None:
             self._on_piece_move(move)
 
-        self._draw_pieces()
+        if self._redraw:
+            self._draw_pieces()
 
         self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
@@ -351,7 +363,8 @@ class CheckersBoard:
         if count < 2:
             self._jump_squares.append(square)
 
-        self._draw_tiles()
+        if self._redraw:
+            self._draw_tiles()
 
     def _check_piece_crowning(self, destination_index: int):
         row = destination_index // 4
@@ -413,9 +426,10 @@ class CheckersBoard:
         self._jump_squares.clear()
         self._game_over = GameOver.None_
 
-        self._canvas.delete("pieces")
-        self._canvas.delete("selection")
-        self._canvas.delete("tiles")
+        if self._redraw:
+            self._canvas.delete("pieces")
+            self._canvas.delete("selection")
+            self._canvas.delete("tiles")
 
     def _square_size(self) -> float:
         return float(self._canvas["width"]) / 8.0

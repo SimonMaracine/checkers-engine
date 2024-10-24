@@ -462,6 +462,8 @@ class MainWindow(base_main_window.BaseMainWindow):
             self._cvs_moves.yview_moveto(1.0)
 
     def _record_dummy_black_move(self):
+        assert self._move_index == 1
+
         tk.Label(self._frm_moves_index, text=f"{self._move_index}.").pack(anchor="nw")
         tk.Label(self._frm_moves_black, text="--/--").pack(anchor="nw")
         self._move_index += 1
