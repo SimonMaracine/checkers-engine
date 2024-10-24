@@ -199,13 +199,13 @@ class CheckersBoard:
 
     def _play_normal_move(self, move: Move):
         assert move.type() == MoveType.Normal
-        assert self._board[move.data.destination_index] == _Square.None_
+        assert self._board[move.normal().destination_index] == _Square.None_
 
-        CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_index)
+        CheckersBoard._swap(self._board, move.normal().source_index, move.normal().destination_index)
 
-        advancement = not self._board[move.data.destination_index].value & (1 << 2)
+        advancement = not self._board[move.normal().destination_index].value & (1 << 2)
 
-        self._check_piece_crowning(move.data.destination_index)
+        self._check_piece_crowning(move.normal().destination_index)
         self._check_forty_move_rule(advancement)
         self._check_repetition(advancement)
         self._change_turn()
@@ -219,16 +219,16 @@ class CheckersBoard:
 
     def _play_capture_move(self, move: Move):
         assert move.type() == MoveType.Capture
-        assert self._board[move.data.destination_indices[-1]] == _Square.None_ or move.data.source_index == move.data.destination_indices[-1]
+        assert self._board[move.capture().destination_indices[-1]] == _Square.None_ or move.capture().source_index == move.capture().destination_indices[-1]
 
-        CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.source_index, move.data.destination_indices[0])
+        CheckersBoard._remove_piece(self._board, move.capture().source_index, move.capture().source_index, move.capture().destination_indices[0])
 
-        for i in range(len(move.data.destination_indices) - 1):
-            CheckersBoard._remove_piece(self._board, move.data.source_index, move.data.destination_indices[i], move.data.destination_indices[i + 1])
+        for i in range(len(move.capture().destination_indices) - 1):
+            CheckersBoard._remove_piece(self._board, move.capture().source_index, move.capture().destination_indices[i], move.capture().destination_indices[i + 1])
 
-        CheckersBoard._swap(self._board, move.data.source_index, move.data.destination_indices[-1])
+        CheckersBoard._swap(self._board, move.capture().source_index, move.capture().destination_indices[-1])
 
-        self._check_piece_crowning(move.data.destination_indices[-1])
+        self._check_piece_crowning(move.capture().destination_indices[-1])
         self._check_forty_move_rule(True)
         self._check_repetition(True)
         self._change_turn()
@@ -342,11 +342,11 @@ class CheckersBoard:
         for move in self._legal_moves:
             match move.type():
                 case MoveType.Normal:
-                    if move.data.source_index == self._selected_piece_square:
-                        CheckersBoard._create_tile(self._canvas, move.data.destination_index, self._square_size(), self.ORANGE)
+                    if move.normal().source_index == self._selected_piece_square:
+                        CheckersBoard._create_tile(self._canvas, move.normal().destination_index, self._square_size(), self.ORANGE)
                 case MoveType.Capture:
-                    if move.data.source_index == self._selected_piece_square:
-                        for index in move.data.destination_indices:
+                    if move.capture().source_index == self._selected_piece_square:
+                        for index in move.capture().destination_indices:
                             CheckersBoard._create_tile(self._canvas, index, self._square_size(), self.ORANGE)
 
         for square in self._jump_squares:
@@ -361,10 +361,10 @@ class CheckersBoard:
         if move.type() != MoveType.Normal:
             return False
 
-        if move.data.source_index != source_square:
+        if move.normal().source_index != source_square:
             return False
 
-        if move.data.destination_index != destination_square:
+        if move.normal().destination_index != destination_square:
             return False
 
         return True
@@ -374,10 +374,10 @@ class CheckersBoard:
         if move.type() != MoveType.Capture:
             return False
 
-        if move.data.source_index != source_square:
+        if move.capture().source_index != source_square:
             return False
 
-        if move.data.destination_indices != squares:
+        if move.capture().destination_indices != squares:
             return False
 
         return True

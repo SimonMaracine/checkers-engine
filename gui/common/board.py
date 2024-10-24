@@ -84,21 +84,31 @@ class Move:
         destination_indices: list[int]
 
     def type(self) -> MoveType:
-        match self.data:
+        match self._data:
             case self._Normal():
                 return MoveType.Normal
             case self._Capture():
                 return MoveType.Capture
 
+    def normal(self) -> _Normal:
+        assert isinstance(self._data, self._Normal)
+
+        return self._data
+
+    def capture(self) -> _Capture:
+        assert isinstance(self._data, self._Capture)
+
+        return self._data
+
     def __str__(self) -> str:
-        match self.data:
+        match self._data:
             case self._Normal():
-                result = f"{common._0_31_to_1_32(self.data.source_index)}x{common._0_31_to_1_32(self.data.destination_index)}"
+                result = f"{common._0_31_to_1_32(self._data.source_index)}x{common._0_31_to_1_32(self._data.destination_index)}"
             case self._Capture():
-                result = str(common._0_31_to_1_32(self.data.source_index))
-                for index in self.data.destination_indices:
+                result = str(common._0_31_to_1_32(self._data.source_index))
+                for index in self._data.destination_indices:
                     result += f"x{common._0_31_to_1_32(index)}"
 
         return result
 
-    data: _Normal | _Capture
+    _data: _Normal | _Capture
