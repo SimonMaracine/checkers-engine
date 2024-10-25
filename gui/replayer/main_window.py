@@ -117,6 +117,8 @@ class MainWindow(base_main_window.BaseMainWindow):
             print(err, file=sys.stderr)
             return
 
+        self._move_index = 0
+        self._clear_moves()
         self._board.reset(self._game.position)
         self._board.redraw()
         self._check_control_buttons_for_previous()

@@ -328,4 +328,12 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
 - Am decis ca programul care compară două motoare să fie un simplu program CLI (Command Line Interface), care să
   ruleze în fundal. Acesta atunci generează la final un raport cu toate meciurile jucate, cu rezultatele, parametrii
   folosiți etc. împreună cu toate mutările jucate, pentru redarea meciurilor. Astfel, al doilea program de interfață
-  grafică este devine mai simplu, trebuind doar să redea fiecare moment al unui meci.
+  grafică devine mai simplu, trebuind doar să redea fiecare moment al unui meci.
+
+- Am construit programul de redare al meciurilor. Se folosește mult de codul ce fusese scris înainte, fiindcă l-am
+  gândit destul de generic.
+- Pentru calitatea codului Python am utilizat mypy, un program type-checker care analizează static codul Python
+  pentru a verifica în principal existența și corectitudinea tipurilor variabilelor. Un mare dezavantaj al
+  limbajului Python este dinamismul acestuia (dynamic typing). Însă Python, de-a lungul anilor a început să
+  suporte tot mai mult scrierea cu tipuri (static typing), iar mypy este o unealtă esențială în impunerea acestui
+  lucru.

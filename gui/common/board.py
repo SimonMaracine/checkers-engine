@@ -61,7 +61,7 @@ class _Board:
 
         return all(map(lambda i: self[i] == other[i], range(32)))
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[_Square]:
         return iter(self._board)
 
     def __copy__(self) -> _Board:
