@@ -26,7 +26,7 @@ namespace search {
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played
     ) {
-        SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
+        const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         const auto start {std::chrono::steady_clock::now()};
 
@@ -39,7 +39,7 @@ namespace search {
 
         // If move is invalid, then the game must be over
         // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
-        // Notify the other thread that a "result" is available
+        // Notify the main thread that a "result" is available
         if (game::is_move_invalid(m_best_move)) {
             notify_result_available();
             return std::nullopt;
@@ -58,7 +58,7 @@ namespace search {
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        if (depth == 0 || game::is_game_over(current_node)) {
+        if (depth == 0 || game::is_game_over_material(current_node)) {  // Game over
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
@@ -136,7 +136,7 @@ namespace search {
         }
     }
 
-    SearchNode& Search::setup_nodes(
+    const SearchNode& Search::setup_nodes(
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played

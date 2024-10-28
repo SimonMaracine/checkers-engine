@@ -161,7 +161,7 @@ namespace engine {
         bool result_available {false};
 
         const auto search_function {
-            [&data, dont_play_move, &result_available](auto& lock) {
+            [&data, dont_play_move, &result_available](std::unique_lock<std::mutex>& lock) {
                 search::Search instance {
                     data.minimax.cv,
                     lock,
@@ -194,7 +194,7 @@ namespace engine {
         data.minimax.cv.notify_one();
 
         // Wait for the first result to become available; thus the engine cannot process a stop command and thus
-        // the resulting move must be valid, or the game is over
+        // the resulting move must be valid, or the game must be over
         {
             std::unique_lock<std::mutex> lock {data.minimax.mutex};
             data.minimax.cv.wait(lock, [&result_available]() { return result_available; });
@@ -273,7 +273,7 @@ namespace engine {
             data.minimax.thread.join();
         } else {
             // Set dummy work to wake up the thread from sleeping
-            data.minimax.search_function = [](auto&) -> SearchResult { return {}; };
+            data.minimax.search_function = [](std::unique_lock<std::mutex>&) -> SearchResult { return {}; };
             data.minimax.running = false;
 
             data.minimax.cv.notify_one();
