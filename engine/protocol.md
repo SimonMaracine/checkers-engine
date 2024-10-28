@@ -6,9 +6,10 @@ All messages must end with a new line ("\n" character).
 
 Messages from GUI to engine are also called *commands*.
 
-The string of a message can contain arbitrary whitespace around tokens.
+A message can contain arbitrary whitespace around tokens.
 
-If a received command is invalid in any way, it should be ignored completely by the engine.
+If a received command is invalid in any way, it should be ignored completely by the engine. Exception:
+move and position strings may not be validated.
 
 Messages can consist of any number of characters and, as a consequence, any number of tokens. Both the GUI and the
 engine should account for messages of any size.
@@ -16,7 +17,8 @@ engine should account for messages of any size.
 Positions and moves are encoded as FEN strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
 
-The engine must process the commands synchronously, in the order that they are read from the stream.
+The engine must be able to process commands at any time. They should be processed synchronously, in the order
+that they are read from the stream.
 
 ## GUI -> Engine
 
@@ -30,14 +32,15 @@ Must be sent at the beginning and only once. Only **QUIT** may be sent before **
 
 Tells the engine to prepare for a new game. It is not necessary to send this command right before the first game
 (right after **INIT**), as if **INIT** automatically calls **NEWGAME**. Optionally tells it to start from a
-specific position or/and play the setup moves.
+specific position and play the setup moves.
+
+It is GUI's responsability to send valid positions. The engine is not obligated to do error checking.
 
 ### MOVE `move`
 
 Tells the engine to play the move on the internal board.
 
-It is GUI's responsability to send correct move commands. The engine is not obligated to do error checking. If it
-does check for invalid move commands, it is encouraged to immediately respond with the message **ALERT**.
+It is GUI's responsability to send valid moves. The engine is not obligated to do error checking.
 
 ### GO [dontplaymove]
 
@@ -66,7 +69,7 @@ The possible types are:
 
 - **int**, a signed 32-bit integer
 - **float**, a 32-bit floating point number
-- **bool**, a boolean with values *true* or *false*
+- **bool**, a boolean with values *true* and *false*
 - **string**, an ASCII string of maximum 10 characters, with no spaces
 
 The types must be spelled just like above.
@@ -78,7 +81,7 @@ their recommended values.
 
 ### GETPARAMETER `name`
 
-Asks the engine for that parameter value.
+Asks the engine for that parameter value and type.
 
 ### SETPARAMETER `name` `value`
 
@@ -106,7 +109,7 @@ Responds with the best move calculated after a **GO** command, or with the strin
 ### PARAMETERS (`name 1` `name 2` ...)
 
 Responds with a list of configurable parameters the engine offers after a **GETPARAMETERS** command.
-The list can be empty, if the engine has no parameters.
+The list may be empty, if the engine has no parameters.
 
 ### PARAMETER `name` `type` `value`
 
@@ -124,4 +127,4 @@ as the engine may not use the minimax algorithm.
 It is optional.
 
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
-started (be it minimax or anything else).
+started.

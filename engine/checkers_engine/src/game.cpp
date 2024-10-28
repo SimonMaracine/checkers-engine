@@ -44,7 +44,7 @@ namespace game {
         } else if (string == "W") {
             return Player::White;
         } else {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
     }
 
@@ -67,7 +67,7 @@ namespace game {
                     }
             }
         } catch (...) {  // stoi
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         return {};
@@ -91,11 +91,11 @@ namespace game {
         const auto tokens {split(fen_string, ":")};
 
         if (tokens.size() != 3) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         if (tokens[1][0] == tokens[2][0]) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         const Player turn {parse_player_type(tokens[0])};
@@ -140,12 +140,12 @@ namespace game {
                 squares.push_back(static_cast<Idx>(std::stoi(token)));
             }
         } catch (...) {  // stoi
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         for (const int square : squares) {
             if (!(square >= 1 && square <= 32)) {
-                throw error::Error();
+                throw error::InvalidCommand();
             }
         }
 
@@ -154,7 +154,7 @@ namespace game {
 
     void set_position(Position& position, const std::string& fen_string) {
         if (!valid_fen_string(fen_string)) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         const auto [board, turn] {parse_fen_string(fen_string)};
@@ -165,7 +165,7 @@ namespace game {
 
     void make_move(Position& position, const std::string& move_string) {
         if (!valid_move_string(move_string)) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         const game::Move move {parse_move_string(move_string)};
@@ -178,7 +178,7 @@ namespace game {
         const auto squares {parse_squares(move_string)};
 
         if (squares.size() < 2) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
 
         game::Move move;

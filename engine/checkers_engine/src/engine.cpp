@@ -26,13 +26,23 @@ namespace engine {
         data.minimax.parameters["depth"] = 4;
     }
 
+    static void ignore_invalid_command_on_init(const EngineData& data, bool after_init = false) {
+        const bool command_invalid {
+            after_init ? data.minimax.running : !data.minimax.running
+        };
+
+        if (command_invalid) {
+            throw error::InvalidCommand();
+        }
+    }
+
     static int parse_int(const std::string& string) {
         try {
             return std::stoi(string);
         } catch (const std::invalid_argument&) {
-            throw error::Error();
+            throw error::InvalidCommand();
         } catch (const std::out_of_range&) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
     }
 
@@ -40,9 +50,9 @@ namespace engine {
         try {
             return std::stof(string);
         } catch (const std::invalid_argument&) {
-            throw error::Error();
+            throw error::InvalidCommand();
         } catch (const std::out_of_range&) {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
     }
 
@@ -52,14 +62,12 @@ namespace engine {
         } else if (string == "false") {
             return false;
         } else {
-            throw error::Error();
+            throw error::InvalidCommand();
         }
     }
 
     void init(EngineData& data) {
-        if (data.minimax.running) {
-            throw error::Error();
-        }
+        ignore_invalid_command_on_init(data, true);
 
         data.minimax.running = true;
 
@@ -72,7 +80,7 @@ namespace engine {
 
                 // Wait for some work to do or to exit the loop
                 std::unique_lock<std::mutex> lock {data.minimax.mutex};
-                data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search_func); });
+                data.minimax.cv.wait(lock, [&data]() { return static_cast<bool>(data.minimax.search_function); });
 
                 if (!data.minimax.running) {
                     break;
@@ -80,7 +88,7 @@ namespace engine {
 
                 // Do the actual work now
                 // Search returns a valid result or nothing, if the game is over
-                const auto [best_move, dont_play] {data.minimax.search_func(lock)};
+                const auto [best_move, dont_play] {data.minimax.search_function(lock)};
 
                 if (!dont_play) {
                     if (best_move) {
@@ -92,7 +100,7 @@ namespace engine {
                 }
 
                 // Reset the search function as a signal for the cv
-                data.minimax.search_func = {};
+                data.minimax.search_function = {};
 
                 // Message the GUI only now, to indicate that we are ready for another GO
                 // Best move is already something or nothing
@@ -110,6 +118,8 @@ namespace engine {
     }
 
     void newgame(EngineData& data, const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {
+        ignore_invalid_command_on_init(data);
+
         if (position) {
             reset_position(data, *position);
         } else {
@@ -131,27 +141,26 @@ namespace engine {
     }
 
     void move(EngineData& data, const std::string& move) {
+        ignore_invalid_command_on_init(data);
+
         game::make_move(data.game.position, move);
 
         data.game.previous_positions.push_back(data.game.position);
-        data.game.moves_played.push_back(game::parse_move_string(move));  // FIXME handle errors
+        data.game.moves_played.push_back(game::parse_move_string(move));
     }
 
     void go(EngineData& data, bool dont_play_move) {
-        if (!data.minimax.running) {
-            throw error::Error();
-        }
+        ignore_invalid_command_on_init(data);
 
-        if (data.minimax.search_func) {
-            // Just ignore this GO command
-            // Not great, but it's okay since it's UB for GUI to send GO at this point
-            return;  // TODO make sure that the engine actually follows the protocol
+        if (data.minimax.search_function) {
+            // Ignore invalid
+            return;
         }
 
         // Set to true when a best move is set
         bool result_available {false};
 
-        const auto search_func {
+        const auto search_function {
             [&data, dont_play_move, &result_available](auto& lock) {
                 search::Search instance {
                     data.minimax.cv,
@@ -180,7 +189,7 @@ namespace engine {
         // Set the search fuction; it's a signal for the cv
         {
             std::lock_guard<std::mutex> lock {data.minimax.mutex};
-            data.minimax.search_func = search_func;
+            data.minimax.search_function = search_function;
         }
         data.minimax.cv.notify_one();
 
@@ -193,16 +202,22 @@ namespace engine {
     }
 
     void stop(EngineData& data) {
+        ignore_invalid_command_on_init(data);
+
         if (data.minimax.should_stop != nullptr) {
             *data.minimax.should_stop = true;
         }
     }
 
     void getparameters(const EngineData& data) {
+        ignore_invalid_command_on_init(data);
+
         messages::parameters(data.minimax.parameters);
     }
 
     void getparameter(const EngineData& data, const std::string& name) {
+        ignore_invalid_command_on_init(data);
+
         const auto iter {data.minimax.parameters.find(name)};
 
         if (iter == data.minimax.parameters.cend()) {
@@ -213,42 +228,44 @@ namespace engine {
     }
 
     void setparameter(EngineData& data, const std::string& name, const std::string& value) {
+        ignore_invalid_command_on_init(data);
+
         auto iter {data.minimax.parameters.find(name)};
 
         if (iter == data.minimax.parameters.cend()) {
             return;
         }
 
-        Param& parameter {iter->second};
+        Parameter& parameter {iter->second};
 
-        try {
-            switch (parameter.index()) {
-                case 0:
-                    parameter = parse_int(value);
-                    break;
-                case 1:
-                    parameter = parse_float(value);
-                    break;
-                case 2:
-                    parameter = parse_bool(value);
-                    break;
-                case 3:
-                    parameter = value;
-                    break;
-                default:
-                    assert(false);
-                    break;
-            }
-        } catch (error::Error) {}
+        switch (parameter.index()) {
+            case 0:
+                parameter = parse_int(value);
+                break;
+            case 1:
+                parameter = parse_float(value);
+                break;
+            case 2:
+                parameter = parse_bool(value);
+                break;
+            case 3:
+                parameter = value;
+                break;
+            default:
+                assert(false);
+                break;
+        }
     }
 
     void quit(EngineData& data) {
+        // Must not throw exeptions
+
         if (!data.minimax.running) {
             // There is nothing to do; the main loop handles the rest of the uninitialization
             return;
         }
 
-        if (data.minimax.search_func) {
+        if (data.minimax.search_function) {
             // The thread is already busy searching, just join it
 
             data.minimax.running = false;
@@ -256,7 +273,7 @@ namespace engine {
             data.minimax.thread.join();
         } else {
             // Set dummy work to wake up the thread from sleeping
-            data.minimax.search_func = [](auto&) -> SearchResult { return {}; };
+            data.minimax.search_function = [](auto&) -> SearchResult { return {}; };
             data.minimax.running = false;
 
             data.minimax.cv.notify_one();

@@ -1,5 +1,5 @@
 #pragma once
 
 namespace error {
-    using Error = int;
+    using InvalidCommand = int;
 }

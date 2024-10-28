@@ -301,7 +301,7 @@ namespace moves {
         switch (move.type) {
             case game::MoveType::Normal:
                 assert(board[move.normal.source_index] != game::Square::None);
-                assert(board[move.normal.destination_index] == game::Square::None);  // FIXME this failed in endgame when I switched from computer to human
+                assert(board[move.normal.destination_index] == game::Square::None);
 
                 std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
 

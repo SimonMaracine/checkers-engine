@@ -1,16 +1,20 @@
 #include "commands.hpp"
 
-#include <string>
 #include <optional>
 #include <cstddef>
-#include <vector>
+
+#include "error.hpp"
 
 namespace commands {
-    static std::optional<std::vector<std::string>> parse_setup_moves(const input_tokens::InputTokens& tokens) {
+    static bool token_available(const std::vector<std::string>& tokens, std::size_t index) {
+        return index < tokens.size();
+    }
+
+    static std::optional<std::vector<std::string>> parse_setup_moves(const std::vector<std::string>& tokens) {
         std::size_t index {2};
         std::vector<std::string> setup_moves;
 
-        while (tokens.find(index)) {
+        while (token_available(tokens, index)) {
             setup_moves.push_back(tokens[index]);
             index++;
         }
@@ -22,30 +26,30 @@ namespace commands {
         }
     }
 
-    void init(engine::EngineData& data, const input_tokens::InputTokens&) {
+    void init(engine::EngineData& data, const std::vector<std::string>&) {
         engine::init(data);
     }
 
-    void newgame(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
+    void newgame(engine::EngineData& data, const std::vector<std::string>& tokens) {
         const auto setup_moves {parse_setup_moves(tokens)};
 
-        if (tokens.find(1)) {
+        if (tokens.size() <= 1) {
             engine::newgame(data, std::make_optional(tokens[1]), setup_moves);
         } else {
             engine::newgame(data, std::nullopt, setup_moves);
         }
     }
 
-    void move(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1)) {
-            return;
+    void move(engine::EngineData& data, const std::vector<std::string>& tokens) {
+        if (!token_available(tokens, 1)) {
+            throw error::InvalidCommand();
         }
 
         engine::move(data, tokens[1]);
     }
 
-    void go(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (tokens.find(1)) {
+    void go(engine::EngineData& data, const std::vector<std::string>& tokens) {
+        if (token_available(tokens, 1)) {
             if (tokens[1] == "dontplaymove") {
                 engine::go(data, true);
             }
@@ -54,31 +58,31 @@ namespace commands {
         }
     }
 
-    void stop(engine::EngineData& data, const input_tokens::InputTokens&) {
+    void stop(engine::EngineData& data, const std::vector<std::string>&) {
         engine::stop(data);
     }
 
-    void getparameters(engine::EngineData& data, const input_tokens::InputTokens&) {
+    void getparameters(engine::EngineData& data, const std::vector<std::string>&) {
         engine::getparameters(data);
     }
 
-    void setparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1) || !tokens.find(2)) {
-            return;
+    void setparameter(engine::EngineData& data, const std::vector<std::string>& tokens) {
+        if (!token_available(tokens, 1) || !token_available(tokens, 2)) {
+            throw error::InvalidCommand();
         }
 
         engine::setparameter(data, tokens[1], tokens[2]);
     }
 
-    void getparameter(engine::EngineData& data, const input_tokens::InputTokens& tokens) {
-        if (!tokens.find(1)) {
-            return;
+    void getparameter(engine::EngineData& data, const std::vector<std::string>& tokens) {
+        if (!token_available(tokens, 1)) {
+            throw error::InvalidCommand();
         }
 
         engine::getparameter(data, tokens[1]);
     }
 
-    void quit(engine::EngineData& data, const input_tokens::InputTokens&) {
+    void quit(engine::EngineData& data, const std::vector<std::string>&) {
         engine::quit(data);
     }
 }

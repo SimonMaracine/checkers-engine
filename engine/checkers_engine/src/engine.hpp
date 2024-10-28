@@ -14,7 +14,7 @@
 #include "game.hpp"
 
 namespace engine {
-    using Param = std::variant<int, float, bool, std::string>;
+    using Parameter = std::variant<int, float, bool, std::string>;
     using SearchResult = std::pair<std::optional<game::Move>, bool>;
 
     struct EngineData {
@@ -26,15 +26,16 @@ namespace engine {
 
        struct {
             std::thread thread;
-            std::function<SearchResult(std::unique_lock<std::mutex>&)> search_func;
+            std::function<SearchResult(std::unique_lock<std::mutex>&)> search_function;
             std::condition_variable cv;
             std::mutex mutex;
-            std::unordered_map<std::string, Param> parameters;
+            std::unordered_map<std::string, Parameter> parameters;
 
             // Setup at every instance invocation
             bool* should_stop {nullptr};
 
             // Thread flag
+            // Set to true on initialization
             bool running {false};
        } minimax;
 
@@ -52,8 +53,7 @@ namespace engine {
     };
 
     // Commands the engine executes
-    // Arguments to these aren't checked
-    // May throw errors
+    // May throw errors, that are caught and ignored in the loop
     void init(EngineData& data);
     void newgame(EngineData& data, const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves);
     void move(EngineData& data, const std::string& move);
