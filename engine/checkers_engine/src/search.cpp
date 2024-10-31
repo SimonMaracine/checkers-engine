@@ -144,8 +144,8 @@ namespace search {
         assert(previous_positions.size() == moves_played.size());
 
         for (std::size_t i {0}; i < previous_positions.size(); i++) {
-            const game::Position& previous_position {previous_positions[i]};
-            const game::Move& move_played {moves_played[i]};
+            const game::Position& previous_position {previous_positions.at(i)};
+            const game::Move& move_played {moves_played.at(i)};
 
             if (is_advancement(previous_position.board, move_played)) {
                 // Clear any previous inserted nodes, as they don't need to be checked
@@ -166,7 +166,7 @@ namespace search {
 
         // Go backwards and link the nodes
         for (std::size_t i {m_nodes.size() - 1}; i > 0; i--) {
-            m_nodes[i].previous = &m_nodes[i - 1];
+            m_nodes.at(i).previous = &m_nodes.at(i - 1);
         }
 
         assert(!m_nodes.empty());

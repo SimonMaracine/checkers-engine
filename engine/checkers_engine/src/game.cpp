@@ -49,7 +49,7 @@ namespace game {
     }
 
     static std::pair<Idx, Square> parse_player_piece(const std::string& string, Player player_type) {
-        const bool king {string[0] == 'K'};
+        const bool king {string.at(0) == 'K'};
 
         try {
             switch (player_type) {
@@ -94,13 +94,13 @@ namespace game {
             throw error::InvalidCommand();
         }
 
-        if (tokens[1][0] == tokens[2][0]) {
+        if (tokens.at(1).at(0) == tokens.at(2).at(0)) {
             throw error::InvalidCommand();
         }
 
-        const Player turn {parse_player_type(tokens[0])};
-        const auto pieces1 {parse_player_pieces(tokens[1])};
-        const auto pieces2 {parse_player_pieces(tokens[2])};
+        const Player turn {parse_player_type(tokens.at(0))};
+        const auto pieces1 {parse_player_pieces(tokens.at(1))};
+        const auto pieces2 {parse_player_pieces(tokens.at(2))};
 
         Board board {};
 
@@ -183,18 +183,18 @@ namespace game {
 
         game::Move move;
 
-        if (is_capture_move(squares[0], squares[1])) {
+        if (is_capture_move(squares.at(0), squares.at(1))) {
             move.type = game::MoveType::Capture;
-            move.capture.source_index = _1_32_to_0_31(squares[0]);
+            move.capture.source_index = _1_32_to_0_31(squares.at(0));
             move.capture.destination_indices_size = static_cast<unsigned char>(squares.size() - 1);
 
             for (std::size_t i {0}; i < squares.size() - 1; i++) {
-                move.capture.destination_indices[i] = _1_32_to_0_31(squares[i + 1]);
+                move.capture.destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
             }
         } else {
             move.type = game::MoveType::Normal;
-            move.normal.source_index = _1_32_to_0_31(squares[0]);
-            move.normal.destination_index = _1_32_to_0_31(squares[1]);
+            move.normal.source_index = _1_32_to_0_31(squares.at(0));
+            move.normal.destination_index = _1_32_to_0_31(squares.at(1));
         }
 
         return move;

@@ -15,7 +15,7 @@ namespace commands {
         std::vector<std::string> setup_moves;
 
         while (token_available(tokens, index)) {
-            setup_moves.push_back(tokens[index]);
+            setup_moves.push_back(tokens.at(index));
             index++;
         }
 
@@ -33,8 +33,8 @@ namespace commands {
     void newgame(engine::EngineData& data, const std::vector<std::string>& tokens) {
         const auto setup_moves {parse_setup_moves(tokens)};
 
-        if (tokens.size() <= 1) {
-            engine::newgame(data, std::make_optional(tokens[1]), setup_moves);
+        if (token_available(tokens, 1)) {
+            engine::newgame(data, std::make_optional(tokens.at(1)), setup_moves);
         } else {
             engine::newgame(data, std::nullopt, setup_moves);
         }
@@ -45,12 +45,12 @@ namespace commands {
             throw error::InvalidCommand();
         }
 
-        engine::move(data, tokens[1]);
+        engine::move(data, tokens.at(1));
     }
 
     void go(engine::EngineData& data, const std::vector<std::string>& tokens) {
         if (token_available(tokens, 1)) {
-            if (tokens[1] == "dontplaymove") {
+            if (tokens.at(1) == "dontplaymove") {
                 engine::go(data, true);
             }
         } else {
@@ -71,7 +71,7 @@ namespace commands {
             throw error::InvalidCommand();
         }
 
-        engine::setparameter(data, tokens[1], tokens[2]);
+        engine::setparameter(data, tokens.at(1), tokens.at(2));
     }
 
     void getparameter(engine::EngineData& data, const std::vector<std::string>& tokens) {
@@ -79,7 +79,7 @@ namespace commands {
             throw error::InvalidCommand();
         }
 
-        engine::getparameter(data, tokens[1]);
+        engine::getparameter(data, tokens.at(1));
     }
 
     void quit(engine::EngineData& data, const std::vector<std::string>&) {

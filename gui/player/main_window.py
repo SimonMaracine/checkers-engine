@@ -217,9 +217,8 @@ class MainWindow(base_main_window.BaseMainWindow):
             except checkers_engine.CheckersEngineError as err:
                 print(err, file=sys.stderr)
                 self._engine.stop(True)
-                return
-
-            self._engine.stop()
+            else:
+                self._engine.stop()
 
         self._tk.destroy()
 

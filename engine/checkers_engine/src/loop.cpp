@@ -86,7 +86,7 @@ namespace loop {
             }
 
             // Handle QUIT separately
-            if (tokens[0] == "QUIT") {
+            if (tokens.at(0) == "QUIT") {
                 commands::quit(data, tokens);
                 return 0;
             }
