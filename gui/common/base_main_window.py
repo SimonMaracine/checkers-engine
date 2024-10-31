@@ -57,7 +57,7 @@ class BaseMainWindow(abc.ABC, tk.Frame):
 
         self._square_size = common.DEFAULT_BOARD_SIZE / 8.0
 
-        self._cvs_board = tk.Canvas(self._frm_left, width=common.DEFAULT_BOARD_SIZE, height=common.DEFAULT_BOARD_SIZE, background="gray75")
+        self._cvs_board = tk.Canvas(self._frm_left, width=common.DEFAULT_BOARD_SIZE, height=common.DEFAULT_BOARD_SIZE)
         self._cvs_board.pack(expand=True)
 
         for i in range(8):

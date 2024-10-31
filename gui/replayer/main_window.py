@@ -18,6 +18,9 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._game: Optional[saved_game.Game] = None
         self._move_index = 0
 
+        # Do this after all widgets are configured
+        self.bind("<Configure>", self._on_window_resized)
+
     def _setup_widgets_menubar(self):
         men_replayer = tk.Menu(self)
         men_replayer.add_command(label="Load Game", command=self._load_game)
