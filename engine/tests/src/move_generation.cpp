@@ -1,12 +1,11 @@
 #include <iostream>
-#include <cstddef>
+#include <cstdint>
 
 #include <gtest/gtest.h>
-
 #include <moves.hpp>
 #include <game.hpp>
 
-static std::uint64_t count_moves(unsigned int depth, game::Position& position) {
+static std::uint64_t count_moves(unsigned int depth, const game::Position& position) {
     std::uint64_t total_moves {0};
 
     if (depth == 0) {
@@ -36,28 +35,68 @@ static std::uint64_t test_moves_from_position(unsigned int depth, const char* fe
     return count_moves(depth, position);
 }
 
+static const char* FEN_STRING {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
+
 // https://oeis.org/A133046/list
 
-TEST(move_generation, move_generation_start) {
-    const char* fen_string {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
-
 #if 1
-    ASSERT_EQ(test_moves_from_position(1, fen_string), 7);
-    ASSERT_EQ(test_moves_from_position(2, fen_string), 49);
-    ASSERT_EQ(test_moves_from_position(3, fen_string), 302);
-    ASSERT_EQ(test_moves_from_position(4, fen_string), 1469);
-    ASSERT_EQ(test_moves_from_position(5, fen_string), 7361);
-    ASSERT_EQ(test_moves_from_position(6, fen_string), 36768);
-    ASSERT_EQ(test_moves_from_position(7, fen_string), 179740);
-    ASSERT_EQ(test_moves_from_position(8, fen_string), 845931);
-    ASSERT_EQ(test_moves_from_position(9, fen_string), 3963680);
-    ASSERT_EQ(test_moves_from_position(10, fen_string), 18391564);
-    ASSERT_EQ(test_moves_from_position(11, fen_string), 85242128);
-    ASSERT_EQ(test_moves_from_position(12, fen_string), 388623673);
-    ASSERT_EQ(test_moves_from_position(13, fen_string), 1766623630);
+    TEST(move_generation, move_generation_start_1) {
+        ASSERT_EQ(test_moves_from_position(1, FEN_STRING), 7);
+    }
+
+    TEST(move_generation, move_generation_start_2) {
+        ASSERT_EQ(test_moves_from_position(2, FEN_STRING), 49);
+    }
+
+    TEST(move_generation, move_generation_start_3) {
+        ASSERT_EQ(test_moves_from_position(3, FEN_STRING), 302);
+    }
+
+    TEST(move_generation, move_generation_start_4) {
+        ASSERT_EQ(test_moves_from_position(4, FEN_STRING), 1469);
+    }
+
+    TEST(move_generation, move_generation_start_5) {
+        ASSERT_EQ(test_moves_from_position(5, FEN_STRING), 7361);
+    }
+
+    TEST(move_generation, move_generation_start_6) {
+        ASSERT_EQ(test_moves_from_position(6, FEN_STRING), 36'768);
+    }
+
+    TEST(move_generation, move_generation_start_7) {
+        ASSERT_EQ(test_moves_from_position(7, FEN_STRING), 179'740);
+    }
+
+    TEST(move_generation, move_generation_start_8) {
+        ASSERT_EQ(test_moves_from_position(8, FEN_STRING), 845'931);
+    }
+
+    TEST(move_generation, move_generation_start_9) {
+        ASSERT_EQ(test_moves_from_position(9, FEN_STRING), 3'963'680);
+    }
+
+    TEST(move_generation, move_generation_start_10) {
+        ASSERT_EQ(test_moves_from_position(10, FEN_STRING), 18'391'564);
+    }
+
+    TEST(move_generation, move_generation_start_11) {
+        ASSERT_EQ(test_moves_from_position(11, FEN_STRING), 85'242'128);
+    }
+
+    TEST(move_generation, move_generation_start_12) {
+        ASSERT_EQ(test_moves_from_position(12, FEN_STRING), 388'623'673);
+    }
+
+    TEST(move_generation, move_generation_start_13) {
+        ASSERT_EQ(test_moves_from_position(13, FEN_STRING), 1'766'623'630);
+    }
 #elif 0
-    ASSERT_EQ(test_moves_from_position(14, fen_string), 7978439499ul);
+    TEST(move_generation, move_generation_start_14) {
+        ASSERT_EQ(test_moves_from_position(14, FEN_STRING), 7'978'439'499ul);
+    }
 #else
-    ASSERT_EQ(test_moves_from_position(15, fen_string), 36263167175ul);
+    TEST(move_generation, move_generation_start_15) {
+        ASSERT_EQ(test_moves_from_position(15, FEN_STRING), 36'263'167'175ul);
+    }
 #endif
-}

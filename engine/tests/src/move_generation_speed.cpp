@@ -7,7 +7,7 @@
 #include <moves.hpp>
 #include <game.hpp>
 
-static void generate_moves(unsigned int depth, game::Position& position) {
+static void generate_moves(unsigned int depth, const game::Position& position) {
     if (depth == 0) {
         return;
     }
@@ -27,9 +27,7 @@ static double test_moves_from_position(unsigned int depth, const char* fen_strin
     game::set_position(position, fen_string);
 
     const auto start {std::chrono::high_resolution_clock::now()};
-
     generate_moves(depth, position);
-
     const auto end {std::chrono::high_resolution_clock::now()};
 
     return std::chrono::duration<double>(end - start).count();

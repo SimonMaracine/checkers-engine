@@ -30,19 +30,21 @@ namespace moves {
     static void remove_jumped_pieces(game::Board& board, const game::Move& move) {
         assert(move.type == game::MoveType::Capture);
 
-        assert(
-            board[move.capture.destination_indices[0]] == game::Square::None ||
-            move.capture.source_index == move.capture.destination_indices[0]
-        );
+        {
+            assert(
+                board[move.capture.destination_indices[0]] == game::Square::None ||
+                move.capture.source_index == move.capture.destination_indices[0]
+            );
 
-        const auto index {get_jumped_piece_index(
-            game::_0_31_to_1_32(move.capture.source_index),
-            game::_0_31_to_1_32(move.capture.destination_indices[0])
-        )};
+            const auto index {get_jumped_piece_index(
+                game::_0_31_to_1_32(move.capture.source_index),
+                game::_0_31_to_1_32(move.capture.destination_indices[0])
+            )};
 
-        assert(board[game::_1_32_to_0_31(index)] != game::Square::None);
+            assert(board[game::_1_32_to_0_31(index)] != game::Square::None);
 
-        board[game::_1_32_to_0_31(index)] = game::Square::None;
+            board[game::_1_32_to_0_31(index)] = game::Square::None;
+        }
 
         for (unsigned char i {0}; i < move.capture.destination_indices_size - 1; i++) {
             assert(

@@ -12,7 +12,6 @@ add_library(checkers-engine-core STATIC
     "src/evaluation.hpp"
     "src/game.cpp"
     "src/game.hpp"
-    "src/input_tokens.hpp"
     "src/loop.cpp"
     "src/loop.hpp"
     "src/messages.cpp"
@@ -39,6 +38,8 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(checkers-engine-core PRIVATE "NDEBUG")
 endif()
+
+target_compile_definitions(checkers-engine-core PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
 # Executable
 

@@ -144,14 +144,21 @@ namespace search {
         assert(previous_positions.size() == moves_played.size());
 
         for (std::size_t i {0}; i < previous_positions.size(); i++) {
-            const game::Position& position {previous_positions[i]};
-            const game::Move& move {moves_played[i]};
+            const game::Position& previous_position {previous_positions[i]};
+            const game::Move& move_played {moves_played[i]};
 
-            if (is_advancement(position.board, move)) {
+            if (is_advancement(previous_position.board, move_played)) {
                 // Clear any previous inserted nodes, as they don't need to be checked
                 m_nodes.clear();
             } else {
-                m_nodes.push_back(create_node(position.board, position.player, position.plies, position.plies_without_advancement));
+                m_nodes.push_back(
+                    create_node(
+                        previous_position.board,
+                        previous_position.player,
+                        previous_position.plies,
+                        previous_position.plies_without_advancement
+                    )
+                );
             }
         }
 
