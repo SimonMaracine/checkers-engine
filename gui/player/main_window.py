@@ -28,7 +28,8 @@ from . import saved_data
 class MainWindow(base_main_window.BaseMainWindow):
     HUMAN = 1
     COMPUTER = 2
-    CHECK_TIME = 30
+    CHECK_TIME_MS = 30
+    WAIT_TIME_S = 3
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"
 
@@ -517,13 +518,13 @@ class MainWindow(base_main_window.BaseMainWindow):
 
             time_now = time.time()
 
-            if time_begin - time_now > 3.0:
+            if time_now - time_begin > self.WAIT_TIME_S:
                 print("Engine failed to respond in a timely manner", file=sys.stderr)
                 self._engine.stop(True)
                 return False
 
     def _wait_for_engine_best_move(self):
-        self.after(self.CHECK_TIME, self._check_for_engine_best_move)
+        self.after(self.CHECK_TIME_MS, self._check_for_engine_best_move)
 
     def _check_for_engine_best_move(self):
         try:
@@ -547,7 +548,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._wait_for_engine_best_move()
 
     def _wait_for_engine_parameters(self):
-        self.after(self.CHECK_TIME, self._check_for_engine_parameters)
+        self.after(self.CHECK_TIME_MS, self._check_for_engine_parameters)
 
     def _check_for_engine_parameters(self):
         try:
@@ -579,7 +580,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             self._wait_for_engine_parameter()
 
     def _wait_for_engine_parameter(self):
-        self.after(self.CHECK_TIME, self._check_for_engine_parameter)
+        self.after(self.CHECK_TIME_MS, self._check_for_engine_parameter)
 
     def _check_for_engine_parameter(self):
         try:
