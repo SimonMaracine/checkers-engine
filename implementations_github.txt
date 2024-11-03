@@ -2,7 +2,7 @@ Searched "checkers ai" on GitHub (1.8K results). Last year there seemed to be on
 machine learning implementations. Many were surely following TechWithTim's minimax implementation (YouTube).
 
 best match
-https://github.com/techwithtim/Python-Checkers-AI/                    Python, minimax, bad
+https://github.com/techwithtim/Python-Checkers-AI                     Python, minimax, bad
 https://github.com/Hsankesara/Draughts-AI                             Python, minimax, wrong rules
 https://github.com/SamRagusa/Checkers-Reinforcement-Learning          Python, machine learning
 https://github.com/dimitrijekaranfilovic/checkers                     Python, minimax
@@ -10,13 +10,23 @@ https://github.com/bcorfman/raven-checkers                            Python, mi
 https://github.com/billjeffries/jsCheckersAI                          JavaScript, minimax
 https://github.com/codeofcarson/Checkers                              Python, minimax
 https://github.com/VarunRaval48/checkers-AI                           Python, minimax/machine learning
-https://github.com/migafgarcia/prolog-checkers                        prolog, minimax, impressive
+https://github.com/migafgarcia/prolog-checkers                        Prolog, minimax, impressive
 https://github.com/hanli1/minimax-checkers                            Java, minimax
 https://github.com/stillonearth/CheckersOnBevy                        Rust, machine learning, wrong rules
 https://github.com/Sherif-Abdou/Checkers                              Python, minimax
-https://github.com/shtsai/checker-game                                Python, minimax, depth 20 in 15 seconds?
-https://github.com/alobo/AI-Checkers                                  C#, ad-hoc?
+https://github.com/shtsai/checker-game                                Python, minimax, depth 14-20 in 15 seconds?
+https://github.com/alobo/AI-Checkers                                  C#, ad-hoc
 https://github.com/ptn/draughts                                       Ruby, machine learning, uses PDN
+https://github.com/ILS-Z399/06-Checkers-AI                            Python, ad-hoc
+https://github.com/Mchristos/checkers                                 Java, minimax
+https://github.com/araiyan/CheckersAI                                 Python, minimax/machine learning
+https://github.com/mkoryak/evolutionary-neural-net-ai                 Java, machine learning
+https://github.com/nedeljkovignjevic/checkers-game                    Python, machine learning
+https://github.com/sramakrishnan247/Checkers-AI                       Java, minimax
+https://github.com/sijunhe/ChineseCheckersAI                          Python, minimax/machine learning
+https://github.com/mpcal/shashki-ai                                   C++, minimax, finally a serious project
+https://github.com/AndreaVidali/ChineseCheckersAI                     Python, minimax/ad-hoc
+https://github.com/aronallen/checkers                                 C, minimax
 
 most stars
 https://github.com/techwithtim/Python-Checkers-AI                     --/--
@@ -26,7 +36,7 @@ https://github.com/dimitrijekaranfilovic/checkers                     --/--
 https://github.com/bcorfman/raven-checkers                            --/--
 https://github.com/stillonearth/CheckersOnBevy                        --/--
 https://github.com/billjeffries/jsCheckersAI                          --/--
-https://github.com/mkoryak/evolutionary-neural-net-ai                 Java, machine learning
+https://github.com/mkoryak/evolutionary-neural-net-ai                 --/--
 https://github.com/loks0n/rapid-draughts                              TypeScript, minimax, actually follows the rules
 https://github.com/Sherif-Abdou/Checkers                              --/--
 https://github.com/Btsan/CheckersBot                                  Python, machine learning
@@ -34,3 +44,13 @@ https://github.com/codeofcarson/Checkers                              --/--
 https://github.com/migafgarcia/prolog-checkers                        --/--
 https://github.com/hanli1/minimax-checkers                            --/--
 https://github.com/VarunRaval48/checkers-AI                           --/--
+https://github.com/aronallen/checkers                                 --/--
+https://github.com/SAAD-BEN/Checkers_IA                               Python, minimax
+https://github.com/shtsai/checker-game                                --/--
+https://github.com/nedeljkovignjevic/checkers-game                    --/--
+https://github.com/LuukEbenau/SacaCheckers                            C#, minimax
+https://github.com/KhaledAshrafH/Chinese-Checkers-AI-Game             Java, minimax
+https://github.com/iibrahimli/twitch_checkers_ai                      Python, minimax
+https://github.com/miskibin/py-draughts                               Python, minimax, uses PDN
+https://github.com/alobo/AI-Checkers                                  --/--
+https://github.com/mpcal/shashki-ai                                   --/--
