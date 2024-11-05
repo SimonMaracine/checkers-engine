@@ -34,13 +34,14 @@ class MainWindow(base_main_window.BaseMainWindow):
     TXT_STOPPED = "Stopped:"
 
     def __init__(self, root: tk.Tk):
-        self._stopped = True
+        self._stopped = True  # The user can stop the game (computer)
 
         super().__init__(root, "Checkers Player")
 
         self._board = board.CheckersBoard(self._on_piece_move, self._cvs_board)
         self._engine = checkers_engine.CheckersEngine()
         self._move_index = 1
+        self._gui_game_over = False  # Set to true when the GUI says it's game over
 
         # Do this after all widgets are configured
         self.bind("<Configure>", self._on_window_resized)
@@ -361,9 +362,9 @@ class MainWindow(base_main_window.BaseMainWindow):
 
             match self._board.get_turn():
                 case board.Player.Black:
-                    self._start_engine_thinking(self._var_player_black)
+                    self._maybe_start_engine_thinking(self._var_player_black)
                 case board.Player.White:
-                    self._start_engine_thinking(self._var_player_white)
+                    self._maybe_start_engine_thinking(self._var_player_white)
 
             # Do this here, even though it will be done after the move is played on the board, because the engine may
             # take quite some time to think
@@ -389,6 +390,8 @@ class MainWindow(base_main_window.BaseMainWindow):
 
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
+
+        self._gui_game_over = False
 
         self._btn_black_human.config(state="normal")
         self._btn_black_computer.config(state="normal")
@@ -536,9 +539,14 @@ class MainWindow(base_main_window.BaseMainWindow):
 
         if "BESTMOVE" in message:
             if "none" in message:
-                print("Engine thinks it's game over", file=sys.stderr)
-                print("This is an error, as the GUI should have detected the condition", file=sys.stderr)
+                if not self._gui_game_over:
+                    raise RuntimeError("GUI didn't detect game over")
+
+                print("Engine says it's game over", file=sys.stderr)
             else:
+                if self._gui_game_over:
+                    raise RuntimeError("GUI detected game over")
+
                 self._board.play_move(message.split()[1])
 
             return
@@ -677,7 +685,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             print(err, file=sys.stderr)
             self._engine.stop(True)
 
-    def _inform_engine_about_user_move(self, var_current_player: tk.IntVar, var_next_player: tk.IntVar, move: board.Move):
+    def _maybe_inform_engine_about_user_move(self, var_current_player: tk.IntVar, var_next_player: tk.IntVar, move: board.Move):
         if var_current_player.get() == self.HUMAN:
             if var_next_player.get() == self.COMPUTER:
                 try:
@@ -689,7 +697,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             self._stopped = False
             self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-    def _start_engine_thinking(self, var_next_player: tk.IntVar):
+    def _maybe_start_engine_thinking(self, var_next_player: tk.IntVar):
         if var_next_player.get() == self.COMPUTER:
             if not self._stopped:
                 try:
@@ -752,9 +760,9 @@ class MainWindow(base_main_window.BaseMainWindow):
         # Match on the current player
         match board.CheckersBoard._opponent(self._board.get_turn()):
             case board.Player.Black:
-                self._inform_engine_about_user_move(self._var_player_black, self._var_player_white, move)
+                self._maybe_inform_engine_about_user_move(self._var_player_black, self._var_player_white, move)
             case board.Player.White:
-                self._inform_engine_about_user_move(self._var_player_white, self._var_player_black, move)
+                self._maybe_inform_engine_about_user_move(self._var_player_white, self._var_player_black, move)
 
         # Do this primarily for the user move
         self._btn_black_human.config(state="disabled")
@@ -768,14 +776,24 @@ class MainWindow(base_main_window.BaseMainWindow):
             self._btn_stop.config(state="disabled")
             self._btn_continue.config(state="disabled")
 
-            print("GUI thinks it's game over")
+            print("GUI says it's game over")
+
+            self._gui_game_over = True
+
+            # Have the engine confirm that the game is over
+            match self._board.get_turn():
+                case board.Player.Black:
+                    self._maybe_start_engine_thinking(self._var_player_black)
+                case board.Player.White:
+                    self._maybe_start_engine_thinking(self._var_player_white)
+
             return
 
         # Match on the next player
         match self._board.get_turn():
             case board.Player.Black:
                 self._enable_or_disable_user_input(self._var_player_black)
-                self._start_engine_thinking(self._var_player_black)
+                self._maybe_start_engine_thinking(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_user_input(self._var_player_white)
-                self._start_engine_thinking(self._var_player_white)
+                self._maybe_start_engine_thinking(self._var_player_white)

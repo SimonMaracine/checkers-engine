@@ -64,10 +64,12 @@ namespace search {
         }
 
         if (forty_move_rule(current_node)) {  // Game over
+            m_nodes_evaluated++;
             return 0;
         }
 
         if (threefold_repetition_rule(current_node)) {  // Game over
+            m_nodes_evaluated++;
             return 0;
         }
 
