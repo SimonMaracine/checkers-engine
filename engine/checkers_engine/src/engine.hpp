@@ -17,7 +17,7 @@ namespace engine {
     using Parameter = std::variant<int, float, bool, std::string>;
     using SearchResult = std::pair<std::optional<game::Move>, bool>;
 
-    struct EngineData {
+    struct Engine {
         /* TODO
             transposition table
             opening book
@@ -50,17 +50,17 @@ namespace engine {
             // move0, move1, move2, ..., moveN (most recent)
             std::vector<game::Move> moves_played;
         } game;
-    };
 
-    // Commands the engine executes
-    // May throw errors, that are caught and ignored in the loop
-    void init(EngineData& data);
-    void newgame(EngineData& data, const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves);
-    void move(EngineData& data, const std::string& move);
-    void go(EngineData& data, bool dont_play_move);
-    void stop(EngineData& data);
-    void getparameters(const EngineData& data);
-    void getparameter(const EngineData& data, const std::string& name);
-    void setparameter(EngineData& data, const std::string& name, const std::string& value);
-    void quit(EngineData& data);
+        // Commands the engine executes
+        // May throw errors, that are caught and ignored in the loop
+        void init();
+        void newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves);
+        void move(const std::string& move);
+        void go(bool dont_play_move);
+        void stop();
+        void getparameters() const;
+        void getparameter(const std::string& name) const;
+        void setparameter(const std::string& name, const std::string& value);
+        void quit();
+    };
 }

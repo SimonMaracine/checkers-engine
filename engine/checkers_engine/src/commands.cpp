@@ -26,63 +26,63 @@ namespace commands {
         }
     }
 
-    void init(engine::EngineData& data, const std::vector<std::string>&) {
-        engine::init(data);
+    void init(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.init();
     }
 
-    void newgame(engine::EngineData& data, const std::vector<std::string>& tokens) {
+    void newgame(engine::Engine& engine, const std::vector<std::string>& tokens) {
         const auto setup_moves {parse_setup_moves(tokens)};
 
         if (token_available(tokens, 1)) {
-            engine::newgame(data, std::make_optional(tokens.at(1)), setup_moves);
+            engine.newgame(std::make_optional(tokens.at(1)), setup_moves);
         } else {
-            engine::newgame(data, std::nullopt, setup_moves);
+            engine.newgame(std::nullopt, setup_moves);
         }
     }
 
-    void move(engine::EngineData& data, const std::vector<std::string>& tokens) {
+    void move(engine::Engine& engine, const std::vector<std::string>& tokens) {
         if (!token_available(tokens, 1)) {
             throw error::InvalidCommand();
         }
 
-        engine::move(data, tokens.at(1));
+        engine.move(tokens.at(1));
     }
 
-    void go(engine::EngineData& data, const std::vector<std::string>& tokens) {
+    void go(engine::Engine& engine, const std::vector<std::string>& tokens) {
         if (token_available(tokens, 1)) {
             if (tokens.at(1) == "dontplaymove") {
-                engine::go(data, true);
+                engine.go(true);
             }
         } else {
-            engine::go(data, false);
+            engine.go(false);
         }
     }
 
-    void stop(engine::EngineData& data, const std::vector<std::string>&) {
-        engine::stop(data);
+    void stop(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.stop();
     }
 
-    void getparameters(engine::EngineData& data, const std::vector<std::string>&) {
-        engine::getparameters(data);
+    void getparameters(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.getparameters();
     }
 
-    void setparameter(engine::EngineData& data, const std::vector<std::string>& tokens) {
+    void setparameter(engine::Engine& engine, const std::vector<std::string>& tokens) {
         if (!token_available(tokens, 1) || !token_available(tokens, 2)) {
             throw error::InvalidCommand();
         }
 
-        engine::setparameter(data, tokens.at(1), tokens.at(2));
+        engine.setparameter(tokens.at(1), tokens.at(2));
     }
 
-    void getparameter(engine::EngineData& data, const std::vector<std::string>& tokens) {
+    void getparameter(engine::Engine& engine, const std::vector<std::string>& tokens) {
         if (!token_available(tokens, 1)) {
             throw error::InvalidCommand();
         }
 
-        engine::getparameter(data, tokens.at(1));
+        engine.getparameter(tokens.at(1));
     }
 
-    void quit(engine::EngineData& data, const std::vector<std::string>&) {
-        engine::quit(data);
+    void quit(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.quit();
     }
 }

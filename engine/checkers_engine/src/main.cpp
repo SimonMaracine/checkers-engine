@@ -3,9 +3,9 @@
 #include "messages.hpp"
 
 int main() {
-    engine::EngineData data;
+    engine::Engine checkers_engine;
 
     messages::ready();
 
-    return loop::main_loop(data);
+    return loop::main_loop(checkers_engine);
 }

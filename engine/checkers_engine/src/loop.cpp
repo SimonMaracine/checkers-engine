@@ -12,8 +12,9 @@
 #include "error.hpp"
 
 namespace loop {
-    // Doesn't return the new line
     static std::string read_input() {
+        // Doesn't return the new line
+
         std::string result;
 
         while (true) {
@@ -24,7 +25,6 @@ namespace loop {
 
             if (std::cin.bad()) {
                 std::cin.clear();
-
                 return result;
             }
 
@@ -49,33 +49,33 @@ namespace loop {
         return tokens;
     }
 
-    static void execute_command(engine::EngineData& data, const std::vector<std::string>& input_tokens) {
+    static void execute_command(engine::Engine& engine, const std::vector<std::string>& input_tokens) {
         const auto& command_name {input_tokens.at(0)};
 
         // Commands may throw errors
 
         if (command_name == "INIT") {
-            commands::init(data, input_tokens);
+            commands::init(engine, input_tokens);
         } else if (command_name == "NEWGAME") {
-            commands::newgame(data, input_tokens);
+            commands::newgame(engine, input_tokens);
         } else if (command_name == "MOVE") {
-            commands::move(data, input_tokens);
+            commands::move(engine, input_tokens);
         } else if (command_name == "GO") {
-            commands::go(data, input_tokens);
+            commands::go(engine, input_tokens);
         } else if (command_name == "STOP") {
-            commands::stop(data, input_tokens);
+            commands::stop(engine, input_tokens);
         } else if (command_name == "GETPARAMETERS") {
-            commands::getparameters(data, input_tokens);
+            commands::getparameters(engine, input_tokens);
         } else if (command_name == "GETPARAMETER") {
-            commands::getparameter(data, input_tokens);
+            commands::getparameter(engine, input_tokens);
         } else if (command_name == "SETPARAMETER") {
-            commands::setparameter(data, input_tokens);
+            commands::setparameter(engine, input_tokens);
         } else {
             throw error::InvalidCommand();
         }
     }
 
-    int main_loop(engine::EngineData& data) {
+    int main_loop(engine::Engine& engine) {
         while (true) {
             auto input {read_input()};
 
@@ -87,13 +87,13 @@ namespace loop {
 
             // Handle QUIT separately
             if (tokens.at(0) == "QUIT") {
-                commands::quit(data, tokens);
+                commands::quit(engine, tokens);
                 return 0;
             }
 
             // Ignore invalid commnads
             try {
-                execute_command(data, tokens);
+                execute_command(engine, tokens);
             } catch (error::InvalidCommand) {
                 continue;
             }
