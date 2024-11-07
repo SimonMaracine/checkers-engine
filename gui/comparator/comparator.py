@@ -59,16 +59,16 @@ def parse_match_file(file_path: str) -> MatchFile:
 
     try:
         with open(file_path, "r") as file:
-            root = json.load(file)
+            obj = json.load(file)
     except Exception as err:
         raise MatchError(f"Could not parse JSON file: {err}")
 
     try:
-        jsonschema.validate(root, SCHEMA)
+        jsonschema.validate(obj, SCHEMA)
     except jsonschema.ValidationError as err:
         raise MatchError(f"Invalid JSON file: {err}")
 
-    return MatchFile(root["positions"], root["black_engine_parameters"], root["white_engine_parameters"])
+    return MatchFile(obj["positions"], obj["black_engine_parameters"], obj["white_engine_parameters"])
 
 
 def run(match_file: MatchFile, path_engine_black: str, path_engine_white: str):

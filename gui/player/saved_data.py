@@ -1,5 +1,7 @@
 import json
 
+# Don't use JSON schema validation
+
 SAVED_DATA_FILE = "saved_data.json"
 
 
@@ -11,7 +13,7 @@ def save_engine_path(engine_path: str):
         pass
 
 
-def load_engine_path() -> str | None:  # TODO validate using schema
+def load_engine_path() -> str | None:
     try:
         with open(SAVED_DATA_FILE, "r") as file:
             obj = json.load(file)

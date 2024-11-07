@@ -1,6 +1,8 @@
 import json
 import dataclasses
 
+import jsonschema
+
 
 class SavedGameError(RuntimeError):
     pass
@@ -22,11 +24,30 @@ def save_game(file_path: str, game: Game):
         json.dump(obj, file)
 
 
-def load_game(file_path: str) -> Game:  # TODO validate using schema
+def load_game(file_path: str) -> Game:
+    SCHEMA = {
+        "type": "object",
+        "properties": {
+            "position": {
+                "type": "string"
+            },
+            "moves": {
+                "type": "array",
+                "items": { "type": "string" }
+            }
+        },
+        "required": ["position", "moves"]
+    }
+
     try:
         with open(file_path, "r") as file:
             obj = json.load(file)
-
-        return Game(obj["position"], obj["moves"])
     except Exception as err:
-        raise SavedGameError(f"Could not load game: {err}")
+        raise SavedGameError(f"Could not parse JSON file: {err}")
+
+    try:
+        jsonschema.validate(obj, SCHEMA)
+    except jsonschema.ValidationError as err:
+        raise SavedGameError(f"Invalid JSON file: {err}")
+
+    return Game(obj["position"], obj["moves"])
