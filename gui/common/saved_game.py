@@ -22,7 +22,7 @@ def save_game(file_path: str, game: Game):
         json.dump(obj, file)
 
 
-def load_game(file_path: str) -> Game:
+def load_game(file_path: str) -> Game:  # TODO validate using schema
     try:
         with open(file_path, "r") as file:
             obj = json.load(file)

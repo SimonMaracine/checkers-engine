@@ -751,7 +751,7 @@ class CheckersBoard:
 
     @staticmethod
     def _valid_position_string(string: str) -> bool:
-        return re.match("(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}", string) is not None
+        return common.validate_position_string(string)
 
     @staticmethod
     def _parse_position_string(string: str) -> _Position:

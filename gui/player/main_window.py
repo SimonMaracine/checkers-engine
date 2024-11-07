@@ -1,4 +1,3 @@
-import time
 import sys
 import pathlib
 import tkinter as tk
@@ -505,26 +504,9 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _wait_for_engine_to_start(self) -> bool:
         # Return if the engine started successfully or not
 
-        time_begin = time.time()
-
-        while True:
-            try:
-                message = self._engine.receive()
-            except checkers_engine.CheckersEngineError as err:
-                print(err, file=sys.stderr)
-                self._engine.stop(True)
-                return False
-
-            if "READY" in message:
-                print("Engine started successfully", file=sys.stderr)
-                return True
-
-            time_now = time.time()
-
-            if time_now - time_begin > self.WAIT_TIME_S:
-                print("Engine failed to respond in a timely manner", file=sys.stderr)
-                self._engine.stop(True)
-                return False
+        result = common.wait_for_engine_to_start(self._engine, self.WAIT_TIME_S)
+        print(result[1], file=sys.stderr)
+        return result[0]
 
     def _wait_for_engine_best_move(self):
         self.after(self.CHECK_TIME_MS, self._check_for_engine_best_move)

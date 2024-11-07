@@ -1,7 +1,6 @@
 import subprocess
 import threading
 import queue
-from typing import Optional
 
 # https://docs.python.org/3.12/library/subprocess.html/
 # https://docs.python.org/3.12/library/io.html/
@@ -15,7 +14,7 @@ class CheckersEngine:
     READ_ERROR = object()
 
     def __init__(self):
-        self._process: Optional[subprocess.Popen] = None
+        self._process: subprocess.Popen | None = None
         self._reading_queue: queue.Queue[str | object] = queue.Queue()
         self._running = False
 
