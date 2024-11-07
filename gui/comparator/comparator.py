@@ -2,12 +2,15 @@ import dataclasses
 import json
 import enum
 import sys
+import time
 
 import jsonschema
 
 from common import checkers_engine
 from common import board
 from common import common
+
+from . import data
 
 type QueriedParams = dict[str, tuple[str, str]]
 
@@ -104,11 +107,11 @@ def _single_match(match_file: MatchFile, path_engine_black: str, path_engine_whi
         _setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, Color.Black)
         _setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, Color.White)
 
-        _run_match(position, black_engine, white_engine)
+        result = _run_match(position, black_engine, white_engine)  # TODO
 
         _finalize_engine(black_engine, Color.Black)
         _finalize_engine(white_engine, Color.White)
-    except (MatchError, KeyboardInterrupt):  # If one engine fails, the other one might still be up and running, or the user quits
+    except (MatchError, KeyboardInterrupt):  # If one engine fails, the other one might still be up and running, or the user might quit
         if black_engine.running():
             black_engine.stop(True)
 
@@ -122,9 +125,8 @@ def _multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine
     print("Running multiple matches")
 
 
-def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine):
-    # Used to follow the game of the two engines
-    local_board = board.CheckersBoard(None, None)
+def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, rematch: bool = False) -> data.MatchResult:
+    local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
 
     try:
@@ -139,7 +141,7 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
         white_engine.stop(True)
         raise MatchError(err)
 
-    print("Begin match")
+    moves_played: list[str] = []
 
     match position.split(":")[0]:
         case "B":
@@ -149,27 +151,43 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
             current_player = white_engine
             next_player = black_engine
 
+    print("Begin rematch" if rematch else "Begin match")
+
+    begin = time.time()
+
     while True:
-        if not _play_move(current_player, next_player, local_board):
+        move, game_over = _play_move(current_player, next_player, local_board)
+
+        if move is not None:
+            moves_played.append(move)
+
+        if game_over:
             break
 
         current_player, next_player = next_player, current_player
 
-    print("Match is over")
+    end = time.time()
+
+    print("Rematch is over" if rematch else "Match is over")
 
     match local_board.get_game_over():
         case board.GameOver.None_:
             assert False
         case board.GameOver.WinnerBlack:
-            print("    Black won the game")
+            print("    Black won the game (original white)" if rematch else "    Black won the game")
+            ending = data.MatchEnding.WinnerBlack
         case board.GameOver.WinnerWhite:
-            print("    White won the game")
+            print("    White won the game (original black)" if rematch else "    White won the game")
+            ending = data.MatchEnding.WinnerWhite
         case board.GameOver.TieBetweenBothPlayers:
             print("    Tie between both players")
+            ending = data.MatchEnding.TieBetweenBothPlayers
+
+    return data.MatchResult(position, ending, moves_played, end - begin)
 
 
-def _play_move(engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> bool:
-    # Return false if the game is over
+def _play_move(engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> tuple[str | None, bool]:
+    # Return the played move and return true if the game is over
 
     try:
         engine_current.send("GO")
@@ -192,7 +210,7 @@ def _play_move(engine_current: checkers_engine.CheckersEngine, engine_next: chec
         if local_board.get_game_over() == board.GameOver.None_:
             raise MatchError("The engines say it's game over, but the GUI doesn't agree")
 
-        return False
+        return result, True
 
     try:
         engine_next.send(f"MOVE {result}")
@@ -202,7 +220,7 @@ def _play_move(engine_current: checkers_engine.CheckersEngine, engine_next: chec
 
     local_board.play_move(result)
 
-    return True
+    return result, False
 
 
 def _start_engine(engine: checkers_engine.CheckersEngine, engine_file_path: str, color: Color):
