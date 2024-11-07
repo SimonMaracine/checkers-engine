@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import enum
+import sys
 
 import jsonschema
 
@@ -52,7 +53,8 @@ def parse_match_file(file_path: str) -> MatchFile:
                 "type": "array",
                 "items": { "type": "string" }
             }
-        }
+        },
+        "required": ["positions", "black_engine_parameters", "white_engine_parameters"]
     }
 
     try:
@@ -82,6 +84,8 @@ def run(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
 def _single_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     assert len(match_file.positions) == 1
 
+    print("Running single match")
+
     position = match_file.positions[0]
 
     if not common.validate_position_string(position):
@@ -98,9 +102,12 @@ def _single_match(match_file: MatchFile, path_engine_black: str, path_engine_whi
 
     _run_match(position, black_engine, white_engine)
 
+    _finalize_engine(black_engine, Color.Black)
+    _finalize_engine(white_engine, Color.White)
+
 
 def _multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
-    pass
+    print("Running multiple matches")
 
 
 def _start_engine(engine_file_path: str) -> checkers_engine.CheckersEngine:
@@ -121,7 +128,7 @@ def _start_engine(engine_file_path: str) -> checkers_engine.CheckersEngine:
     return engine
 
 
-def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine):
+def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine):  # TODO use local board
     try:
         black_engine.send(f"NEWGAME {position}")
     except checkers_engine.CheckersEngineError as err:
@@ -135,10 +142,10 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
         raise MatchError(err)
 
     match position.split(":")[0]:
-        case "b":
+        case "B":
             current_player = black_engine
             next_player = white_engine
-        case "w":
+        case "W":
             current_player = white_engine
             next_player = black_engine
 
@@ -204,6 +211,18 @@ def _initialize_engine(engine: checkers_engine.CheckersEngine, color: Color) -> 
     return parameters
 
 
+def _finalize_engine(engine: checkers_engine.CheckersEngine, color: Color):
+    try:
+        engine.send("QUIT")
+    except checkers_engine.CheckersEngineError as err:
+        engine.stop(True)
+        raise MatchError(err)
+
+    engine.stop()
+
+    print(f"Stopped engine {color}")
+
+
 def _setup_engine_parameters(engine: checkers_engine.CheckersEngine, parameters: list[str], queried_params: QueriedParams, color: Color):
     for parameter in parameters:
         tokens = parameter.split("=")
@@ -215,6 +234,7 @@ def _setup_engine_parameters(engine: checkers_engine.CheckersEngine, parameters:
         value = tokens[1]
 
         if name not in queried_params:
+            print(f"Parameter `{name}` is invalid for engine {color}", file=sys.stderr)
             continue
 
         try:

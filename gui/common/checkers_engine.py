@@ -35,7 +35,7 @@ class CheckersEngine:
         threading.Thread(target=self._read).start()
 
     def stop(self, force=False):
-        # This method must be called
+        # This method must be called to cleanly stop the subprocess
 
         assert self._process is not None
 
