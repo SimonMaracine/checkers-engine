@@ -23,9 +23,9 @@ def main(args: list[str]) -> int:
         try:
             comp.run(match_file, arguments.path_black, arguments.path_white)
         except comp.MatchError as err:
-            print(f"An error occurred running the match: {err}", file=sys.stderr)
+            print(f"An error occurred during the process: {err}", file=sys.stderr)
             return 1
-    except KeyboardInterrupt:  # FIXME
+    except KeyboardInterrupt:
         print()
         return 1
 

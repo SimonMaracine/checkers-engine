@@ -91,41 +91,35 @@ def _single_match(match_file: MatchFile, path_engine_black: str, path_engine_whi
     if not common.validate_position_string(position):
         raise MatchError("Invalid position string")
 
-    black_engine = _start_engine(path_engine_black)
-    white_engine = _start_engine(path_engine_white)
+    black_engine = checkers_engine.CheckersEngine()
+    white_engine = checkers_engine.CheckersEngine()
 
-    black_queried_params = _initialize_engine(black_engine, Color.Black)
-    white_queried_params = _initialize_engine(white_engine, Color.White)
+    try:
+        _start_engine(black_engine, path_engine_black, Color.Black)
+        _start_engine(white_engine, path_engine_white, Color.White)
 
-    _setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, Color.Black)
-    _setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, Color.White)
+        black_queried_params = _initialize_engine(black_engine, Color.Black)
+        white_queried_params = _initialize_engine(white_engine, Color.White)
 
-    _run_match(position, black_engine, white_engine)
+        _setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, Color.Black)
+        _setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, Color.White)
 
-    _finalize_engine(black_engine, Color.Black)
-    _finalize_engine(white_engine, Color.White)
+        _run_match(position, black_engine, white_engine)
+
+        _finalize_engine(black_engine, Color.Black)
+        _finalize_engine(white_engine, Color.White)
+    except (MatchError, KeyboardInterrupt):  # If one engine fails, the other one might still be up and running, or the user quits
+        if black_engine.running():
+            black_engine.stop(True)
+
+        if white_engine.running():
+            white_engine.stop(True)
+
+        raise
 
 
 def _multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     print("Running multiple matches")
-
-
-def _start_engine(engine_file_path: str) -> checkers_engine.CheckersEngine:
-    engine = checkers_engine.CheckersEngine()
-
-    try:
-        engine.start(engine_file_path)
-    except checkers_engine.CheckersEngineError as err:
-        raise MatchError(f"Could not start engine: {err}")
-
-    result = common.wait_for_engine_to_start(engine, 3.0)
-
-    if not result[0]:
-        raise MatchError(f"Engine did not respond: {result[1]}")
-
-    print(result[1])
-
-    return engine
 
 
 def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine):
@@ -211,6 +205,20 @@ def _play_move(engine_current: checkers_engine.CheckersEngine, engine_next: chec
     return True
 
 
+def _start_engine(engine: checkers_engine.CheckersEngine, engine_file_path: str, color: Color):
+    try:
+        engine.start(engine_file_path)
+    except checkers_engine.CheckersEngineError as err:
+        raise MatchError(f"Could not start engine: {err}")
+
+    result = common.wait_for_engine_to_start(engine, 3.0)
+
+    if not result[0]:
+        raise MatchError(f"Engine did not respond: {result[1]}")
+
+    print(f"Started engine {color}")
+
+
 def _initialize_engine(engine: checkers_engine.CheckersEngine, color: Color) -> QueriedParams:
     try:
         engine.send("INIT")
@@ -224,7 +232,7 @@ def _initialize_engine(engine: checkers_engine.CheckersEngine, color: Color) -> 
         engine.stop(True)
         raise MatchError(err)
 
-    print(f"{str(color).capitalize()} engine parameters:")
+    print(f"Engine {color} parameters")
 
     parameters = _wait_for_engine_parameters(engine)
 
