@@ -70,6 +70,8 @@ namespace loop {
             commands::getparameter(engine, input_tokens);
         } else if (command_name == "SETPARAMETER") {
             commands::setparameter(engine, input_tokens);
+        } else if (command_name == "GETNAME") {
+            commands::getname(engine, input_tokens);
         } else {
             throw error::InvalidCommand();
         }

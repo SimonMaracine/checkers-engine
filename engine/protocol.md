@@ -26,7 +26,7 @@ that they are read from the stream.
 
 Tells the engine to initialize itself and get ready to play.
 
-Must be sent at the beginning and only once. Only **QUIT** may be sent before **INIT**.
+Must be sent at the beginning and only once. Only the **QUIT** command may be sent before **INIT**.
 
 ### NEWGAME [`start position`] [`setup move 1` `setup move 2` ...]
 
@@ -95,6 +95,10 @@ Tells the engine to shut down and exit gracefully.
 
 This command should shut down the engine nicely, even if it is in the process of thinking.
 
+### GETNAME
+
+Asks the engine for its name.
+
 ## Engine -> GUI
 
 ### READY
@@ -128,3 +132,10 @@ It is optional.
 
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
 started.
+
+### NAME `name`
+
+Responds with the name after a **GETNAME** command.
+
+The name is an implementation-defined string of maximum 15 ASCII characters with no spaces. It may contain the
+engine's actual name shortened plus its version.

@@ -3,7 +3,8 @@
 import sys
 import argparse
 
-import comparator.comparator as comp
+from comparator import comparator
+from comparator import error
 
 
 def main(args: list[str]) -> int:
@@ -15,18 +16,18 @@ def main(args: list[str]) -> int:
         arguments = parser.parse_args(args[1:])
 
         try:
-            match_file = comp.parse_match_file(arguments.match_file)
-        except comp.MatchError as err:
+            match_file = comparator.parse_match_file(arguments.match_file)
+        except error.ComparatorError as err:
             print(f"Could not parse match file: {err}", file=sys.stderr)
             return 1
 
         try:
-            comp.run(match_file, arguments.path_black, arguments.path_white)
-        except comp.MatchError as err:
+            comparator.run(match_file, arguments.path_black, arguments.path_white)
+        except error.ComparatorError as err:
             print(f"An error occurred during the process: {err}", file=sys.stderr)
             return 1
     except KeyboardInterrupt:
-        print()
+        print(file=sys.stderr)
         return 1
 
     return 0

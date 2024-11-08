@@ -85,4 +85,8 @@ namespace commands {
     void quit(engine::Engine& engine, const std::vector<std::string>&) {
         engine.quit();
     }
+
+    void getname(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.getname();
+    }
 }

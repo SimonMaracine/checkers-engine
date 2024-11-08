@@ -1,0 +1,2 @@
+class ComparatorError(RuntimeError):
+    pass

@@ -62,5 +62,6 @@ namespace engine {
         void getparameter(const std::string& name) const;
         void setparameter(const std::string& name, const std::string& value);
         void quit();
+        void getname() const;
     };
 }

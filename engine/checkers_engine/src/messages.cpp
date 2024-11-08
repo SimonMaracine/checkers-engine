@@ -105,4 +105,10 @@ namespace messages {
 
         std::cout << std::endl;
     }
+
+    void name() {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
+        std::cout << "NAME " << "checkers|1.0" << std::endl;
+    }
 }

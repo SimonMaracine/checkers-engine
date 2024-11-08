@@ -258,7 +258,7 @@ namespace engine {
     }
 
     void Engine::quit() {
-        // Must not throw exeptions
+        // Must not throw exceptions
 
         if (!minimax.running) {
             // There is nothing to do; the main loop handles the rest of the uninitialization
@@ -279,5 +279,11 @@ namespace engine {
             minimax.cv.notify_one();
             minimax.thread.join();
         }
+    }
+
+    void Engine::getname() const {
+        ignore_invalid_command_on_init(*this);
+
+        messages::name();
     }
 }

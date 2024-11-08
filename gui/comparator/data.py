@@ -3,9 +3,8 @@ import enum
 import dataclasses
 
 
-class EngineFileType(enum.Enum):
-    Binary = enum.auto()
-    Text = enum.auto()
+class DataError(RuntimeError):
+    pass
 
 
 class MatchEnding(enum.Enum):
@@ -13,12 +12,21 @@ class MatchEnding(enum.Enum):
     WinnerWhite = enum.auto()
     TieBetweenBothPlayers = enum.auto()
 
+    def __str__(self) -> str:
+        match self:
+            case self.WinnerBlack:
+                return "winner black"
+            case self.WinnerWhite:
+                return "winner white"
+            case self.TieBetweenBothPlayers:
+                return "tie between both players"
+
+        assert False
+
 
 @dataclasses.dataclass(slots=True)
-class Engine:
+class EngineStats:
     file_name: str
-    file_type: EngineFileType
-    file_size: int
     name: str
     parameters: list[tuple[str, str, str]]
 
@@ -33,8 +41,8 @@ class MatchResult:
 
 @dataclasses.dataclass(slots=True)
 class SingleMatchReport:
-    black_engine: Engine
-    white_engine: Engine
+    black_engine: EngineStats
+    white_engine: EngineStats
 
     match: MatchResult
     rematch: MatchResult
@@ -42,43 +50,43 @@ class SingleMatchReport:
     datetime: str
 
 
-def collect_data(engine_file_path: str):
-    pass
-
-
 def generate_report(report: SingleMatchReport):
     obj = {
-        "black_engine_file_name": report.black_engine.file_name,
-        "white_engine_file_name": report.white_engine.file_name,
+        "black_engine": {
+            "file_name": report.black_engine.file_name,
+            "name": report.black_engine.name,
+            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.black_engine.parameters]
+        },
 
-        "black_engine_file_type": str(report.black_engine.file_type),
-        "white_engine_file_type": str(report.white_engine.file_type),
+        "white_engine": {
+            "file_name": report.white_engine.file_name,
+            "name": report.white_engine.name,
+            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
+        },
 
-        "black_engine_file_size": report.black_engine.file_size,
-        "white_engine_file_size": report.white_engine.file_size,
+        "match": {
+            "position": report.match.position,
+            "time": report.match.time,
+            "ending": str(report.match.ending),
+            "played_moves": [move for move in report.match.played_moves]
+        },
 
-        "black_engine_name": report.black_engine.name,
-        "white_engine_name": report.white_engine.name,
-
-        "black_engine_parameters": [f"{parameter[0]}, {parameter[1]}, {parameter[2]}" for parameter in report.black_engine.parameters],
-        "white_engine_parameters": [f"{parameter[0]}, {parameter[1]}, {parameter[2]}" for parameter in report.white_engine.parameters],
-
-        "match_position": report.match.position,
-        "match_ending": str(report.match.ending),
-        "match_played_moves": [move for move in report.match.played_moves],
-        "match_time": report.match.time,
-
-        "rematch_position": report.rematch.position,
-        "rematch_ending": str(report.rematch.ending),
-        "rematch_played_moves": [move for move in report.rematch.played_moves],
-        "rematch_time": report.rematch.time,
+        "rematch": {
+            "position": report.rematch.position,
+            "time": report.rematch.time,
+            "ending": str(report.rematch.ending),
+            "played_moves": [move for move in report.rematch.played_moves]
+        },
 
         "datetime": report.datetime
     }
 
-    _write_report(f"single_match_{report.datetime}.json", obj)
+    _write_report(f"single_match {report.datetime}.json", obj)
 
 
 def _write_report(name: str, obj: object):
-    with open(name, "w") as file:
-        json.dump(obj, file)
+    try:
+        with open(name, "w") as file:
+            json.dump(obj, file, indent=4)
+    except Exception as err:
+        raise DataError(f"Could not write JSON file: {err}")

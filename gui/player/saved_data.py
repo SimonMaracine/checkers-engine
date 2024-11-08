@@ -8,7 +8,7 @@ SAVED_DATA_FILE = "saved_data.json"
 def save_engine_path(engine_path: str):
     try:
         with open(SAVED_DATA_FILE, "w") as file:
-            json.dump({"engine_path": engine_path}, file)
+            json.dump({"engine_path": engine_path}, file, indent=4)
     except Exception:
         pass
 

@@ -20,8 +20,11 @@ def save_game(file_path: str, game: Game):
         "moves": game.moves
     }
 
-    with open(file_path, "w") as file:
-        json.dump(obj, file)
+    try:
+        with open(file_path, "w") as file:
+            json.dump(obj, file, indent=4)
+    except Exception as err:
+        raise SavedGameError(f"Could not write JSON file: {err}")
 
 
 def load_game(file_path: str) -> Game:
