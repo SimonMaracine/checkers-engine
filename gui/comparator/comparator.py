@@ -1,7 +1,6 @@
 import dataclasses
 import json
 import time
-import pathlib
 
 import jsonschema
 
@@ -166,11 +165,11 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
             print_status("Tie between both players", 2)
             ending = data.MatchEnding.TieBetweenBothPlayers
 
-    return data.MatchResult(position, ending, moves_played, end - begin)
+    return data.MatchResult(position, ending, len(moves_played), moves_played, end - begin)
 
 
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine) -> data.EngineStats:
     name = engine_setup.get_engine_name(engine)
     queried_params = engine_setup.get_engine_parameters(engine)
 
-    return data.EngineStats(pathlib.PurePath(file_path).name, name, queried_params)
+    return data.EngineStats(name, queried_params)

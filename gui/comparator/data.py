@@ -26,7 +26,6 @@ class MatchEnding(enum.Enum):
 
 @dataclasses.dataclass(slots=True)
 class EngineStats:
-    file_name: str
     name: str
     parameters: list[tuple[str, str, str]]
 
@@ -35,6 +34,7 @@ class EngineStats:
 class MatchResult:
     position: str
     ending: MatchEnding
+    plies: int
     played_moves: list[str]
     time: float
 
@@ -43,23 +43,19 @@ class MatchResult:
 class SingleMatchReport:
     black_engine: EngineStats
     white_engine: EngineStats
-
     match: MatchResult
     rematch: MatchResult
-
     datetime: str
 
 
 def generate_report(report: SingleMatchReport):
     obj = {
         "black_engine": {
-            "file_name": report.black_engine.file_name,
             "name": report.black_engine.name,
             "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.black_engine.parameters]
         },
 
         "white_engine": {
-            "file_name": report.white_engine.file_name,
             "name": report.white_engine.name,
             "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
         },
@@ -68,13 +64,15 @@ def generate_report(report: SingleMatchReport):
             "position": report.match.position,
             "time": report.match.time,
             "ending": str(report.match.ending),
+            "plies": report.match.plies,
             "played_moves": [move for move in report.match.played_moves]
         },
 
         "rematch": {
             "position": report.rematch.position,
             "time": report.rematch.time,
-            "ending": str(report.rematch.ending),
+            "ending": f"{report.rematch.ending} (swapped colors)",
+            "plies": report.rematch.plies,
             "played_moves": [move for move in report.rematch.played_moves]
         },
 
