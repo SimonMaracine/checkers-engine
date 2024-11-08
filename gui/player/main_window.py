@@ -752,7 +752,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             self._btn_stop.config(state="disabled")
             self._btn_continue.config(state="disabled")
 
-            print("GUI says it's game over")
+            print("GUI says it's game over", file=sys.stderr)
 
             self._gui_game_over = True
 

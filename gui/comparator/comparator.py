@@ -112,7 +112,7 @@ def _single_match(match_file: MatchFile, path_engine_black: str, path_engine_whi
     return data.SingleMatchReport(black_engine_stats, white_engine_stats, match_result, rematch_result, time.ctime())
 
 
-def _multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
+def _multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MultipleMatchesReport:
     print_status("Running multiple matches")
 
 
