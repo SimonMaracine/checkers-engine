@@ -1,9 +1,7 @@
 import sys
-import pathlib
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
-from typing import Optional
 
 from common import base_main_window
 from common import checkers_engine
@@ -216,8 +214,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             try:
                 self._engine.send("QUIT")
             except checkers_engine.CheckersEngineError as err:
-                print(err, file=sys.stderr)
-                self._engine.stop(True)
+                self._print_err_and_stop_engine(err, self._engine)
             else:
                 self._engine.stop()
 
@@ -230,7 +227,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._board.press_square_right_button(self._get_square(event.x, event.y))
 
     def _start_engine(self):
-        if self._engine_busy() and not self._is_game_over():
+        if self._is_engine_busy() and not self._is_game_over():
             return
 
         saved_path = saved_data.load_engine_path()
@@ -250,20 +247,17 @@ class MainWindow(base_main_window.BaseMainWindow):
             try:
                 self._engine.send("QUIT")
             except checkers_engine.CheckersEngineError as err:
-                print(err, file=sys.stderr)
-                self._engine.stop(True)
+                self._print_err_and_stop_engine(err, self._engine)
                 return
 
             self._engine.stop()
 
-        # Wait for the previous engine to stop; might be dangerous
-        while self._engine.running():
-            pass
+        # Any previous engine should be off by now
 
         try:
             self._engine.start(file_path)
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
+            self._print_err_and_stop_engine(err, self._engine)
             return
 
         if not self._wait_for_engine_to_start():
@@ -272,32 +266,31 @@ class MainWindow(base_main_window.BaseMainWindow):
         try:
             self._engine.send("INIT")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
-            return
-
-        if not self._get_engine_parameters():
+            self._print_err_and_stop_engine(err, self._engine)
             return
 
         # Reset any current game, as the new engine has no knowledge of it
         # Must be done here after INIT
         self._reset_position()
 
-        self._clear_parameters()
-        self._setup_after_engine_start(file_path)
+        self._clear_gui_parameters()
+        self._setup_gui_after_engine_start()
+
+        self._get_engine_name()
+        self._get_engine_parameters()
 
     def _reset_position(self):
         if not self._engine.running():
             return
 
-        if self._engine_busy() and not self._is_game_over():
+        if self._is_engine_busy() and not self._is_game_over():
             return
 
         self._board.reset()
         self._reset_engine()
-        self._reset_status()
-        self._clear_moves()
-        self._setup_after_reset()
+        self._reset_gui_status()
+        self._clear_gui_moves()
+        self._setup_gui_after_reset()
 
     def _set_position(self):
         top_level = tk.Toplevel(self)
@@ -307,14 +300,14 @@ class MainWindow(base_main_window.BaseMainWindow):
         if not self._engine.running():
             return
 
-        if self._engine_busy() and not self._is_game_over():
+        if self._is_engine_busy() and not self._is_game_over():
             return
 
         self._board.reset(string)
         self._reset_engine(string)
-        self._reset_status()
-        self._clear_moves()
-        self._setup_after_reset()
+        self._reset_gui_status()
+        self._clear_gui_moves()
+        self._setup_gui_after_reset()
 
     def _about(self):
         tkinter.messagebox.showinfo("About", "Checkers Player, an implementation of the game of checkers.")
@@ -322,13 +315,13 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _player_changed(self):
         match self._board.get_turn():
             case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-                self._enable_or_disable_stop(self._var_player_black)
-                self._enable_or_disable_continue(self._var_player_black)
+                self._enable_or_disable_gui_user_input(self._var_player_black)
+                self._enable_or_disable_gui_stop(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_black)
             case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-                self._enable_or_disable_stop(self._var_player_white)
-                self._enable_or_disable_continue(self._var_player_white)
+                self._enable_or_disable_gui_user_input(self._var_player_white)
+                self._enable_or_disable_gui_stop(self._var_player_white)
+                self._enable_or_disable_gui_continue(self._var_player_white)
 
     def _stop(self):
         # This button just stops the engine from thinking, forcing it to make a move
@@ -341,15 +334,14 @@ class MainWindow(base_main_window.BaseMainWindow):
             try:
                 self._engine.send("STOP")
             except checkers_engine.CheckersEngineError as err:
-                print(err, file=sys.stderr)
-                self._engine.stop(True)
+                self._print_err_and_stop_engine(err, self._engine)
 
             # This allows the game to continue
             match self._board.get_turn():
                 case board.Player.Black:
-                    self._enable_or_disable_continue(self._var_player_black)
+                    self._enable_or_disable_gui_continue(self._var_player_black)
                 case board.Player.White:
-                    self._enable_or_disable_continue(self._var_player_white)
+                    self._enable_or_disable_gui_continue(self._var_player_white)
 
     def _continue(self):
         # This button has one job: to control when the computer should begin or continue the game when it's their turn
@@ -375,17 +367,17 @@ class MainWindow(base_main_window.BaseMainWindow):
             # Pressing continue should be done only once
             self._btn_continue.config(state="disabled")
 
-    def _setup_after_reset(self):
+    def _setup_gui_after_reset(self):
         match self._board.get_turn():
             case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-                self._enable_or_disable_stop(self._var_player_black)
-                self._enable_or_disable_continue(self._var_player_black)
+                self._enable_or_disable_gui_user_input(self._var_player_black)
+                self._enable_or_disable_gui_stop(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_black)
             case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-                self._enable_or_disable_stop(self._var_player_white)
-                self._enable_or_disable_continue(self._var_player_black)
-                self._record_dummy_black_move()
+                self._enable_or_disable_gui_user_input(self._var_player_white)
+                self._enable_or_disable_gui_stop(self._var_player_white)
+                self._enable_or_disable_gui_continue(self._var_player_black)
+                self._record_gui_dummy_black_move()
 
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
@@ -397,33 +389,23 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._btn_white_human.config(state="normal")
         self._btn_white_computer.config(state="normal")
 
-    def _setup_after_engine_start(self, file_path: str):
+    def _setup_gui_after_engine_start(self):
         match self._board.get_turn():
             case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
-                self._enable_or_disable_stop(self._var_player_black)
-                self._enable_or_disable_continue(self._var_player_black)
+                self._enable_or_disable_gui_user_input(self._var_player_black)
+                self._enable_or_disable_gui_stop(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_black)
             case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
-                self._enable_or_disable_stop(self._var_player_white)
-                self._enable_or_disable_continue(self._var_player_black)
-
-        self._var_engine.set(f"{self.TXT_ENGINE} {pathlib.PurePath(file_path).name}")
+                self._enable_or_disable_gui_user_input(self._var_player_white)
+                self._enable_or_disable_gui_stop(self._var_player_white)
+                self._enable_or_disable_gui_continue(self._var_player_black)
 
         self._btn_black_human.config(state="normal")
         self._btn_black_computer.config(state="normal")
         self._btn_white_human.config(state="normal")
         self._btn_white_computer.config(state="normal")
 
-    def _get_square(self, x: int, y: int) -> int:
-        square_size = int(self._cvs_board["width"]) // 8
-
-        file = x // square_size
-        rank = y // square_size
-
-        return rank * 8 + file
-
-    def _update_status(self):
+    def _update_gui_status(self):
         match self._board.get_game_over():
             case board.GameOver.None_:
                 self._var_status.set(common.TXT_STATUS + " game in progress")
@@ -442,12 +424,12 @@ class MainWindow(base_main_window.BaseMainWindow):
 
         self._var_plies_without_advancement.set(f"{common.TXT_PLIES_WITHOUT_ADVANCEMENT} {self._board.get_plies_without_advancement()}")
 
-    def _reset_status(self):
+    def _reset_gui_status(self):
         self._var_status.set(common.TXT_STATUS + " game not started")
         self._var_player.set(common.TXT_PLAYER + " black")
         self._var_plies_without_advancement.set(common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
-    def _record_move(self, move: board.Move, player: board.Player):
+    def _record_gui_move(self, move: board.Move, player: board.Player):
         match player:
             case board.Player.Black:
                 tk.Label(self._frm_moves_index, text=f"{self._move_index}.").pack(anchor="nw")
@@ -463,7 +445,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         if self._move_index > 4:
             self._cvs_moves.yview_moveto(1.0)
 
-    def _record_dummy_black_move(self):
+    def _record_gui_dummy_black_move(self):
         assert self._move_index == 1
 
         tk.Label(self._frm_moves_index, text=f"{self._move_index}.").pack(anchor="nw")
@@ -473,7 +455,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         # Make canvas know that it just got new widgets
         self._cvs_moves.update()
 
-    def _clear_moves(self):
+    def _clear_gui_moves(self):
         for child in self._frm_moves_index.winfo_children():
             child.destroy()
 
@@ -487,134 +469,149 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._cvs_moves.yview_moveto(0.0)
         self._cvs_moves.xview_moveto(0.0)
 
-    def _clear_parameters(self):
+    def _clear_gui_parameters(self):
         for child in self._frm_parameters.winfo_children():
             child.destroy()
 
-    def _reset_engine(self, position: Optional[str] = None):
+    def _get_square(self, x: int, y: int) -> int:
+        square_size = int(self._cvs_board["width"]) // 8
+
+        file = x // square_size
+        rank = y // square_size
+
+        return rank * 8 + file
+
+    def _reset_engine(self, position: str | None = None):
         try:
             if position is not None:
                 self._engine.send(f"NEWGAME {position}")
             else:
                 self._engine.send("NEWGAME")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
+            self._print_err_and_stop_engine(err, self._engine)
 
     def _wait_for_engine_to_start(self) -> bool:
+        # Wait in a tight loop
         # Return if the engine started successfully or not
 
-        result = common.wait_for_engine_to_start(self._engine, self.WAIT_TIME_S)
-        print(result[1], file=sys.stderr)
-        return result[0]
-
-    def _wait_for_engine_best_move(self):
-        self.after(self.CHECK_TIME_MS, self._check_for_engine_best_move)
-
-    def _check_for_engine_best_move(self):
         try:
-            message = self._engine.receive()
+            common.wait_for_engine_to_start(self._engine, self.WAIT_TIME_S)
+        except common.EngineWaitError as err:
+            self._print_err_and_stop_engine(err, self._engine)
+            return False
+
+        return True
+
+    def _async_wait_for_engine_best_move(self):
+        def check_for_engine_best_move():
+            try:
+                message = self._engine.receive()
+            except checkers_engine.CheckersEngineError as err:
+                self._print_err_and_stop_engine(err, self._engine)
+                return
+
+            if "BESTMOVE" in message:
+                if "none" in message:
+                    if not self._gui_game_over:
+                        raise RuntimeError("GUI didn't detect game over")
+
+                    print("Engine says it's game over", file=sys.stderr)
+                else:
+                    if self._gui_game_over:
+                        raise RuntimeError("GUI detected game over")
+
+                    self._board.play_move(message.split()[1])
+
+                return
+            elif "INFO" in message:
+                print(" ".join(message.split()[1:]), file=sys.stderr)
+
+            self._async_wait_for_engine_best_move()
+
+        self.after(self.CHECK_TIME_MS, check_for_engine_best_move)
+
+    def _get_engine_parameters(self):
+        try:
+            self._engine.send("GETPARAMETERS")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
-            return
-
-        if "BESTMOVE" in message:
-            if "none" in message:
-                if not self._gui_game_over:
-                    raise RuntimeError("GUI didn't detect game over")
-
-                print("Engine says it's game over", file=sys.stderr)
-            else:
-                if self._gui_game_over:
-                    raise RuntimeError("GUI detected game over")
-
-                self._board.play_move(message.split()[1])
-
-            return
-        elif "INFO" in message:
-            print(" ".join(message.split()[1:]), file=sys.stderr)
-
-        self._wait_for_engine_best_move()
+            self._print_err_and_stop_engine(err, self._engine)
+        else:
+            self._wait_for_engine_parameters()
 
     def _wait_for_engine_parameters(self):
-        self.after(self.CHECK_TIME_MS, self._check_for_engine_parameters)
+        while True:
+            try:
+                message = self._engine.receive()
+            except checkers_engine.CheckersEngineError as err:
+                self._print_err_and_stop_engine(err, self._engine)
+                return
 
-    def _check_for_engine_parameters(self):
-        try:
-            message = self._engine.receive()
-        except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
-            return
+            if "PARAMETERS" in message:
+                tokens = message.split()
+                token_index = 1
 
-        if "PARAMETERS" in message:
-            tokens = message.split()
-            token_index = 1
+                while token_index < len(tokens):
+                    self._get_engine_parameter(tokens[token_index])
+                    token_index += 1
 
-            while token_index < len(tokens):
-                self._get_engine_parameter(tokens[token_index])
-                token_index += 1
-
-            return
-
-        self._wait_for_engine_parameters()
+                return
 
     def _get_engine_parameter(self, name: str):
         try:
             self._engine.send(f"GETPARAMETER {name}")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
+            self._print_err_and_stop_engine(err, self._engine)
         else:
             self._wait_for_engine_parameter()
 
     def _wait_for_engine_parameter(self):
-        self.after(self.CHECK_TIME_MS, self._check_for_engine_parameter)
+        while True:
+            try:
+                message = self._engine.receive()
+            except checkers_engine.CheckersEngineError as err:
+                self._print_err_and_stop_engine(err, self._engine)
+                return
 
-    def _check_for_engine_parameter(self):
+            if "PARAMETER" in message:
+                tokens = message.split()
+                name = tokens[1]
+                type = tokens[2]
+                value = tokens[3]
+
+                match type:
+                    case "int":
+                        self._add_gui_parameter_int(name, value)
+                    case "float":
+                        self._add_gui_parameter_float(name, value)
+                    case "bool":
+                        self._add_gui_parameter_bool(name, value)
+                    case "string":
+                        self._add_gui_parameter_string(name, value)
+
+                return
+
+    def _get_engine_name(self):
         try:
-            message = self._engine.receive()
+            self._engine.send("GETNAME")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
-            return
+            self._print_err_and_stop_engine(err, self._engine)
+        else:
+            self._wait_for_engine_name()
 
-        if "PARAMETER" in message:
-            tokens = message.split()
-            name = tokens[1]
-            type = tokens[2]
-            value = tokens[3]
+    def _wait_for_engine_name(self):
+        while True:
+            try:
+                message = self._engine.receive()
+            except checkers_engine.CheckersEngineError as err:
+                self._print_err_and_stop_engine(err, self._engine)
+                return
 
-            match type:
-                case "int":
-                    self._add_engine_parameter_int(name, value)
-                case "float":
-                    self._add_engine_parameter_float(name, value)
-                case "bool":
-                    self._add_engine_parameter_bool(name, value)
-                case "string":
-                    self._add_engine_parameter_string(name, value)
+            if "NAME" in message:
+                self._var_engine.set(f"{self.TXT_ENGINE} {message.split()[1]}")
+                return
 
-            return
-
-        self._wait_for_engine_parameter()
-
-    def _get_engine_parameters(self) -> bool:
-        # Return if the engine successfully started getting parameters or not
-
-        try:
-            self._engine.send("GETPARAMETERS")
-        except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
-            return False
-
-        self._wait_for_engine_parameters()
-        return True
-
-    def _add_engine_parameter_int(self, name: str, value: str):
-        frm_parameter = self._engine_parameter_frame_label(name)
+    def _add_gui_parameter_int(self, name: str, value: str):
+        frm_parameter = self._make_gui_parameter_frame_label(name)
 
         var_parameter = tk.StringVar(frm_parameter, value=value)
         tk.Spinbox(
@@ -625,16 +622,16 @@ class MainWindow(base_main_window.BaseMainWindow):
             command=lambda: self._set_engine_parameter(name, var_parameter.get())
         ).grid(row=0, column=1, sticky="ew")  # FIXME extend protocol to include possible values
 
-    def _add_engine_parameter_float(self, name: str, value: str):
-        frm_parameter = self._engine_parameter_frame_label(name)
+    def _add_gui_parameter_float(self, name: str, value: str):
+        frm_parameter = self._make_gui_parameter_frame_label(name)
 
         var_parameter = tk.StringVar(frm_parameter, value=value)
         tk.Entry(frm_parameter, textvariable=var_parameter).grid(row=0, column=1, sticky="ew")
 
         var_parameter.trace_add("write", lambda *args: self._set_engine_parameter(name, var_parameter.get()))
 
-    def _add_engine_parameter_bool(self, name: str, value: str):
-        frm_parameter = self._engine_parameter_frame_label(name)
+    def _add_gui_parameter_bool(self, name: str, value: str):
+        frm_parameter = self._make_gui_parameter_frame_label(name)
 
         var_parameter = tk.IntVar(frm_parameter, value=int(value))
         tk.Checkbutton(
@@ -643,15 +640,15 @@ class MainWindow(base_main_window.BaseMainWindow):
             command=lambda: self._set_engine_parameter(name, str(var_parameter.get()))
         ).grid(row=0, column=1, sticky="ew")
 
-    def _add_engine_parameter_string(self, name: str, value: str):
-        frm_parameter = self._engine_parameter_frame_label(name)
+    def _add_gui_parameter_string(self, name: str, value: str):
+        frm_parameter = self._make_gui_parameter_frame_label(name)
 
         var_parameter = tk.StringVar(frm_parameter, value=value)
         tk.Entry(frm_parameter, textvariable=var_parameter, ).grid(row=0, column=1, sticky="ew")
 
         var_parameter.trace_add("write", lambda *args: self._set_engine_parameter(name, var_parameter.get()))
 
-    def _engine_parameter_frame_label(self, name: str) -> tk.Frame:
+    def _make_gui_parameter_frame_label(self, name: str) -> tk.Frame:
         frm_parameter = tk.Frame(self._frm_parameters)
         frm_parameter.pack(fill="x", expand=True, pady=(0, 8))
         frm_parameter.columnconfigure(1, weight=1)
@@ -664,8 +661,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         try:
             self._engine.send(f"SETPARAMETER {name} {value}")
         except checkers_engine.CheckersEngineError as err:
-            print(err, file=sys.stderr)
-            self._engine.stop(True)
+            self._print_err_and_stop_engine(err, self._engine)
 
     def _maybe_inform_engine_about_user_move(self, var_current_player: tk.IntVar, var_next_player: tk.IntVar, move: board.Move):
         if var_current_player.get() == self.HUMAN:
@@ -673,8 +669,7 @@ class MainWindow(base_main_window.BaseMainWindow):
                 try:
                     self._engine.send(f"MOVE {move}")
                 except checkers_engine.CheckersEngineError as err:
-                    print(err, file=sys.stderr)
-                    self._engine.stop(True)
+                    self._print_err_and_stop_engine(err, self._engine)
 
             self._stopped = False
             self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
@@ -685,33 +680,32 @@ class MainWindow(base_main_window.BaseMainWindow):
                 try:
                     self._engine.send("GO")
                 except checkers_engine.CheckersEngineError as err:
-                    print(err, file=sys.stderr)
-                    self._engine.stop(True)
+                    self._print_err_and_stop_engine(err, self._engine)
                 else:
-                    self._wait_for_engine_best_move()
+                    self._async_wait_for_engine_best_move()
 
-    def _enable_or_disable_user_input(self, var_next_player: tk.IntVar):
+    def _enable_or_disable_gui_user_input(self, var_next_player: tk.IntVar):
         match var_next_player.get():
             case self.HUMAN:
                 self._board.set_user_input(True)
             case self.COMPUTER:
                 self._board.set_user_input(False)
 
-    def _enable_or_disable_stop(self, var_next_player: tk.IntVar):
+    def _enable_or_disable_gui_stop(self, var_next_player: tk.IntVar):
         match var_next_player.get():
             case self.HUMAN:
                 self._btn_stop.config(state="disabled")
             case self.COMPUTER:
                 self._btn_stop.config(state="normal")
 
-    def _enable_or_disable_continue(self, var_next_player: tk.IntVar):
+    def _enable_or_disable_gui_continue(self, var_next_player: tk.IntVar):
         match var_next_player.get():
             case self.HUMAN:
                 self._btn_continue.config(state="disabled")
             case self.COMPUTER:
                 self._btn_continue.config(state="normal")
 
-    def _engine_busy(self) -> bool:
+    def _is_engine_busy(self) -> bool:
         if not self._engine.running():
             return False
 
@@ -736,8 +730,8 @@ class MainWindow(base_main_window.BaseMainWindow):
 
     def _on_piece_move(self, move: board.Move):
         self._play_sound()
-        self._update_status()
-        self._record_move(move, board.CheckersBoard._opponent(self._board.get_turn()))
+        self._update_gui_status()
+        self._record_gui_move(move, board.CheckersBoard._opponent(self._board.get_turn()))
 
         # Match on the current player
         match board.CheckersBoard._opponent(self._board.get_turn()):
@@ -774,8 +768,13 @@ class MainWindow(base_main_window.BaseMainWindow):
         # Match on the next player
         match self._board.get_turn():
             case board.Player.Black:
-                self._enable_or_disable_user_input(self._var_player_black)
+                self._enable_or_disable_gui_user_input(self._var_player_black)
                 self._maybe_start_engine_thinking(self._var_player_black)
             case board.Player.White:
-                self._enable_or_disable_user_input(self._var_player_white)
+                self._enable_or_disable_gui_user_input(self._var_player_white)
                 self._maybe_start_engine_thinking(self._var_player_white)
+
+    @staticmethod
+    def _print_err_and_stop_engine(err: checkers_engine.CheckersEngineError | common.EngineWaitError, engine: checkers_engine.CheckersEngine):
+        print(err, file=sys.stderr)
+        engine.stop(True)

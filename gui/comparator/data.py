@@ -76,7 +76,8 @@ def generate_report(report: SingleMatchReport):
             "played_moves": [move for move in report.rematch.played_moves]
         },
 
-        "datetime": report.datetime
+        "datetime": report.datetime,
+        "type": "single"
     }
 
     _write_report(f"report_single_match {report.datetime}.json", obj)

@@ -36,6 +36,10 @@ class CheckersEngine:
 
     def stop(self, force=False):
         # This method must be called to cleanly stop the subprocess
+        # May be called multiple times
+
+        if not self._running:
+            return
 
         assert self._process is not None
 
@@ -43,8 +47,8 @@ class CheckersEngine:
             self._process.terminate()
 
         try:
-            self._process.wait(timeout=10)
-        except subprocess.TimeoutExpired as err:
+            self._process.wait(timeout=10.0)
+        except subprocess.TimeoutExpired:
             self._process.kill()
 
         self._running = False

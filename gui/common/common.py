@@ -33,7 +33,11 @@ def _0_31_to_1_32(index: int) -> int:
     return index + 1
 
 
-def wait_for_engine_to_start(engine: checkers_engine.CheckersEngine, wait_time: float) -> tuple[bool, str]:
+class EngineWaitError(RuntimeError):
+    pass
+
+
+def wait_for_engine_to_start(engine: checkers_engine.CheckersEngine, wait_time: float):
     time_begin = time.time()
 
     while True:
@@ -41,16 +45,16 @@ def wait_for_engine_to_start(engine: checkers_engine.CheckersEngine, wait_time: 
             message = engine.receive()
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
-            return False, str(err)
+            raise EngineWaitError(f"An error occurred: {err}")
 
         if "READY" in message:
-            return True, "Engine started successfully"
+            return
 
         time_now = time.time()
 
         if time_now - time_begin > wait_time:
             engine.stop(True)
-            return False, "Engine failed to respond in a timely manner"
+            raise EngineWaitError("Failed to respond in a timely manner")
 
 
 def validate_position_string(string: str) -> bool:

@@ -29,10 +29,10 @@ def start_engine(engine: checkers_engine.CheckersEngine, engine_file_path: str, 
     except checkers_engine.CheckersEngineError as err:
         raise error.ComparatorError(f"Could not start engine: {err}")
 
-    result = common.wait_for_engine_to_start(engine, 3.0)
-
-    if not result[0]:
-        raise error.ComparatorError(f"Engine did not respond: {result[1]}")
+    try:
+        common.wait_for_engine_to_start(engine, 3.0)
+    except common.EngineWaitError as err:
+        raise error.ComparatorError(f"Engine did not respond: {err}")
 
     print_status(f"Started engine {color}", 1)
 
