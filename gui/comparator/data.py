@@ -79,7 +79,7 @@ def generate_report(report: SingleMatchReport):
         "datetime": report.datetime
     }
 
-    _write_report(f"single_match {report.datetime}.json", obj)
+    _write_report(f"report_single_match {report.datetime}.json", obj)
 
 
 def _write_report(name: str, obj: object):

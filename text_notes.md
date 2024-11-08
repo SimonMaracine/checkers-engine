@@ -324,7 +324,7 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   pentru Linux și Windows.
 - Ceea ce Python cu TKinter mi-a oferit în cele din urmă este un cod mai ușor de citit și de modificat, o dezvoltare
   mult mai accelerată și o bibliotecă cross-platform foarte robustă și simplă pentru gestionarea subproceselor.
-- Am recscris primul program, care acum este mult mai bun decât cel precedent.
+- Am rescris primul program, care acum este mult mai bun decât cel precedent.
 - Am decis ca programul care compară două motoare să fie un simplu program CLI (Command Line Interface), care să
   ruleze în fundal. Acesta atunci generează la final un raport cu toate meciurile jucate, cu rezultatele, parametrii
   folosiți etc. împreună cu toate mutările jucate, pentru redarea meciurilor. Astfel, al doilea program de interfață
@@ -337,3 +337,5 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   limbajului Python este dinamismul acestuia (dynamic typing). Însă Python, de-a lungul anilor a început să
   suporte tot mai mult scrierea cu tipuri (static typing), iar mypy este o unealtă esențială în impunerea acestui
   lucru.
+- Am extins protocolul, adăugând mesajele GETNAME și NAME. Fiecare motor va trebui să-și definească un nume, care
+  poate să conțină și versiunea acestuia.
