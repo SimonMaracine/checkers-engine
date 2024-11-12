@@ -541,7 +541,7 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _wait_for_engine_parameters(self):
         while True:
             try:
-                message = self._engine.receive()
+                message = self._engine.receive(1.0)
             except checkers_engine.CheckersEngineError as err:
                 self._print_err_and_stop_engine(err, self._engine)
                 return
@@ -567,7 +567,7 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _wait_for_engine_parameter(self):
         while True:
             try:
-                message = self._engine.receive()
+                message = self._engine.receive(1.0)
             except checkers_engine.CheckersEngineError as err:
                 self._print_err_and_stop_engine(err, self._engine)
                 return
@@ -601,7 +601,7 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _wait_for_engine_name(self):
         while True:
             try:
-                message = self._engine.receive()
+                message = self._engine.receive(1.0)
             except checkers_engine.CheckersEngineError as err:
                 self._print_err_and_stop_engine(err, self._engine)
                 return

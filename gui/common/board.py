@@ -285,7 +285,7 @@ class CheckersBoard:
 
         # Validate only the format
         if not CheckersBoard._valid_position_string(position_string or START_POSITION):
-            raise RuntimeError(f"Invalid position string: {position_string}")
+            raise RuntimeError(f"Invalid position string: {position_string}")  # FIXME handle error
 
         position = CheckersBoard._parse_position_string(position_string or START_POSITION)
 

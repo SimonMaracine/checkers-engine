@@ -27,7 +27,6 @@ def main(args: list[str]) -> int:
             print(f"An error occurred during the process: {err}", file=sys.stderr)
             return 1
     except KeyboardInterrupt:
-        print(file=sys.stderr)
         return 1
 
     return 0

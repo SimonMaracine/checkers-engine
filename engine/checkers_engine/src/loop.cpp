@@ -11,6 +11,8 @@
 #include "messages.hpp"
 #include "error.hpp"
 
+// https://en.cppreference.com/w/cpp/io/basic_istream/getline
+
 namespace loop {
     static std::string read_input() {
         // Doesn't return the new line
@@ -23,16 +25,25 @@ namespace loop {
 
             result += buffer;
 
+            // An error occurred...
             if (std::cin.bad()) {
                 std::cin.clear();
                 return result;
             }
 
-            if (std::cin.good()) {
-                return result;
-            } else {
+            // Extracted 256 characters without a new line
+            if (std::cin.fail()) {
                 std::cin.clear();
+                continue;
             }
+
+            // Just go on
+            if (std::cin.eof()) {
+                std::cin.clear();
+                return result;
+            }
+
+            return result;
         }
     }
 
@@ -93,7 +104,7 @@ namespace loop {
                 return 0;
             }
 
-            // Ignore invalid commnads
+            // Ignore invalid commands
             try {
                 execute_command(engine, tokens);
             } catch (error::InvalidCommand) {

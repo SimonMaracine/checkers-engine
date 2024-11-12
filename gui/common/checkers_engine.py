@@ -1,9 +1,11 @@
 import subprocess
-import threading
 import queue
+import select
+import copy
 
 # https://docs.python.org/3.12/library/subprocess.html/
 # https://docs.python.org/3.12/library/io.html/
+# https://docs.python.org/3/library/select.html/
 
 
 class CheckersEngineError(RuntimeError):
@@ -11,30 +13,21 @@ class CheckersEngineError(RuntimeError):
 
 
 class CheckersEngine:
-    READ_ERROR = object()
-
     def __init__(self):
         self._process: subprocess.Popen | None = None
-        self._reading_queue: queue.Queue[str | object] = queue.Queue()
+        self._reading_queue: queue.Queue[str] = queue.Queue()
+        self._read_buffer: bytearray = bytearray()
         self._running = False
 
     def start(self, file_path: str):
         try:
-            self._process = subprocess.Popen(
-                [file_path],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                text=True,
-                bufsize=1
-            )
-
-            self._running = True
+            self._process = subprocess.Popen([file_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=0)
         except Exception as err:
             raise CheckersEngineError(f"Could not start process: {err}")
 
-        threading.Thread(target=self._read).start()
+        self._running = True
 
-    def stop(self, force=False):
+    def stop(self, term: bool = False, timeout: float = 5.0):
         # This method must be called to cleanly stop the subprocess
         # May be called multiple times
 
@@ -42,14 +35,19 @@ class CheckersEngine:
             return
 
         assert self._process is not None
+        assert self._process.stdin is not None
+        assert self._process.stdout is not None
 
-        if force:
+        if term:
             self._process.terminate()
 
         try:
-            self._process.wait(timeout=10.0)
+            self._process.wait(timeout)
         except subprocess.TimeoutExpired:
             self._process.kill()
+
+        self._process.stdin.close()
+        self._process.stdout.close()
 
         self._running = False
 
@@ -61,35 +59,46 @@ class CheckersEngine:
         assert self._process.stdin is not None
 
         try:
-            self._process.stdin.write(command + "\n")
+            self._process.stdin.write(bytes(command, encoding="ascii") + b"\n")
             self._process.stdin.flush()
         except BrokenPipeError as err:
             raise CheckersEngineError(f"Could not send command: {err}")
         except Exception as err:
             raise CheckersEngineError(f"Could not send command: {err}")
 
-    def receive(self) -> str:
+    def receive(self, timeout: float = 0.0) -> str:
+        assert self._process is not None
+        assert self._process.stdout is not None
+
         try:
-            item = self._reading_queue.get_nowait()
+            return self._reading_queue.get_nowait()
         except queue.Empty:
+            pass
+
+        result, *_ = select.select([self._process.stdout.fileno()], [], [], timeout)
+
+        if not result:
             return ""
 
-        if item is self.READ_ERROR:
-            raise CheckersEngineError(self._reading_queue.get())
+        try:
+            data = self._process.stdout.read(32)
+        except Exception as err:
+            raise CheckersEngineError(f"Could not receive message: {err}")
 
-        assert isinstance(item, str)
+        self._read_buffer += data
 
-        return item
+        if b"\n" not in data:
+            return ""
 
-    def _read(self):
-        while self._running:
-            assert self._process is not None
-            assert self._process.stdout is not None
+        last_index = 0
 
-            try:
-                data = self._process.stdout.readline()
-            except Exception as err:
-                self._reading_queue.put_nowait(self.READ_ERROR)
-                self._reading_queue.put_nowait(f"Could not receive message: {err}")
-            else:
-                self._reading_queue.put_nowait(data)
+        for i, byte in enumerate(self._read_buffer):
+            if byte.to_bytes() == b"\n":
+                self._reading_queue.put_nowait(self._read_buffer[last_index:i].decode(encoding="ascii"))
+                last_index = i
+
+        remainder = copy.copy(self._read_buffer[last_index:])
+        self._read_buffer.clear()
+        self._read_buffer += remainder
+
+        return self._reading_queue.get_nowait()

@@ -1,4 +1,4 @@
-def print_status(value: str, indent: int = 0):
+def print_status(value: str, indent: int = 0, end_: str = "\n"):
     match indent:
         case 0:
             indentation = ""
@@ -11,4 +11,4 @@ def print_status(value: str, indent: int = 0):
         case _:
             indentation = ""
 
-    print(indentation + value)
+    print(indentation + value, end=end_, flush=True)

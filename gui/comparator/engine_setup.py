@@ -55,6 +55,9 @@ def initialize_engine(engine: checkers_engine.CheckersEngine, color: Color) -> Q
 
 
 def finalize_engine(engine: checkers_engine.CheckersEngine, color: Color):
+    if not engine.running():
+        return
+
     try:
         engine.send("QUIT")
     except checkers_engine.CheckersEngineError as err:
@@ -159,7 +162,7 @@ def _wait_for_engine_parameters(engine: checkers_engine.CheckersEngine) -> Queri
 
     while True:
         try:
-            message = engine.receive()
+            message = engine.receive(1.0)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(err)
@@ -190,7 +193,7 @@ def _wait_for_engine_parameters(engine: checkers_engine.CheckersEngine) -> Queri
 def _wait_for_engine_parameter(engine: checkers_engine.CheckersEngine) -> tuple[str, str]:
     while True:
         try:
-            message = engine.receive()
+            message = engine.receive(1.0)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(err)
@@ -206,7 +209,7 @@ def _wait_for_engine_parameter(engine: checkers_engine.CheckersEngine) -> tuple[
 def _wait_for_engine_move(engine: checkers_engine.CheckersEngine) -> str | None:
     while True:
         try:
-            message = engine.receive()
+            message = engine.receive(1.0)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(err)
@@ -221,7 +224,7 @@ def _wait_for_engine_move(engine: checkers_engine.CheckersEngine) -> str | None:
 def _wait_for_engine_name(engine: checkers_engine.CheckersEngine) -> str:
     while True:
         try:
-            message = engine.receive()
+            message = engine.receive(1.0)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(err)
