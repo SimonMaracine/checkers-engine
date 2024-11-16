@@ -17,12 +17,12 @@
     "total_white_engine_wins": 0,
     "total_draws": 0,
     "total_matches": 8,
-    "average_time": 0.545297771692276,
+    "average_time": 0.5596112608909607,
     "average_plies": 228.5,
     "matches": [
         {
             "position": "B:W1,2,3,4,15,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,20,29,30,31,32",
-            "time": 0.4348604679107666,
+            "time": 0.4313178062438965,
             "ending": "winner color black",
             "plies": 233,
             "played_moves": [
@@ -263,7 +263,7 @@
         },
         {
             "position": "B:W5,2,3,4,15,6,7,8,9,10,11,12:B21,17,23,24,25,26,27,20,29,30,31,32",
-            "time": 0.8012592792510986,
+            "time": 0.7673337459564209,
             "ending": "winner color black",
             "plies": 313,
             "played_moves": [
@@ -584,7 +584,7 @@
         },
         {
             "position": "B:W1,2,3,4,14,6,7,8,9,10,11,12:B21,13,23,24,25,26,27,28,29,30,31,32",
-            "time": 0.22996091842651367,
+            "time": 0.20798230171203613,
             "ending": "winner color black",
             "plies": 75,
             "played_moves": [
@@ -667,7 +667,7 @@
         },
         {
             "position": "B:W5,2,3,4,14,6,7,8,9,10,11,12:B21,13,23,20,25,26,27,28,29,30,31,32",
-            "time": 0.2157306671142578,
+            "time": 0.23618197441101074,
             "ending": "winner color black",
             "plies": 73,
             "played_moves": [
@@ -750,7 +750,7 @@
     "rematches": [
         {
             "position": "B:W1,2,3,4,15,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,20,29,30,31,32",
-            "time": 0.4348604679107666,
+            "time": 0.4313178062438965,
             "ending": "winner color black (swapped engines)",
             "plies": 233,
             "played_moves": [
@@ -991,7 +991,7 @@
         },
         {
             "position": "B:W5,2,3,4,15,6,7,8,9,10,11,12:B21,17,23,24,25,26,27,20,29,30,31,32",
-            "time": 0.8012592792510986,
+            "time": 0.7673337459564209,
             "ending": "winner color black (swapped engines)",
             "plies": 313,
             "played_moves": [
@@ -1312,7 +1312,7 @@
         },
         {
             "position": "B:W1,2,3,4,14,6,7,8,9,10,11,12:B21,13,23,24,25,26,27,28,29,30,31,32",
-            "time": 0.22996091842651367,
+            "time": 0.20798230171203613,
             "ending": "winner color black (swapped engines)",
             "plies": 75,
             "played_moves": [
@@ -1395,7 +1395,7 @@
         },
         {
             "position": "B:W5,2,3,4,14,6,7,8,9,10,11,12:B21,13,23,20,25,26,27,28,29,30,31,32",
-            "time": 0.2157306671142578,
+            "time": 0.23618197441101074,
             "ending": "winner color black (swapped engines)",
             "plies": 73,
             "played_moves": [
@@ -1475,6 +1475,6 @@
             ]
         }
     ],
-    "datetime": "Tue Nov 12 16:40:06 2024",
+    "datetime": "Sat Nov 16 15:55:20 2024",
     "type": "multiple"
 }

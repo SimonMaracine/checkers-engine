@@ -103,7 +103,7 @@ def _generate_single_match_report(report: SingleMatchReport):
         "type": "single"
     }
 
-    _write_report(f"report_single_match {report.datetime}.json", obj)
+    _write_report(f"report-single-match--{_format_datetime(report.datetime)}.json", obj)
 
 
 def _generate_multiple_matches_report(report: MultipleMatchesReport):
@@ -153,7 +153,7 @@ def _generate_multiple_matches_report(report: MultipleMatchesReport):
         "type": "multiple"
     }
 
-    _write_report(f"report_multiple_matches {report.datetime}.json", obj)
+    _write_report(f"report-multiple-matches--{_format_datetime(report.datetime)}.json", obj)
 
 
 def _write_report(name: str, obj: object):
@@ -162,3 +162,10 @@ def _write_report(name: str, obj: object):
             json.dump(obj, file, indent=4)
     except Exception as err:
         raise DataError(f"Could not write JSON file: {err}")
+
+
+def _format_datetime(datetime: str) -> str:
+    weekday, month, day, time, year = datetime.split(" ")
+    hour, minute, second = time.split(":")
+
+    return f"{weekday}-{month}-{day}--{hour}-{minute}-{second}--{year}"
