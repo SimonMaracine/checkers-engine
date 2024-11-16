@@ -224,7 +224,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._board.press_square_left_button(self._get_square(event.x, event.y))
 
     def _on_right_mouse_button_pressed(self, event):
-        self._board.press_square_right_button(self._get_square(event.x, event.y))
+        self._board.press_square_right_button()
 
     def _start_engine(self):
         if self._is_engine_busy() and not self._is_game_over():

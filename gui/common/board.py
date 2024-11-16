@@ -16,7 +16,7 @@ import dataclasses
 import re
 import copy
 import tkinter as tk
-from typing import Callable, Optional, Iterator
+from typing import Callable, Iterator
 
 from . import common
 
@@ -157,7 +157,7 @@ class CheckersBoard:
     INDIGO = "#958ECD"
     DARKER_INDIGO = "#6D63BB"
 
-    def __init__(self, on_piece_move: Optional[Callable[[Move], None]], canvas: tk.Canvas | None, redraw: bool = True):
+    def __init__(self, on_piece_move: Callable[[Move], None] | None, canvas: tk.Canvas | None, redraw: bool = True):
         # Game data
         self._board = _Board()
         self._turn = Player.Black
@@ -234,7 +234,7 @@ class CheckersBoard:
         else:
             assert False
 
-    def press_square_right_button(self, square: int):
+    def press_square_right_button(self):
         if not self._user_input:
             return
 
@@ -248,7 +248,7 @@ class CheckersBoard:
             self._canvas.delete("selection")
             self._canvas.delete("tiles")
 
-    def reset(self, position_string: Optional[str] = None):
+    def reset(self, position_string: str | None = None):
         self._clear()
         self._setup(position_string)
 
@@ -258,6 +258,9 @@ class CheckersBoard:
             raise RuntimeError(f"Invalid move string: {move_string}")
 
         move = CheckersBoard._parse_move_string(move_string)
+
+        if not move in self._legal_moves:
+            raise RuntimeError(f"Invalid move {move}")
 
         # Play the move
         match move.type():
@@ -280,7 +283,7 @@ class CheckersBoard:
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
 
-    def _setup(self, position_string: Optional[str] = None):
+    def _setup(self, position_string: str | None = None):
         START_POSITION = "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"
 
         # Validate only the format
