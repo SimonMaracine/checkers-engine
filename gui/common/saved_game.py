@@ -31,9 +31,7 @@ def load_game(file_path: str) -> Game:
     SCHEMA = {
         "type": "object",
         "properties": {
-            "position": {
-                "type": "string"
-            },
+            "position": { "type": "string" },
             "moves": {
                 "type": "array",
                 "items": { "type": "string" }

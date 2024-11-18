@@ -59,10 +59,8 @@ def run(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     if not match_file.positions:
         raise error.ComparatorError("No positions provided")
 
-    if len(match_file.positions) == 1:
-        report = _run_single_match(match_file, path_engine_black, path_engine_white)
-    else:
-        report = _run_multiple_matches(match_file, path_engine_black, path_engine_white)
+    match_runner = _run_single_match if len(match_file.positions) == 1 else _run_multiple_matches
+    report = match_runner(match_file, path_engine_black, path_engine_white)
 
     try:
         data.generate_report(report)

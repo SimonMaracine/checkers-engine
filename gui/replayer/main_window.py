@@ -138,16 +138,21 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _previous(self):
         assert self._game is not None
 
+        self._disable_control_buttons()
+
         self._move_index -= 1
         self._clear_moves()
         self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
         self._update_status()
         self._play_sound()
 
+        self._enable_control_buttons()
         self._check_control_buttons_for_previous()
 
     def _next(self):
         assert self._game is not None
+
+        self._disable_control_buttons()
 
         self._move_index += 1
         self._clear_moves()
@@ -155,6 +160,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._update_status()
         self._play_sound()
 
+        self._enable_control_buttons()
         self._check_control_buttons_for_next()
 
     def _update_status(self):
@@ -239,3 +245,11 @@ class MainWindow(base_main_window.BaseMainWindow):
 
         if self._move_index > 0:
             self._btn_previous.config(state="normal")
+
+    def _disable_control_buttons(self):
+        self._btn_previous.config(state="disabled")
+        self._btn_next.config(state="disabled")
+
+    def _enable_control_buttons(self):
+        self._btn_previous.config(state="normal")
+        self._btn_next.config(state="normal")

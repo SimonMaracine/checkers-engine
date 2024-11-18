@@ -1,6 +1,13 @@
 import json
 import enum
 import dataclasses
+from typing import Any
+
+import jsonschema
+
+from common import saved_game
+
+# https://json-schema.org/understanding-json-schema/reference/
 
 
 class DataError(RuntimeError):
@@ -69,6 +76,172 @@ def generate_report(report: SingleMatchReport | MultipleMatchesReport):
             _generate_single_match_report(report)
         case MultipleMatchesReport():
             _generate_multiple_matches_report(report)
+
+
+def extract_replay_file(file_path: str, match: str, index: int | None):
+    SCHEMA_SINGLE_MATCH = {
+        "type": "object",
+        "properties": {
+            "black_engine": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "parameters": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["name", "parameters"]
+            },
+            "white_engine": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "parameters": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["name", "parameters"]
+            },
+            "match": {
+                "type": "object",
+                "properties": {
+                    "position": { "type": "string" },
+                    "time": { "type": "number" },
+                    "ending": { "type": "string" },
+                    "plies": { "type": "integer" },
+                    "played_moves": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["position", "time", "ending", "plies", "played_moves"]
+            },
+            "rematch": {
+                "type": "object",
+                "properties": {
+                    "position": { "type": "string" },
+                    "time": { "type": "number" },
+                    "ending": { "type": "string" },
+                    "plies": { "type": "integer" },
+                    "played_moves": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["position", "time", "ending", "plies", "played_moves"]
+            },
+            "datetime": { "type": "string" },
+            "type": { "type": "string" }
+        },
+        "required": ["black_engine", "white_engine", "match", "rematch"]
+    }
+
+    SCHEMA_MULTIPLE_MATCHES = {
+        "type": "object",
+        "properties": {
+            "black_engine": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "parameters": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["name", "parameters"]
+            },
+            "white_engine": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "parameters": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": ["name", "parameters"]
+            },
+            "total_black_engine_wins": { "type": "integer" },
+            "total_white_engine_wins": { "type": "integer" },
+            "total_draws": { "type": "integer" },
+            "total_matches": { "type": "integer" },
+            "average_time": { "type": "number" },
+            "average_plies": { "type": "number" },
+            "matches": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "position": { "type": "string" },
+                        "time": { "type": "number" },
+                        "ending": { "type": "string" },
+                        "plies": { "type": "integer" },
+                        "played_moves": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        }
+                    },
+                    "required": ["position", "time", "ending", "plies", "played_moves"]
+                }
+            },
+            "rematches": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "position": { "type": "string" },
+                        "time": { "type": "number" },
+                        "ending": { "type": "string" },
+                        "plies": { "type": "integer" },
+                        "played_moves": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        }
+                    },
+                    "required": ["position", "time", "ending", "plies", "played_moves"]
+                }
+            },
+            "datetime": { "type": "string" },
+            "type": { "type": "string" }
+        },
+        "required": ["black_engine", "white_engine", "total_black_engine_wins", "total_white_engine_wins", "total_draws", "total_matches", "average_time", "average_plies", "matches", "rematches"]
+    }
+
+    try:
+        with open(file_path, "r") as file:
+            obj = json.load(file)
+    except Exception as err:
+        raise DataError(f"Could not parse JSON file: {err}")
+
+    try:
+        match obj["type"]:
+            case "single":
+                schema = SCHEMA_SINGLE_MATCH
+            case "multiple":
+                schema = SCHEMA_MULTIPLE_MATCHES
+    except KeyError as err:
+        raise DataError(f"Missing `type` field in JSON: {err}")
+
+    try:
+        jsonschema.validate(obj, schema)
+    except jsonschema.ValidationError as err:
+        raise DataError(f"Invalid JSON file: {err}")
+
+    match_or_group = obj[match]
+
+    if index is not None:
+        extracted_match = match_or_group[index]
+    else:
+        extracted_match = match_or_group
+
+    game = saved_game.Game(extracted_match["position"], extracted_match["played_moves"])
+
+    try:
+        saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}", game)
+    except saved_game.SavedGameError as err:
+        raise DataError(f"Could not write file: {err}")
 
 
 def _generate_single_match_report(report: SingleMatchReport):
@@ -156,7 +329,7 @@ def _generate_multiple_matches_report(report: MultipleMatchesReport):
     _write_report(f"report-multiple-matches--{_format_datetime(report.datetime)}.json", obj)
 
 
-def _write_report(name: str, obj: object):
+def _write_report(name: str, obj: Any):
     try:
         with open(name, "w") as file:
             json.dump(obj, file, indent=4)
