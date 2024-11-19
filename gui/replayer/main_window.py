@@ -1,8 +1,8 @@
 import sys
+import enum
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
-from typing import Optional
 
 from common import base_main_window
 from common import board
@@ -11,11 +11,15 @@ from common import saved_game
 
 
 class MainWindow(base_main_window.BaseMainWindow):
+    class _Button(enum.Enum):
+        Previous = enum.auto()
+        Next = enum.auto()
+
     def __init__(self, root: tk.Tk):
         super().__init__(root, "Checkers Replayer")
 
         self._board = board.CheckersBoard(None, self._cvs_board, False)
-        self._game: Optional[saved_game.Game] = None
+        self._game: saved_game.Game | None = None
         self._move_index = 0
 
         # Do this after all widgets are configured
@@ -141,8 +145,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._disable_control_buttons()
 
         self._move_index -= 1
-        self._clear_moves()
-        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
+        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index], self._Button.Previous)
         self._update_status()
         self._play_sound()
 
@@ -155,8 +158,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._disable_control_buttons()
 
         self._move_index += 1
-        self._clear_moves()
-        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index])
+        self._setup_position_and_play_moves(self._game.position, self._game.moves[0:self._move_index], self._Button.Next)
         self._update_status()
         self._play_sound()
 
@@ -206,6 +208,14 @@ class MainWindow(base_main_window.BaseMainWindow):
         # Make canvas know that it just got new widgets
         self._cvs_moves.update()
 
+    def _clear_move_last(self, player: board.Player):
+        match player:
+            case board.Player.Black:
+                self._frm_moves_black.winfo_children()[-1].destroy()
+                self._frm_moves_index.winfo_children()[-1].destroy()
+            case board.Player.White:
+                self._frm_moves_white.winfo_children()[-1].destroy()
+
     def _clear_moves(self):
         for child in self._frm_moves_index.winfo_children():
             child.destroy()
@@ -219,12 +229,17 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._cvs_moves.yview_moveto(0.0)
         self._cvs_moves.xview_moveto(0.0)
 
-    def _setup_position_and_play_moves(self, position: str, moves: list[str]):
+    def _setup_position_and_play_moves(self, position: str, moves: list[str], button: _Button):
         self._board.reset(position)
 
         for i, move in enumerate(moves):
-            self._record_move(move, self._board.get_turn(), i // 2 + 1)
             self._board.play_move(move)
+
+        match button:
+            case self._Button.Previous:
+                self._clear_move_last(self._board.get_turn())
+            case self._Button.Next:
+                self._record_move(move, board.opponent(self._board.get_turn()), i // 2 + 1)
 
         self._board.redraw()
 

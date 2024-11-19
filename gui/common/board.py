@@ -22,6 +22,9 @@ from . import common
 
 NULL_INDEX = -1
 
+def opponent(player: Player) -> Player:
+    return CheckersBoard._opponent(player)
+
 
 class GameOver(enum.Enum):
     None_ = enum.auto()

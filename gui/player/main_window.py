@@ -731,10 +731,10 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _on_piece_move(self, move: board.Move):
         self._play_sound()
         self._update_gui_status()
-        self._record_gui_move(move, board.CheckersBoard._opponent(self._board.get_turn()))
+        self._record_gui_move(move, board.opponent(self._board.get_turn()))
 
         # Match on the current player
-        match board.CheckersBoard._opponent(self._board.get_turn()):
+        match board.opponent(self._board.get_turn()):
             case board.Player.Black:
                 self._maybe_inform_engine_about_user_move(self._var_player_black, self._var_player_white, move)
             case board.Player.White:
