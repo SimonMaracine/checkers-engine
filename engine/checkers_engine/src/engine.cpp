@@ -97,7 +97,7 @@ namespace engine {
         if (moves) {
             // State needs to be restored in case of error
             auto backup_previous_positions {m_previous_positions};
-            auto backup_m_moves_played {m_moves_played};
+            auto backup_moves_played {m_moves_played};
 
             // Play the moves and store the positions and moves (for threefold repetition)
             for (const std::string& move : *moves) {
@@ -108,7 +108,7 @@ namespace engine {
                     game::play_move(m_position, move);
                 } catch (error::InvalidCommand) {
                     m_previous_positions = std::move(backup_previous_positions);
-                    m_moves_played = std::move(backup_m_moves_played);
+                    m_moves_played = std::move(backup_moves_played);
                     throw;
                 }
             }
@@ -120,7 +120,7 @@ namespace engine {
 
         // State needs to be restored in case of error
         auto backup_previous_positions {m_previous_positions};
-        auto backup_m_moves_played {m_moves_played};
+        auto backup_moves_played {m_moves_played};
 
         m_previous_positions.push_back(m_position);
         m_moves_played.push_back(game::parse_move_string(move));
@@ -129,7 +129,7 @@ namespace engine {
             game::play_move(m_position, move);
         } catch (error::InvalidCommand) {
             m_previous_positions = std::move(backup_previous_positions);
-            m_moves_played = std::move(backup_m_moves_played);
+            m_moves_played = std::move(backup_moves_played);
             throw;
         }
     }
@@ -138,8 +138,7 @@ namespace engine {
         ignore_invalid_command_on_init();
 
         if (m_search) {
-            // Ignore invalid command
-            return;
+            throw error::InvalidCommand();
         }
 
         // Set if the resulted move should be played or not
