@@ -8,6 +8,7 @@
 #include "game.hpp"
 #include "search_node.hpp"
 #include "evaluation.hpp"
+#include "parameters.hpp"
 
 namespace search {
     class Search {
@@ -15,9 +16,8 @@ namespace search {
         Search(
             std::condition_variable& cv,
             std::unique_lock<std::mutex>& lock,
-            bool& result_available,
-            int parameter_piece,
-            int parameter_depth
+            bool& best_move_available,
+            const parameters::Parameters& parameters
         );
 
         ~Search() = default;
@@ -30,16 +30,13 @@ namespace search {
         std::optional<game::Move> search(
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
-            const std::vector<game::Move>& moves_played
+            const std::vector<game::Move>& moves_played,
+            unsigned int depth
         );
 
         bool* get_should_stop() { return &m_should_stop; }
     private:
-        evaluation::Eval minimax(
-            unsigned int depth,
-            unsigned int plies_from_root,
-            const SearchNode& current_node
-        );
+        evaluation::Eval minimax(unsigned int depth, unsigned int plies_root, const SearchNode& current_node);
 
         const SearchNode& setup_nodes(
             const game::Position& position,
@@ -47,7 +44,6 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
-        bool is_advancement(const game::Board& board, const game::Move& move);
         void notify_result_available();
 
         bool m_notified_result_available {false};
@@ -59,10 +55,10 @@ namespace search {
         // position0, position1, position2, ..., positionN (current)
         std::vector<SearchNode> m_nodes;
 
-        evaluation::Parameters m_parameters;
+        parameters::SearchParameters m_parameters;
 
         std::condition_variable& m_cv;
         std::unique_lock<std::mutex>& m_lock;
-        bool& m_result_available;
+        bool& m_best_move_available;
     };
 }

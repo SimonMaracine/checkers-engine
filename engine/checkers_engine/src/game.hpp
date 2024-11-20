@@ -8,7 +8,7 @@ namespace search {
 }
 
 namespace game {
-    using Idx = signed char;  // Indices can be in the range [0, 31] or [1, 32]
+    using Idx = signed char;  // Indices may be in the range [0, 31] or [1, 32]
 
     inline constexpr Idx NULL_INDEX {-1};
 
@@ -58,11 +58,11 @@ namespace game {
     };
 
     void set_position(Position& position, const std::string& fen_string);
-    void make_move(Position& position, const std::string& move_string);
+    void play_move(Position& position, const std::string& move_string);
     Move parse_move_string(const std::string& move_string);
     Player opponent(Player player);
     bool is_move_invalid(const Move& move);
-    bool is_game_over_material(const search::SearchNode& node);
+    bool is_move_advancement(const game::Board& board, const game::Move& move);
 
     constexpr Idx _1_32_to_0_31(const Idx index) {
         return index - 1;

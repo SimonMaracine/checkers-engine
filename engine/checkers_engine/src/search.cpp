@@ -12,25 +12,24 @@ namespace search {
     Search::Search(
         std::condition_variable& cv,
         std::unique_lock<std::mutex>& lock,
-        bool& result_available,
-        int parameter_piece,
-        int parameter_depth
+        bool& best_move_available,
+        const parameters::Parameters& parameters
     )
-        : m_cv(cv), m_lock(lock), m_result_available(result_available) {
-        m_parameters.PIECE = parameter_piece;
-        m_parameters.DEPTH = parameter_depth;
+        : m_cv(cv), m_lock(lock), m_best_move_available(best_move_available) {
+        m_parameters.piece = std::get<0>(parameters.at("piece"));
     }
 
     std::optional<game::Move> Search::search(
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
-        const std::vector<game::Move>& moves_played
+        const std::vector<game::Move>& moves_played,
+        unsigned int depth
     ) {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         const auto start {std::chrono::steady_clock::now()};
 
-        const evaluation::Eval evaluation {minimax(static_cast<unsigned int>(m_parameters.DEPTH), 0, current_node)};
+        const evaluation::Eval evaluation {minimax(depth, 0, current_node)};
 
         const auto end {std::chrono::steady_clock::now()};
         const double time {std::chrono::duration<double>(end - start).count()};
@@ -48,27 +47,23 @@ namespace search {
         return std::make_optional(m_best_move);
     }
 
-    evaluation::Eval Search::minimax(
-        unsigned int depth,
-        unsigned int plies_from_root,
-        const SearchNode& current_node
-    ) {
+    evaluation::Eval Search::minimax(unsigned int depth, unsigned int plies_root, const SearchNode& current_node) {
         if (m_should_stop) {
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        if (depth == 0 || game::is_game_over_material(current_node)) {  // Game over
+        if (depth == 0 || is_game_over_material(current_node)) {  // Game over
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        if (forty_move_rule(current_node)) {  // Game over
+        if (is_forty_move_rule(current_node)) {  // Game over
             m_nodes_evaluated++;
             return 0;
         }
 
-        if (threefold_repetition_rule(current_node)) {  // Game over
+        if (is_threefold_repetition_rule(current_node)) {  // Game over
             m_nodes_evaluated++;
             return 0;
         }
@@ -90,13 +85,13 @@ namespace search {
                 moves::play_move(new_node, move);
 
                 const evaluation::Eval evaluation {
-                    minimax(depth - 1, plies_from_root + 1, new_node)
+                    minimax(depth - 1, plies_root + 1, new_node)
                 };
 
                 if (evaluation < min_evaluation) {
                     min_evaluation = evaluation;
 
-                    if (plies_from_root == 0) {
+                    if (plies_root == 0) {
                         m_best_move = move;
                         notify_result_available();
                     }
@@ -121,13 +116,13 @@ namespace search {
                 moves::play_move(new_node, move);
 
                 const evaluation::Eval evaluation {
-                    minimax(depth - 1, plies_from_root + 1, new_node)
+                    minimax(depth - 1, plies_root + 1, new_node)
                 };
 
                 if (evaluation > max_evaluation) {
                     max_evaluation = evaluation;
 
-                    if (plies_from_root == 0) {
+                    if (plies_root == 0) {
                         m_best_move = move;
                         notify_result_available();
                     }
@@ -149,7 +144,7 @@ namespace search {
             const game::Position& previous_position {previous_positions.at(i)};
             const game::Move& move_played {moves_played.at(i)};
 
-            if (is_advancement(previous_position.board, move_played)) {
+            if (game::is_move_advancement(previous_position.board, move_played)) {
                 // Clear any previous inserted nodes, as they don't need to be checked
                 m_nodes.clear();
             } else {
@@ -176,19 +171,9 @@ namespace search {
         return m_nodes.back();
     }
 
-    bool Search::is_advancement(const game::Board& board, const game::Move& move) {
-        // Must be called before the move is made
-
-        if (move.type == game::MoveType::Normal) {
-            return !game::is_king_piece(board[move.normal.source_index]);
-        } else {
-            return true;
-        }
-    }
-
     void Search::notify_result_available() {
         if (!m_notified_result_available) {
-            m_result_available = true;  // The lock is still being held
+            m_best_move_available = true;  // The lock is still being held
             m_lock.unlock();
             m_cv.notify_one();
 

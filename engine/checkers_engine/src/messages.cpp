@@ -57,7 +57,7 @@ namespace messages {
         std::cout << std::endl;
     }
 
-    void parameters(const std::unordered_map<std::string, engine::Parameter>& parameters) {
+    void parameters(const std::unordered_map<std::string, parameters::Parameter>& parameters) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "PARAMETERS";
@@ -69,7 +69,7 @@ namespace messages {
         std::cout << std::endl;
     }
 
-    void parameter(const std::string& name, const engine::Parameter& value) {
+    void parameter(const std::string& name, const parameters::Parameter& value) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "PARAMETER " << name;

@@ -163,7 +163,7 @@ namespace game {
         position.player = turn;
     }
 
-    void make_move(Position& position, const std::string& move_string) {
+    void play_move(Position& position, const std::string& move_string) {
         if (!valid_move_string(move_string)) {
             throw error::InvalidCommand();
         }
@@ -211,7 +211,7 @@ namespace game {
     bool is_move_invalid(const Move& move) {
         static constexpr Move INVALID_MOVE {};
 
-        if (move.type == game::MoveType::Normal) {
+        if (move.type == MoveType::Normal) {
             return (
                 move.normal.source_index == INVALID_MOVE.normal.source_index &&
                 move.normal.destination_index == INVALID_MOVE.normal.destination_index
@@ -221,22 +221,13 @@ namespace game {
         return false;
     }
 
-    bool is_game_over_material(const search::SearchNode& node) {
-        unsigned int black_pieces {0};
-        unsigned int white_pieces {0};
+    bool is_move_advancement(const game::Board& board, const game::Move& move) {
+        // Must be called right before the move is played on the board
 
-        for (Idx i {0}; i < 32; i++) {
-            if (static_cast<unsigned char>(node.board[i]) & 1 << 0) {  // TODO opt.
-                black_pieces++;
-            } else if (static_cast<unsigned char>(node.board[i]) & 1 << 1) {
-                white_pieces++;
-            }
-        }
-
-        if (black_pieces == 0 || white_pieces == 0) {
+        if (move.type == game::MoveType::Normal) {
+            return !is_king_piece(board[move.normal.source_index]);
+        } else {
             return true;
         }
-
-        return false;
     }
 }

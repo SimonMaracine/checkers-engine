@@ -11,31 +11,6 @@
 namespace engine {
     static const char* START_POSITION {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
 
-    static void reset_position(Engine& engine, const std::string& fen_string) {
-        game::set_position(engine.game.position, fen_string);
-
-        engine.game.position.plies = 0;
-        engine.game.position.plies_without_advancement = 0;
-
-        engine.game.previous_positions.clear();
-        engine.game.moves_played.clear();
-    }
-
-    static void initialize_parameters(Engine& engine) {
-        engine.minimax.parameters["piece"] = 10;
-        engine.minimax.parameters["depth"] = 4;
-    }
-
-    static void ignore_invalid_command_on_init(const Engine& engine, bool after_init = false) {
-        const bool command_invalid {
-            after_init ? engine.minimax.running : !engine.minimax.running
-        };
-
-        if (command_invalid) {
-            throw error::InvalidCommand();
-        }
-    }
-
     static int parse_int(const std::string& string) {
         try {
             return std::stoi(string);
@@ -67,40 +42,38 @@ namespace engine {
     }
 
     void Engine::init() {
-        ignore_invalid_command_on_init(*this, true);
+        ignore_invalid_command_on_init(true);
 
-        minimax.running = true;
+        m_running = true;
 
-        minimax.thread = std::thread([this]() {
+        m_thread = std::thread([this]() {
             while (true) {
                 // Check this condition also before wait
-                if (!minimax.running) {
+                if (!m_running) {
                     break;
                 }
 
                 // Wait for some work to do or to exit the loop
-                std::unique_lock<std::mutex> lock {minimax.mutex};
-                minimax.cv.wait(lock, [this]() { return static_cast<bool>(minimax.search_function); });
+                std::unique_lock<std::mutex> lock {m_mutex};
+                m_cv.wait(lock, [this]() { return m_search; });
 
-                if (!minimax.running) {
+                if (!m_running) {
                     break;
                 }
 
                 // Do the actual work now
                 // Search returns a valid result or nothing, if the game is over
-                const auto [best_move, dont_play] {minimax.search_function(lock)};
+                const auto best_move {search_move(lock)};
 
-                if (!dont_play) {
-                    if (best_move) {
-                        moves::play_move(game.position, *best_move);
+                if (!m_dont_play_move && best_move) {
+                    moves::play_move(m_position, *best_move);
 
-                        game.previous_positions.push_back(game.position);
-                        game.moves_played.push_back(*best_move);
-                    }
+                    m_previous_positions.push_back(m_position);
+                    m_moves_played.push_back(*best_move);
                 }
 
-                // Reset the search function as a signal for the cv
-                minimax.search_function = {};
+                // Reset the search flag as a signal for the cv
+                m_search = false;
 
                 // Message the GUI only now, to indicate that we are ready for another GO
                 // Best move is already something or nothing
@@ -108,119 +81,96 @@ namespace engine {
             }
         });
 
-        reset_position(*this, START_POSITION);
+        reset_position(START_POSITION);
 
         // Store the initial position too
-        game.previous_positions.push_back(game.position);
+        m_previous_positions.push_back(m_position);
 
         // Parameters must have default values at this stage
-        initialize_parameters(*this);
+        initialize_parameters();
     }
 
     void Engine::newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
         if (position) {
-            reset_position(*this, *position);
+            reset_position(*position);
         } else {
-            reset_position(*this, START_POSITION);
+            reset_position(START_POSITION);
         }
 
         // Store the initial position too, as it can be any specific position
-        game.previous_positions.push_back(game.position);
+        m_previous_positions.push_back(m_position);
 
         if (moves) {
             // Play the moves and store the positions and moves (for threefold repetition)
             for (const std::string& move : *moves) {
-                game::make_move(game.position, move);
+                game::play_move(m_position, move);
 
-                game.previous_positions.push_back(game.position);
-                game.moves_played.push_back(game::parse_move_string(move));
+                m_previous_positions.push_back(m_position);
+                m_moves_played.push_back(game::parse_move_string(move));
             }
         }
     }
 
     void Engine::move(const std::string& move) {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        game::make_move(game.position, move);
+        game::play_move(m_position, move);
 
-        game.previous_positions.push_back(game.position);
-        game.moves_played.push_back(game::parse_move_string(move));
+        m_previous_positions.push_back(m_position);
+        m_moves_played.push_back(game::parse_move_string(move));
     }
 
     void Engine::go(bool dont_play_move) {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        if (minimax.search_function) {
+        if (m_search) {
             // Ignore invalid
             return;
         }
 
-        // Set to true when a best move is set
-        bool result_available {false};
+        // Set if the resulted move should be played or not
+        m_dont_play_move = dont_play_move;
 
-        const auto search_function {
-            [this, dont_play_move, &result_available](std::unique_lock<std::mutex>& lock) {
-                search::Search instance {
-                    minimax.cv,
-                    lock,
-                    result_available,
-                    std::get<0>(minimax.parameters.at("piece")),
-                    std::get<0>(minimax.parameters.at("depth"))
-                };
-
-                minimax.should_stop = instance.get_should_stop();
-
-                auto previous_positions {game.previous_positions};
-                previous_positions.pop_back();
-
-                const auto best_move {
-                    instance.search(game.position, previous_positions, game.moves_played)
-                };
-
-                // Must reset this back to null here, after the search
-                minimax.should_stop = nullptr;
-
-                return std::make_pair(best_move, dont_play_move);
-            }
-        };
-
-        // Set the search fuction; it's a signal for the cv
+        // Set the search flag; it's a signal for the cv
         {
-            std::lock_guard<std::mutex> lock {minimax.mutex};
-            minimax.search_function = search_function;
+            std::lock_guard<std::mutex> lock {m_mutex};
+            m_search = true;
         }
-        minimax.cv.notify_one();
+        m_cv.notify_one();
 
         // Wait for the first result to become available; thus the engine cannot process a stop command and thus
         // the resulting move must be valid, or the game must be over
         {
-            std::unique_lock<std::mutex> lock {minimax.mutex};
-            minimax.cv.wait(lock, [&result_available]() { return result_available; });
+            std::unique_lock<std::mutex> lock {m_mutex};
+            m_cv.wait(lock, [this]() { return m_best_move_available; });
         }
+
+        // Best move flag must be reset after use
+        m_best_move_available = false;
     }
 
     void Engine::stop() {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        if (minimax.should_stop != nullptr) {
-            *minimax.should_stop = true;
+        if (m_should_stop != nullptr) {
+            *m_should_stop = true;
         }
     }
 
     void Engine::getparameters() const {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        messages::parameters(minimax.parameters);
+        messages::parameters(m_parameters);
     }
 
     void Engine::getparameter(const std::string& name) const {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        const auto iter {minimax.parameters.find(name)};
+        const auto iter {m_parameters.find(name)};
 
-        if (iter == minimax.parameters.cend()) {
+        if (iter == m_parameters.cend()) {
             return;
         }
 
@@ -228,15 +178,15 @@ namespace engine {
     }
 
     void Engine::setparameter(const std::string& name, const std::string& value) {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
-        auto iter {minimax.parameters.find(name)};
+        auto iter {m_parameters.find(name)};
 
-        if (iter == minimax.parameters.cend()) {
+        if (iter == m_parameters.cend()) {
             return;
         }
 
-        Parameter& parameter {iter->second};
+        parameters::Parameter& parameter {iter->second};
 
         switch (parameter.index()) {
             case 0:
@@ -260,30 +210,80 @@ namespace engine {
     void Engine::quit() {
         // Must not throw exceptions
 
-        if (!minimax.running) {
+        if (!m_running) {
             // There is nothing to do; the main loop handles the rest of the uninitialization
             return;
         }
 
-        if (minimax.search_function) {
+        if (m_search) {
             // The thread is already busy searching, just join it
 
-            minimax.running = false;
-
-            minimax.thread.join();
+            m_running = false;
+            m_thread.join();
         } else {
             // Set dummy work to wake up the thread from sleeping
-            minimax.search_function = [](std::unique_lock<std::mutex>&) -> SearchResult { return {}; };
-            minimax.running = false;
+            m_search = true;
+            m_running = false;
 
-            minimax.cv.notify_one();
-            minimax.thread.join();
+            m_cv.notify_one();
+            m_thread.join();
         }
     }
 
     void Engine::getname() const {
-        ignore_invalid_command_on_init(*this);
+        ignore_invalid_command_on_init();
 
         messages::name();
+    }
+
+    std::optional<game::Move> Engine::search_move(std::unique_lock<std::mutex>& lock) {
+        search::Search instance {
+            m_cv,
+            lock,
+            m_best_move_available,
+            m_parameters
+        };
+
+        m_should_stop = instance.get_should_stop();
+
+        auto previous_positions {m_previous_positions};
+        previous_positions.pop_back();
+
+        const auto best_move {instance.search(
+            m_position,
+            previous_positions,
+            m_moves_played,
+            static_cast<unsigned int>(std::get<0>(m_parameters.at("depth")))
+        )};
+
+        // Must reset this back to null here, after the search
+        m_should_stop = nullptr;
+
+        return best_move;
+    }
+
+    void Engine::reset_position(const std::string& fen_string) {
+        game::set_position(m_position, fen_string);
+
+        m_position.plies = 0;
+        m_position.plies_without_advancement = 0;
+
+        m_previous_positions.clear();
+        m_moves_played.clear();
+    }
+
+    void Engine::initialize_parameters() {
+        m_parameters["piece"] = 10;
+        m_parameters["depth"] = 4;
+    }
+
+    void Engine::ignore_invalid_command_on_init(bool after_init) const {
+        const bool command_invalid {
+            after_init ? m_running : !m_running
+        };
+
+        if (command_invalid) {
+            throw error::InvalidCommand();
+        }
     }
 }
