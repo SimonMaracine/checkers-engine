@@ -41,7 +41,7 @@ def compare(arguments: argparse.Namespace) -> int:
         return 1
 
     try:
-        comparator.run(match_file, arguments.path_black, arguments.path_white)
+        comparator.run_match(match_file, arguments.path_black, arguments.path_white)
     except error.ComparatorError as err:
         print(f"An error occurred during the process: {err}", file=sys.stderr)
         return 1

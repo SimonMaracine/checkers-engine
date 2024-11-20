@@ -14,7 +14,7 @@ class DataError(RuntimeError):
     pass
 
 
-class MatchEnding(enum.Enum):
+class RoundEnding(enum.Enum):
     WinnerBlack = enum.auto()
     WinnerWhite = enum.auto()
     TieBetweenBothPlayers = enum.auto()
@@ -38,44 +38,44 @@ class EngineStats:
 
 
 @dataclasses.dataclass(slots=True, frozen=True)
-class MatchResult:
+class RoundResult:
     position: str
-    ending: MatchEnding
+    ending: RoundEnding
     plies: int
     played_moves: list[str]
     time: float
 
 
 @dataclasses.dataclass(slots=True, frozen=True)
-class SingleMatchReport:
+class SingleRoundReport:
     black_engine: EngineStats
     white_engine: EngineStats
-    match: MatchResult
-    rematch: MatchResult
+    match: RoundResult
+    rematch: RoundResult
     datetime: str
 
 
 @dataclasses.dataclass(slots=True, frozen=True)
-class MultipleMatchesReport:
+class MultipleRoundsReport:
     black_engine: EngineStats
     white_engine: EngineStats
     total_black_engine_wins: int
     total_white_engine_wins: int
     total_draws: int
-    total_matches: int
+    total_rounds: int
     average_time: float
     average_plies: float
-    matches: list[MatchResult]
-    rematches: list[MatchResult]
+    match: list[RoundResult]
+    rematch: list[RoundResult]
     datetime: str
 
 
-def generate_report(report: SingleMatchReport | MultipleMatchesReport):
+def generate_report(report: SingleRoundReport | MultipleRoundsReport):
     match report:
-        case SingleMatchReport():
-            _generate_single_match_report(report)
-        case MultipleMatchesReport():
-            _generate_multiple_matches_report(report)
+        case SingleRoundReport():
+            _generate_single_round_report(report)
+        case MultipleRoundsReport():
+            _generate_multiple_rounds_report(report)
 
 
 def extract_replay_file(file_path: str, match: str, index: int | None):
@@ -166,10 +166,10 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
             "total_black_engine_wins": { "type": "integer" },
             "total_white_engine_wins": { "type": "integer" },
             "total_draws": { "type": "integer" },
-            "total_matches": { "type": "integer" },
+            "total_rounds": { "type": "integer" },
             "average_time": { "type": "number" },
             "average_plies": { "type": "number" },
-            "matches": {
+            "match": {
                 "type": "array",
                 "items": {
                     "type": "object",
@@ -186,7 +186,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
                     "required": ["position", "time", "ending", "plies", "played_moves"]
                 }
             },
-            "rematches": {
+            "rematch": {
                 "type": "array",
                 "items": {
                     "type": "object",
@@ -206,7 +206,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
             "datetime": { "type": "string" },
             "type": { "type": "string" }
         },
-        "required": ["black_engine", "white_engine", "total_black_engine_wins", "total_white_engine_wins", "total_draws", "total_matches", "average_time", "average_plies", "matches", "rematches"]
+        "required": ["black_engine", "white_engine", "total_black_engine_wins", "total_white_engine_wins", "total_draws", "total_rounds", "average_time", "average_plies", "matches", "rematches"]
     }
 
     try:
@@ -244,7 +244,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
         raise DataError(f"Could not write file: {err}")
 
 
-def _generate_single_match_report(report: SingleMatchReport):
+def _generate_single_round_report(report: SingleRoundReport):
     obj = {
         "black_engine": {
             "name": report.black_engine.name,
@@ -276,11 +276,11 @@ def _generate_single_match_report(report: SingleMatchReport):
         "type": "single"
     }
 
-    _write_report(f"report-single-match--{_format_datetime(report.datetime)}.json", obj)
+    _write_report(f"report-single-round-match--{_format_datetime(report.datetime)}.json", obj)
 
 
-def _generate_multiple_matches_report(report: MultipleMatchesReport):
-    assert report.total_black_engine_wins + report.total_white_engine_wins + report.total_draws == report.total_matches
+def _generate_multiple_rounds_report(report: MultipleRoundsReport):
+    assert report.total_black_engine_wins + report.total_white_engine_wins + report.total_draws == report.total_rounds
 
     obj = {
         "black_engine": {
@@ -296,11 +296,11 @@ def _generate_multiple_matches_report(report: MultipleMatchesReport):
         "total_black_engine_wins": report.total_black_engine_wins,
         "total_white_engine_wins": report.total_white_engine_wins,
         "total_draws": report.total_draws,
-        "total_matches": report.total_matches,
+        "total_rounds": report.total_rounds,
         "average_time": report.average_time,
         "average_plies": report.average_plies,
 
-        "matches": [
+        "match": [
             {
                 "position": match.position,
                 "time": match.time,
@@ -308,10 +308,10 @@ def _generate_multiple_matches_report(report: MultipleMatchesReport):
                 "plies": match.plies,
                 "played_moves": [move for move in match.played_moves]
             }
-            for match in report.matches
+            for match in report.match
         ],
 
-        "rematches": [
+        "rematch": [
             {
                 "position": rematch.position,
                 "time": rematch.time,
@@ -319,14 +319,14 @@ def _generate_multiple_matches_report(report: MultipleMatchesReport):
                 "plies": rematch.plies,
                 "played_moves": [move for move in rematch.played_moves]
             }
-            for rematch in report.matches
+            for rematch in report.rematch
         ],
 
         "datetime": report.datetime,
         "type": "multiple"
     }
 
-    _write_report(f"report-multiple-matches--{_format_datetime(report.datetime)}.json", obj)
+    _write_report(f"report-multiple-rounds-match--{_format_datetime(report.datetime)}.json", obj)
 
 
 def _write_report(name: str, obj: Any):

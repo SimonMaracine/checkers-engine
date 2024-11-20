@@ -55,11 +55,11 @@ def parse_match_file(file_path: str) -> MatchFile:
     return MatchFile(obj["positions"], obj["black_engine_parameters"], obj["white_engine_parameters"])
 
 
-def run(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
+def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     if not match_file.positions:
         raise error.ComparatorError("No positions provided")
 
-    match_runner = _run_single_match if len(match_file.positions) == 1 else _run_multiple_matches
+    match_runner = _run_single_round_match if len(match_file.positions) == 1 else _run_multiple_rounds_match
     report = match_runner(match_file, path_engine_black, path_engine_white)
 
     try:
@@ -70,10 +70,10 @@ def run(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     print_status(f"Generated report at {report.datetime}")
 
 
-def _run_single_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.SingleMatchReport:
+def _run_single_round_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.SingleRoundReport:
     assert len(match_file.positions) == 1
 
-    print_status("Running single match")
+    print_status("Running single round match")
 
     position = match_file.positions[0]
 
@@ -96,8 +96,8 @@ def _run_single_match(match_file: MatchFile, path_engine_black: str, path_engine
         black_engine_stats = _engine_stats(path_engine_black, black_engine)
         white_engine_stats = _engine_stats(path_engine_white, white_engine)
 
-        match_result = _run_match(position, black_engine, white_engine)
-        rematch_result = _run_match(position, white_engine, black_engine, True)
+        match_result = _run_round(position, black_engine, white_engine)
+        rematch_result = _run_round(position, white_engine, black_engine, True)
 
         engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
         engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
@@ -110,11 +110,11 @@ def _run_single_match(match_file: MatchFile, path_engine_black: str, path_engine
         white_engine.stop(True)
         raise
 
-    return data.SingleMatchReport(black_engine_stats, white_engine_stats, match_result, rematch_result, time.ctime())
+    return data.SingleRoundReport(black_engine_stats, white_engine_stats, match_result, rematch_result, time.ctime())
 
 
-def _run_multiple_matches(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MultipleMatchesReport:
-    print_status("Running multiple matches")
+def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MultipleRoundsReport:
+    print_status("Running multiple round match")
 
     for position in match_file.positions:
         if not common.validate_position_string(position):
@@ -136,14 +136,14 @@ def _run_multiple_matches(match_file: MatchFile, path_engine_black: str, path_en
         black_engine_stats = _engine_stats(path_engine_black, black_engine)
         white_engine_stats = _engine_stats(path_engine_white, white_engine)
 
-        matches: list[data.MatchResult] = []
-        rematches: list[data.MatchResult] = []
+        match_results: list[data.RoundResult] = []
+        rematch_results: list[data.RoundResult] = []
 
         for position in match_file.positions:
-            matches.append(_run_match(position, black_engine, white_engine))
+            match_results.append(_run_round(position, black_engine, white_engine))
 
         for position in match_file.positions:
-            rematches.append(_run_match(position, white_engine, black_engine, True))
+            rematch_results.append(_run_round(position, white_engine, black_engine, True))
 
         engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
         engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
@@ -156,26 +156,26 @@ def _run_multiple_matches(match_file: MatchFile, path_engine_black: str, path_en
         white_engine.stop(True)
         raise
 
-    win_black = lambda match_or_rematch: match_or_rematch.ending == data.MatchEnding.WinnerBlack
-    win_white = lambda match_or_rematch: match_or_rematch.ending == data.MatchEnding.WinnerWhite
-    tie = lambda match_or_rematch: match_or_rematch.ending == data.MatchEnding.TieBetweenBothPlayers
+    win_black = lambda round: round.ending == data.RoundEnding.WinnerBlack
+    win_white = lambda round: round.ending == data.RoundEnding.WinnerWhite
+    tie = lambda round: round.ending == data.RoundEnding.TieBetweenBothPlayers
 
-    return data.MultipleMatchesReport(
+    return data.MultipleRoundsReport(
         black_engine_stats,
         white_engine_stats,
-        sum(map(win_black, matches)) + sum(map(win_white, rematches)),
-        sum(map(win_white, matches)) + sum(map(win_black, rematches)),
-        sum(map(tie, matches)) + sum(map(tie, rematches)),
-        len(matches) + len(rematches),
-        statistics.mean([match.time for match in matches] + [rematch.time for rematch in rematches]),
-        statistics.mean([len(match.played_moves) for match in matches] + [len(rematch.played_moves) for rematch in rematches]),
-        matches,
-        rematches,
+        sum(map(win_black, match_results)) + sum(map(win_white, rematch_results)),
+        sum(map(win_white, match_results)) + sum(map(win_black, rematch_results)),
+        sum(map(tie, match_results)) + sum(map(tie, rematch_results)),
+        len(match_results) + len(rematch_results),
+        statistics.mean([round.time for round in match_results] + [round.time for round in rematch_results]),
+        statistics.mean([len(round.played_moves) for round in match_results] + [len(round.played_moves) for round in rematch_results]),
+        match_results,
+        rematch_results,
         time.ctime()
     )
 
 
-def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, rematch: bool = False) -> data.MatchResult:
+def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, rematch: bool = False) -> data.RoundResult:
     local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
 
@@ -192,7 +192,7 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
             current_player = white_engine
             next_player = black_engine
 
-    print_status(f"Begin {"rematch" if rematch else "match"}...", 1, " ")
+    print_status(f"Begin {"rematch round" if rematch else "round"}...", 1, " ")
 
     begin = time.time()
 
@@ -216,15 +216,15 @@ def _run_match(position: str, black_engine: checkers_engine.CheckersEngine, whit
             assert False
         case board.GameOver.WinnerBlack:
             print_status(f"Engine {"white" if rematch else "black"} won the game (color black)", 2)
-            ending = data.MatchEnding.WinnerBlack
+            ending = data.RoundEnding.WinnerBlack
         case board.GameOver.WinnerWhite:
             print_status(f"Engine {"black" if rematch else "white"} won the game (color white)", 2)
-            ending = data.MatchEnding.WinnerWhite
+            ending = data.RoundEnding.WinnerWhite
         case board.GameOver.TieBetweenBothPlayers:
             print_status("Tie between both players", 2)
-            ending = data.MatchEnding.TieBetweenBothPlayers
+            ending = data.RoundEnding.TieBetweenBothPlayers
 
-    return data.MatchResult(position, ending, len(moves_played), moves_played, end - begin)
+    return data.RoundResult(position, ending, len(moves_played), moves_played, end - begin)
 
 
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine) -> data.EngineStats:
