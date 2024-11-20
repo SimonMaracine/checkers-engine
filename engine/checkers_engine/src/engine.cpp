@@ -1,5 +1,6 @@
 #include "engine.hpp"
 
+#include <utility>
 #include <stdexcept>
 #include <cassert>
 
@@ -66,10 +67,10 @@ namespace engine {
                 const auto best_move {search_move(lock)};
 
                 if (!m_dont_play_move && best_move) {
-                    moves::play_move(m_position, *best_move);
-
                     m_previous_positions.push_back(m_position);
                     m_moves_played.push_back(*best_move);
+
+                    moves::play_move(m_position, *best_move);
                 }
 
                 // Reset the search flag as a signal for the cv
@@ -82,9 +83,6 @@ namespace engine {
         });
 
         reset_position(START_POSITION);
-
-        // Store the initial position too
-        m_previous_positions.push_back(m_position);
 
         // Parameters must have default values at this stage
         initialize_parameters();
@@ -99,16 +97,23 @@ namespace engine {
             reset_position(START_POSITION);
         }
 
-        // Store the initial position too, as it can be any specific position
-        m_previous_positions.push_back(m_position);
-
         if (moves) {
+            // State needs to be restored in case of error
+            auto backup_previous_positions {m_previous_positions};
+            auto backup_m_moves_played {m_moves_played};
+
             // Play the moves and store the positions and moves (for threefold repetition)
             for (const std::string& move : *moves) {
-                game::play_move(m_position, move);
-
                 m_previous_positions.push_back(m_position);
                 m_moves_played.push_back(game::parse_move_string(move));
+
+                try {
+                    game::play_move(m_position, move);
+                } catch (error::InvalidCommand) {
+                    m_previous_positions = std::move(backup_previous_positions);
+                    m_moves_played = std::move(backup_m_moves_played);
+                    throw;
+                }
             }
         }
     }
@@ -116,10 +121,20 @@ namespace engine {
     void Engine::move(const std::string& move) {
         ignore_invalid_command_on_init();
 
-        game::play_move(m_position, move);
+        // State needs to be restored in case of error
+        auto backup_previous_positions {m_previous_positions};
+        auto backup_m_moves_played {m_moves_played};
 
         m_previous_positions.push_back(m_position);
         m_moves_played.push_back(game::parse_move_string(move));
+
+        try {
+            game::play_move(m_position, move);
+        } catch (error::InvalidCommand) {
+            m_previous_positions = std::move(backup_previous_positions);
+            m_moves_played = std::move(backup_m_moves_played);
+            throw;
+        }
     }
 
     void Engine::go(bool dont_play_move) {
@@ -237,21 +252,13 @@ namespace engine {
     }
 
     std::optional<game::Move> Engine::search_move(std::unique_lock<std::mutex>& lock) {
-        search::Search instance {
-            m_cv,
-            lock,
-            m_best_move_available,
-            m_parameters
-        };
+        search::Search instance {m_cv, lock, m_best_move_available, m_parameters};
 
         m_should_stop = instance.get_should_stop();
 
-        auto previous_positions {m_previous_positions};
-        previous_positions.pop_back();
-
         const auto best_move {instance.search(
             m_position,
-            previous_positions,
+            m_previous_positions,
             m_moves_played,
             static_cast<unsigned int>(std::get<0>(m_parameters.at("depth")))
         )};

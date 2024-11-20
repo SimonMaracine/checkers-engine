@@ -51,8 +51,8 @@ namespace search {
         unsigned int m_nodes_evaluated {};
         game::Move m_best_move {};
 
-        // The current position and previous positions (for threefold repetition)
-        // position0, position1, position2, ..., positionN (current)
+        // The current and previous positions (for threefold repetition)
+        // node0, node1, node2, ..., nodeN (current)
         std::vector<SearchNode> m_nodes;
 
         parameters::SearchParameters m_parameters;

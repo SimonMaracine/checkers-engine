@@ -15,7 +15,7 @@
     },
     "match": {
         "position": "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32",
-        "time": 0.47402024269104004,
+        "time": 0.5007171630859375,
         "ending": "winner color black",
         "plies": 109,
         "played_moves": [
@@ -132,7 +132,7 @@
     },
     "rematch": {
         "position": "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32",
-        "time": 0.2704966068267822,
+        "time": 0.2595653533935547,
         "ending": "winner color black (swapped engines)",
         "plies": 99,
         "played_moves": [
@@ -237,6 +237,6 @@
             "11x4"
         ]
     },
-    "datetime": "Wed Nov 20 17:05:07 2024",
+    "datetime": "Wed Nov 20 18:17:33 2024",
     "type": "single"
 }

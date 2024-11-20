@@ -222,7 +222,7 @@ namespace game {
     }
 
     bool is_move_advancement(const game::Board& board, const game::Move& move) {
-        // Must be called right before the move is played on the board
+        // Must be called right before the move has been played on the board
 
         if (move.type == game::MoveType::Normal) {
             return !is_king_piece(board[move.normal.source_index]);

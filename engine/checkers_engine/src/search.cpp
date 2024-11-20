@@ -148,18 +148,17 @@ namespace search {
                 // Clear any previous inserted nodes, as they don't need to be checked
                 m_nodes.clear();
             } else {
-                m_nodes.push_back(
-                    create_node(
-                        previous_position.board,
-                        previous_position.player,
-                        previous_position.plies,
-                        previous_position.plies_without_advancement
-                    )
-                );
+                m_nodes.push_back({
+                    previous_position.board,
+                    previous_position.player,
+                    previous_position.plies,
+                    previous_position.plies_without_advancement,
+                    nullptr
+                });
             }
         }
 
-        m_nodes.push_back(create_node(position.board, position.player, position.plies, position.plies_without_advancement));
+        m_nodes.push_back({position.board, position.player, position.plies, position.plies_without_advancement, nullptr});
 
         // Go backwards and link the nodes
         for (std::size_t i {m_nodes.size() - 1}; i > 0; i--) {

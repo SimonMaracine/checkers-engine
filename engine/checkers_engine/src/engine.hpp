@@ -57,11 +57,10 @@ namespace engine {
         // Flag used after a search is complete; must be reset every time
         bool m_dont_play_move {};
 
-        // Internal position
+        // Internal position (current)
         game::Position m_position;
 
-        // position0, position1, position2, ..., positionN (current)
-        // This always stores the current position, which needs to be dropped when passed to the search function
+        // position0, position1, position2, ..., positionN (most recent)
         std::vector<game::Position> m_previous_positions;
 
         // move0, move1, move2, ..., moveN (most recent)
