@@ -9,6 +9,8 @@
 #include "search.hpp"
 #include "error.hpp"
 
+// https://en.cppreference.com/w/cpp/thread/condition_variable
+
 namespace engine {
     static const char* START_POSITION {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
 
@@ -49,14 +51,9 @@ namespace engine {
 
         m_thread = std::thread([this]() {
             while (true) {
-                // Check this condition also before wait
-                if (!m_running) {
-                    break;
-                }
-
                 // Wait for some work to do or to exit the loop
                 std::unique_lock<std::mutex> lock {m_mutex};
-                m_cv.wait(lock, [this]() { return m_search; });
+                m_cv.wait(lock, [this]() { return m_search || !m_running; });
 
                 if (!m_running) {
                     break;
@@ -73,7 +70,7 @@ namespace engine {
                     moves::play_move(m_position, *best_move);
                 }
 
-                // Reset the search flag as a signal for the cv
+                // Reset the search flag as a signal for the cv; the lock is still being held
                 m_search = false;
 
                 // Message the GUI only now, to indicate that we are ready for another GO
@@ -141,7 +138,7 @@ namespace engine {
         ignore_invalid_command_on_init();
 
         if (m_search) {
-            // Ignore invalid
+            // Ignore invalid command
             return;
         }
 
@@ -230,19 +227,19 @@ namespace engine {
             return;
         }
 
-        if (m_search) {
-            // The thread is already busy searching, just join it
-
-            m_running = false;
-            m_thread.join();
-        } else {
-            // Set dummy work to wake up the thread from sleeping
-            m_search = true;
-            m_running = false;
-
-            m_cv.notify_one();
-            m_thread.join();
+        // Do what stop would do
+        if (m_should_stop != nullptr) {
+            *m_should_stop = true;
         }
+
+        // Wake up the thread from sleeping, a signal for the cv
+        {
+            std::lock_guard<std::mutex> lock {m_mutex};
+            m_running = false;
+        }
+        m_cv.notify_one();
+
+        m_thread.join();
     }
 
     void Engine::getname() const {
@@ -260,7 +257,7 @@ namespace engine {
             m_position,
             m_previous_positions,
             m_moves_played,
-            static_cast<unsigned int>(std::get<0>(m_parameters.at("depth")))
+            std::get<0>(m_parameters.at("depth"))
         )};
 
         // Must reset this back to null here, after the search
@@ -285,9 +282,7 @@ namespace engine {
     }
 
     void Engine::ignore_invalid_command_on_init(bool after_init) const {
-        const bool command_invalid {
-            after_init ? m_running : !m_running
-        };
+        const bool command_invalid {after_init ? m_running : !m_running};
 
         if (command_invalid) {
             throw error::InvalidCommand();
