@@ -26,11 +26,11 @@ static double test_moves_from_position(unsigned int depth, const char* fen_strin
     game::Position position;
     game::set_position(position, fen_string);
 
-    const auto start {std::chrono::high_resolution_clock::now()};
+    const auto begin {std::chrono::high_resolution_clock::now()};
     generate_moves(depth, position);
     const auto end {std::chrono::high_resolution_clock::now()};
 
-    return std::chrono::duration<double>(end - start).count();
+    return std::chrono::duration<double>(end - begin).count();
 }
 
 int main() {
@@ -54,11 +54,11 @@ int main() {
 
     for (const auto time : times) {
         stream << time << '\n';
-    }
 
-    if (stream.fail()) {
-        std::cerr << "Could not write times to file\n";
-        return 1;
+        if (stream.fail()) {
+            std::cerr << "Could not write times to file\n";
+            return 1;
+        }
     }
 
     return 0;

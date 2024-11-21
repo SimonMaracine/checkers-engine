@@ -27,12 +27,12 @@ namespace search {
     ) {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
-        const auto start {std::chrono::steady_clock::now()};
+        const auto begin {std::chrono::steady_clock::now()};
 
         const evaluation::Eval evaluation {minimax(depth, 0, current_node)};
 
         const auto end {std::chrono::steady_clock::now()};
-        const double time {std::chrono::duration<double>(end - start).count()};
+        const double time {std::chrono::duration<double>(end - begin).count()};
 
         messages::info(m_nodes_evaluated, evaluation, time);
 

@@ -34,8 +34,6 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   fel de situație din joc, orice poziție. Pentru validarea șirurilor de caractere "FEN" am folosit expresiile regulate
   (engl. "regular expressions") implementate în biblioteca standard C++.
 
-<!-- TODO structura și organizarea proiectului pe module, versiunea de wxWidgets -->
-
 - Am început scrierea AI-ului (numit "engine", fiindcă acest termen este des utilizat, ex. "chess engine") prin
   implementarea comunicării dintre acesta și joc (interfața GUI).
 - Inițial m-am gândit la un sistem destul de complex de fire de execuție cu task-uri, în care firul principal (main)
@@ -134,13 +132,13 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   excepționale. Însă nu este obligat să îl folosească vreodată. Folosirea acestei facilități de debugging este la
   alegerea celui care scrie motorul folosind acest protocol.
 
-- Aplicația Checkers Player are sarcina de a crea un subproces, care să fie motorul și să comunice cu acesta. Inițial
+- Aplicația Checkers Player are sarcina de a creea un subproces, care să fie motorul și să comunice cu acesta. Inițial
   am vrut să utilizez o bibliotecă cross-platform pentru a-mi facilita această funcționalitate în limbajul C++
   pentru platformele Linux și Windows. Am găsit o bibliotecă pe GitHub care făcea exact ce-mi trebuia, dar am avut
   ulterior problema că citirea de la proces era cu blocare, însă îmi trebuia neapărat să fie fără blocare. Am
   semnalat acest lucru dezvoltatorilor, însă între timp am decis să scriu direct apelurile sistem necesare pentru
   crearea suprocesului și comunicarea cu acesta. Nu am putut folosi funcțiile standard popen și pclose, fiindcă
-  popen îmi crea o singură cale de comunicare, însă aveam nevoie de comunicare bidirecțională. De aceea a trebuit
+  popen îmi creea o singură cale de comunicare, însă aveam nevoie de comunicare bidirecțională. De aceea a trebuit
   să utilizez apelurile sistem pipe, fork, dup2, execv, select, read, write, waitpid, close. Câteva dintre aceste
   funcții sunt definite și în standardul POSIX, însă acest fapt nu ajută la nimic. Singura consecință este
   că aplicația GUI nu mai este cross-platform și că trebuie rescrisă porțiunea aceasta de cod cu apelurile
@@ -306,8 +304,6 @@ Text scris rapid, ca prototip. Ulterior trebuie integrat în documentație.
   întrucât nodurile sunt alocate pe stiva cadrului curent al algoritmului recursiv.
 - În acest mod este mult mai ușor să implementez threefold repetition.
 - Această idee de abordare mi-a venit atunci când mă uitam în mare la codul motorului de șah Stockfish.
-
-<!-- TODO de asemenea, este posibilă rularea algoritmului pe mai multe fire de execuție -->
 
 - Ca să pot testa anumite funcții din motorul de dame, am transformat aproape tot codul motorului într-o bibliotecă
   statică, pe care o leg cu executabilul, iar apoi am scris executabile separate pentru testare. Acestea, desigur,
