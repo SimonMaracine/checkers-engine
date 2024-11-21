@@ -11,8 +11,8 @@ A message can contain arbitrary whitespace around tokens.
 If a received command is invalid in any way, it should be ignored completely by the engine. Exception:
 move and position strings may not be validated.
 
-Messages can consist of any number of characters and, as a consequence, any number of tokens. Both the GUI and the
-engine should account for messages of any size.
+Messages can consist of any number of tokens, but they are limited to at most 65536 characters. Both the GUI and the
+engine should account for messages of any size up to the previous limit.
 
 Positions and moves are encoded as FEN strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
@@ -62,7 +62,7 @@ The engine must have a valid result even if it was stopped from thinking very ea
 
 ### GETPARAMETERS
 
-Asks the engine about its configurable parameters. The engine can have any number of parameters, even zero.
+Asks the engine about its configurable parameters. The engine can have any number of parameters up to 512, even 0.
 They must be initialized by the time the **INIT** command finishes processing.
 
 The possible types are:
