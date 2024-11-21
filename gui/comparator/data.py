@@ -39,6 +39,7 @@ class EngineStats:
 
 @dataclasses.dataclass(slots=True, frozen=True)
 class RoundResult:
+    index: int
     position: str
     ending: RoundEnding
     plies: int
@@ -47,16 +48,7 @@ class RoundResult:
 
 
 @dataclasses.dataclass(slots=True, frozen=True)
-class SingleRoundReport:
-    black_engine: EngineStats
-    white_engine: EngineStats
-    match: RoundResult
-    rematch: RoundResult
-    datetime: str
-
-
-@dataclasses.dataclass(slots=True, frozen=True)
-class MultipleRoundsReport:
+class MatchReport:
     black_engine: EngineStats
     white_engine: EngineStats
     total_black_engine_wins: int
@@ -70,75 +62,59 @@ class MultipleRoundsReport:
     datetime: str
 
 
-def generate_report(report: SingleRoundReport | MultipleRoundsReport):
-    match report:
-        case SingleRoundReport():
-            _generate_single_round_report(report)
-        case MultipleRoundsReport():
-            _generate_multiple_rounds_report(report)
+def generate_report(report: MatchReport):
+    assert report.total_black_engine_wins + report.total_white_engine_wins + report.total_draws == report.total_rounds
 
-
-def extract_replay_file(file_path: str, match: str, index: int | None):
-    SCHEMA_SINGLE_MATCH = {
-        "type": "object",
-        "properties": {
-            "black_engine": {
-                "type": "object",
-                "properties": {
-                    "name": { "type": "string" },
-                    "parameters": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                    }
-                },
-                "required": ["name", "parameters"]
-            },
-            "white_engine": {
-                "type": "object",
-                "properties": {
-                    "name": { "type": "string" },
-                    "parameters": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                    }
-                },
-                "required": ["name", "parameters"]
-            },
-            "match": {
-                "type": "object",
-                "properties": {
-                    "position": { "type": "string" },
-                    "time": { "type": "number" },
-                    "ending": { "type": "string" },
-                    "plies": { "type": "integer" },
-                    "played_moves": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                    }
-                },
-                "required": ["position", "time", "ending", "plies", "played_moves"]
-            },
-            "rematch": {
-                "type": "object",
-                "properties": {
-                    "position": { "type": "string" },
-                    "time": { "type": "number" },
-                    "ending": { "type": "string" },
-                    "plies": { "type": "integer" },
-                    "played_moves": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                    }
-                },
-                "required": ["position", "time", "ending", "plies", "played_moves"]
-            },
-            "datetime": { "type": "string" },
-            "type": { "type": "string" }
+    obj = {
+        "black_engine": {
+            "name": report.black_engine.name,
+            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.black_engine.parameters]
         },
-        "required": ["black_engine", "white_engine", "match", "rematch"]
+
+        "white_engine": {
+            "name": report.white_engine.name,
+            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
+        },
+
+        "total_black_engine_wins": report.total_black_engine_wins,
+        "total_white_engine_wins": report.total_white_engine_wins,
+        "total_draws": report.total_draws,
+        "total_rounds": report.total_rounds,
+        "average_time": report.average_time,
+        "average_plies": report.average_plies,
+
+        "match": [
+            {
+                "index": match.index,
+                "position": match.position,
+                "time": match.time,
+                "ending": str(match.ending),
+                "plies": match.plies,
+                "played_moves": [move for move in match.played_moves]
+            }
+            for match in report.match
+        ],
+
+        "rematch": [
+            {
+                "index": rematch.index,
+                "position": rematch.position,
+                "time": rematch.time,
+                "ending": f"{rematch.ending} (swapped engines)",
+                "plies": rematch.plies,
+                "played_moves": [move for move in rematch.played_moves]
+            }
+            for rematch in report.rematch
+        ],
+
+        "datetime": report.datetime
     }
 
-    SCHEMA_MULTIPLE_MATCHES = {
+    _write_report(f"report-match--{_format_datetime(report.datetime)}.json", obj)
+
+
+def extract_replay_file(file_path: str, match: str, index: int):
+    SCHEMA = {
         "type": "object",
         "properties": {
             "black_engine": {
@@ -174,6 +150,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
                 "items": {
                     "type": "object",
                     "properties": {
+                        "index": { "type": "integer" },
                         "position": { "type": "string" },
                         "time": { "type": "number" },
                         "ending": { "type": "string" },
@@ -183,7 +160,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
                             "items": { "type": "string" }
                         }
                     },
-                    "required": ["position", "time", "ending", "plies", "played_moves"]
+                    "required": ["index", "position", "time", "ending", "plies", "played_moves"]
                 }
             },
             "rematch": {
@@ -191,6 +168,7 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
                 "items": {
                     "type": "object",
                     "properties": {
+                        "index": { "type": "integer" },
                         "position": { "type": "string" },
                         "time": { "type": "number" },
                         "ending": { "type": "string" },
@@ -200,13 +178,23 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
                             "items": { "type": "string" }
                         }
                     },
-                    "required": ["position", "time", "ending", "plies", "played_moves"]
+                    "required": ["index", "position", "time", "ending", "plies", "played_moves"]
                 }
             },
-            "datetime": { "type": "string" },
-            "type": { "type": "string" }
+            "datetime": { "type": "string" }
         },
-        "required": ["black_engine", "white_engine", "total_black_engine_wins", "total_white_engine_wins", "total_draws", "total_rounds", "average_time", "average_plies", "matches", "rematches"]
+        "required": [
+            "black_engine",
+            "white_engine",
+            "total_black_engine_wins",
+            "total_white_engine_wins",
+            "total_draws",
+            "total_rounds",
+            "average_time",
+            "average_plies",
+            "match",
+            "rematch"
+        ]
     }
 
     try:
@@ -216,25 +204,14 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
         raise DataError(f"Could not parse JSON file: {err}")
 
     try:
-        match obj["type"]:
-            case "single":
-                schema = SCHEMA_SINGLE_MATCH
-            case "multiple":
-                schema = SCHEMA_MULTIPLE_MATCHES
-    except KeyError as err:
-        raise DataError(f"Missing `type` field in JSON: {err}")
-
-    try:
-        jsonschema.validate(obj, schema)
+        jsonschema.validate(obj, SCHEMA)
     except jsonschema.ValidationError as err:
         raise DataError(f"Invalid JSON file: {err}")
 
-    match_or_group = obj[match]
-
-    if index is not None:
-        extracted_match = match_or_group[index]
-    else:
-        extracted_match = match_or_group
+    try:
+        extracted_match = obj[match][index]
+    except (KeyError, IndexError) as err:
+        raise DataError(f"Invalid match or index: {err}")
 
     game = saved_game.Game(extracted_match["position"], extracted_match["played_moves"])
 
@@ -242,91 +219,6 @@ def extract_replay_file(file_path: str, match: str, index: int | None):
         saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}", game)
     except saved_game.SavedGameError as err:
         raise DataError(f"Could not write file: {err}")
-
-
-def _generate_single_round_report(report: SingleRoundReport):
-    obj = {
-        "black_engine": {
-            "name": report.black_engine.name,
-            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.black_engine.parameters]
-        },
-
-        "white_engine": {
-            "name": report.white_engine.name,
-            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
-        },
-
-        "match": {
-            "position": report.match.position,
-            "time": report.match.time,
-            "ending": str(report.match.ending),
-            "plies": report.match.plies,
-            "played_moves": [move for move in report.match.played_moves]
-        },
-
-        "rematch": {
-            "position": report.rematch.position,
-            "time": report.rematch.time,
-            "ending": f"{report.rematch.ending} (swapped engines)",
-            "plies": report.rematch.plies,
-            "played_moves": [move for move in report.rematch.played_moves]
-        },
-
-        "datetime": report.datetime,
-        "type": "single"
-    }
-
-    _write_report(f"report-single-round-match--{_format_datetime(report.datetime)}.json", obj)
-
-
-def _generate_multiple_rounds_report(report: MultipleRoundsReport):
-    assert report.total_black_engine_wins + report.total_white_engine_wins + report.total_draws == report.total_rounds
-
-    obj = {
-        "black_engine": {
-            "name": report.black_engine.name,
-            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.black_engine.parameters]
-        },
-
-        "white_engine": {
-            "name": report.white_engine.name,
-            "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
-        },
-
-        "total_black_engine_wins": report.total_black_engine_wins,
-        "total_white_engine_wins": report.total_white_engine_wins,
-        "total_draws": report.total_draws,
-        "total_rounds": report.total_rounds,
-        "average_time": report.average_time,
-        "average_plies": report.average_plies,
-
-        "match": [
-            {
-                "position": match.position,
-                "time": match.time,
-                "ending": str(match.ending),
-                "plies": match.plies,
-                "played_moves": [move for move in match.played_moves]
-            }
-            for match in report.match
-        ],
-
-        "rematch": [
-            {
-                "position": rematch.position,
-                "time": rematch.time,
-                "ending": f"{rematch.ending} (swapped engines)",
-                "plies": rematch.plies,
-                "played_moves": [move for move in rematch.played_moves]
-            }
-            for rematch in report.rematch
-        ],
-
-        "datetime": report.datetime,
-        "type": "multiple"
-    }
-
-    _write_report(f"report-multiple-rounds-match--{_format_datetime(report.datetime)}.json", obj)
 
 
 def _write_report(name: str, obj: Any):

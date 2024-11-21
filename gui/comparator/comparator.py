@@ -59,8 +59,7 @@ def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: 
     if not match_file.positions:
         raise error.ComparatorError("No positions provided")
 
-    match_runner = _run_single_round_match if len(match_file.positions) == 1 else _run_multiple_rounds_match
-    report = match_runner(match_file, path_engine_black, path_engine_white)
+    report = _run_multiple_rounds_match(match_file, path_engine_black, path_engine_white)
 
     try:
         data.generate_report(report)
@@ -70,51 +69,8 @@ def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: 
     print_status(f"Generated report at {report.datetime}")
 
 
-def _run_single_round_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.SingleRoundReport:
-    assert len(match_file.positions) == 1
-
-    print_status("Running single round match")
-
-    position = match_file.positions[0]
-
-    if not common.validate_position_string(position):
-        raise error.ComparatorError(f"Invalid position string `{position}`")
-
-    black_engine = checkers_engine.CheckersEngine()
-    white_engine = checkers_engine.CheckersEngine()
-
-    try:
-        engine_setup.start_engine(black_engine, path_engine_black, engine_setup.Color.Black)
-        engine_setup.start_engine(white_engine, path_engine_white, engine_setup.Color.White)
-
-        black_queried_params = engine_setup.initialize_engine(black_engine, engine_setup.Color.Black)
-        white_queried_params = engine_setup.initialize_engine(white_engine, engine_setup.Color.White)
-
-        engine_setup.setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, engine_setup.Color.Black)
-        engine_setup.setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, engine_setup.Color.White)
-
-        black_engine_stats = _engine_stats(path_engine_black, black_engine)
-        white_engine_stats = _engine_stats(path_engine_white, white_engine)
-
-        match_result = _run_round(position, black_engine, white_engine)
-        rematch_result = _run_round(position, white_engine, black_engine, True)
-
-        engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
-        engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
-    except KeyboardInterrupt:
-        engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
-        engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
-        raise
-    except error.ComparatorError:  # If one engine fails, the other one might still be up and running
-        black_engine.stop(True)
-        white_engine.stop(True)
-        raise
-
-    return data.SingleRoundReport(black_engine_stats, white_engine_stats, match_result, rematch_result, time.ctime())
-
-
-def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MultipleRoundsReport:
-    print_status("Running multiple round match")
+def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MatchReport:
+    print_status("Running match")
 
     for position in match_file.positions:
         if not common.validate_position_string(position):
@@ -139,11 +95,11 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         match_results: list[data.RoundResult] = []
         rematch_results: list[data.RoundResult] = []
 
-        for position in match_file.positions:
-            match_results.append(_run_round(position, black_engine, white_engine))
+        for i, position in enumerate(match_file.positions):
+            match_results.append(_run_round(position, black_engine, white_engine, i))
 
-        for position in match_file.positions:
-            rematch_results.append(_run_round(position, white_engine, black_engine, True))
+        for i, position in enumerate(match_file.positions):
+            rematch_results.append(_run_round(position, white_engine, black_engine, i, True))
 
         engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
         engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
@@ -160,7 +116,7 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     win_white = lambda round: round.ending == data.RoundEnding.WinnerWhite
     tie = lambda round: round.ending == data.RoundEnding.TieBetweenBothPlayers
 
-    return data.MultipleRoundsReport(
+    return data.MatchReport(
         black_engine_stats,
         white_engine_stats,
         sum(map(win_black, match_results)) + sum(map(win_white, rematch_results)),
@@ -175,7 +131,7 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     )
 
 
-def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, rematch: bool = False) -> data.RoundResult:
+def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, index: int, rematch: bool = False) -> data.RoundResult:
     local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
 
@@ -192,7 +148,7 @@ def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, whit
             current_player = white_engine
             next_player = black_engine
 
-    print_status(f"Begin {"rematch round" if rematch else "round"}...", 1, " ")
+    print_status(f"Begin {"rematch round" if rematch else "round"} {index + 1}...", 1, " ")
 
     begin = time.time()
 
@@ -224,7 +180,7 @@ def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, whit
             print_status("Tie between both players", 2)
             ending = data.RoundEnding.TieBetweenBothPlayers
 
-    return data.RoundResult(position, ending, len(moves_played), moves_played, end - begin)
+    return data.RoundResult(index, position, ending, len(moves_played), moves_played, end - begin)
 
 
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine) -> data.EngineStats:
