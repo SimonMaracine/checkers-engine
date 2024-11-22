@@ -1,6 +1,5 @@
 #include <csignal>
 
-#include "engine.hpp"
 #include "loop.hpp"
 #include "messages.hpp"
 

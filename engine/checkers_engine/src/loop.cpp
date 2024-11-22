@@ -112,4 +112,30 @@ namespace loop {
             }
         }
     }
+
+    // The linker may optimize this
+    namespace test {
+        int main_loop(engine::Engine& engine, std::string(*read_next_input)()) {
+            while (true) {
+                auto input {read_next_input()};
+
+                const std::vector<std::string> tokens {tokenize_input(std::move(input))};
+
+                if (tokens.empty()) {
+                    continue;
+                }
+
+                if (tokens.at(0) == "QUIT") {
+                    commands::quit(engine, tokens);
+                    return 0;
+                }
+
+                try {
+                    execute_command(engine, tokens);
+                } catch (error::InvalidCommand) {
+                    continue;
+                }
+            }
+        }
+    }
 }
