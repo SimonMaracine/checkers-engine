@@ -110,7 +110,7 @@ def generate_report(report: MatchReport):
         "datetime": report.datetime
     }
 
-    _write_report(f"report-match--{_format_datetime(report.datetime)}.json", obj)
+    _write_report(f"match--{_format_datetime(report.datetime)}.json", obj)
 
 
 def extract_replay_file(file_path: str, match: str, index: int):
@@ -216,7 +216,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
     game = saved_game.Game(extracted_match["position"], extracted_match["played_moves"])
 
     try:
-        saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}", game)
+        saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}.json", game)
     except saved_game.SavedGameError as err:
         raise DataError(f"Could not write file: {err}")
 

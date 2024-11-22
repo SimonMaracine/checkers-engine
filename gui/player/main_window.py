@@ -620,7 +620,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             to=256,
             textvariable=var_parameter,
             command=lambda: self._set_engine_parameter(name, var_parameter.get())
-        ).grid(row=0, column=1, sticky="ew")  # FIXME extend protocol to include possible values
+        ).grid(row=0, column=1, sticky="ew")  # TODO extend protocol to include possible values
 
     def _add_gui_parameter_float(self, name: str, value: str):
         frm_parameter = self._make_gui_parameter_frame_label(name)

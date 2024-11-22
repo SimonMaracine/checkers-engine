@@ -11,6 +11,7 @@
 """
 
 from __future__ import annotations
+import sys
 import enum
 import dataclasses
 import re
@@ -289,11 +290,14 @@ class CheckersBoard:
     def _setup(self, position_string: str | None = None):
         START_POSITION = "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"
 
-        # Validate only the format
-        if not CheckersBoard._valid_position_string(position_string or START_POSITION):
-            raise RuntimeError(f"Invalid position string: {position_string}")  # FIXME handle error
+        string = position_string or START_POSITION
 
-        position = CheckersBoard._parse_position_string(position_string or START_POSITION)
+        # Validate only the format
+        if not CheckersBoard._valid_position_string(string):
+            print(f"Invalid position string: {string}", file=sys.stderr)
+            string = START_POSITION
+
+        position = CheckersBoard._parse_position_string(string)
 
         self._board = position.board
         self._turn = position.turn

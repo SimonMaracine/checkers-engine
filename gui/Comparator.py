@@ -51,7 +51,7 @@ def compare(arguments: argparse.Namespace) -> int:
 
 def replay(arguments: argparse.Namespace) -> int:
     try:
-        data.extract_replay_file(arguments.report_file, arguments.match, arguments.index)  # TODO test, test, test
+        data.extract_replay_file(arguments.report_file, arguments.match, arguments.index)
     except data.DataError as err:
         print(f"Could not extract the replay file from report: {err}", file=sys.stderr)
         return 1
