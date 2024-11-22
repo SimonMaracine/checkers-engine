@@ -1,4 +1,5 @@
 import enum
+import time
 
 from common import checkers_engine
 from common import board
@@ -119,7 +120,7 @@ def play_engine_move(engine_current: checkers_engine.CheckersEngine, engine_next
         engine_current.stop(True)
         raise error.ComparatorError(err)
 
-    result = _wait_for_engine_move(engine_current)
+    result = _wait_for_engine_move(engine_current, 1.0)
 
     if result is None:
         try:
@@ -206,10 +207,14 @@ def _wait_for_engine_parameter(engine: checkers_engine.CheckersEngine) -> tuple[
             return type, value
 
 
-def _wait_for_engine_move(engine: checkers_engine.CheckersEngine) -> str | None:
+def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, max_seconds: float | None = None) -> str | None:
+    # Wait indefinitely, if max_seconds is None
+
+    begin = time.time()
+
     while True:
         try:
-            message = engine.receive(1.0)
+            message = engine.receive(0.1)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(err)
@@ -219,6 +224,17 @@ def _wait_for_engine_move(engine: checkers_engine.CheckersEngine) -> str | None:
                 return None
             else:
                 return message.split()[1]
+        elif "INFO" in message:
+            pass  # TODO retrieve depth
+
+        now = time.time()
+
+        if max_seconds is not None and now - begin > max_seconds:
+            try:
+                message = engine.send("STOP")
+            except checkers_engine.CheckersEngineError as err:
+                engine.stop(True)
+                raise error.ComparatorError(err)
 
 
 def _wait_for_engine_name(engine: checkers_engine.CheckersEngine) -> str:

@@ -8,7 +8,7 @@ import jsonschema
 from common import checkers_engine
 from common import board
 from common import common
-from . import engine_setup
+from . import engine_control
 from . import data
 from . import error
 from .print import *
@@ -80,14 +80,14 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     white_engine = checkers_engine.CheckersEngine()
 
     try:
-        engine_setup.start_engine(black_engine, path_engine_black, engine_setup.Color.Black)
-        engine_setup.start_engine(white_engine, path_engine_white, engine_setup.Color.White)
+        engine_control.start_engine(black_engine, path_engine_black, engine_control.Color.Black)
+        engine_control.start_engine(white_engine, path_engine_white, engine_control.Color.White)
 
-        black_queried_params = engine_setup.initialize_engine(black_engine, engine_setup.Color.Black)
-        white_queried_params = engine_setup.initialize_engine(white_engine, engine_setup.Color.White)
+        black_queried_params = engine_control.initialize_engine(black_engine, engine_control.Color.Black)
+        white_queried_params = engine_control.initialize_engine(white_engine, engine_control.Color.White)
 
-        engine_setup.setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, engine_setup.Color.Black)
-        engine_setup.setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, engine_setup.Color.White)
+        engine_control.setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, engine_control.Color.Black)
+        engine_control.setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, engine_control.Color.White)
 
         black_engine_stats = _engine_stats(path_engine_black, black_engine)
         white_engine_stats = _engine_stats(path_engine_white, white_engine)
@@ -101,11 +101,11 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         for i, position in enumerate(match_file.positions):
             rematch_results.append(_run_round(position, white_engine, black_engine, i, True))
 
-        engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
-        engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
+        engine_control.finalize_engine(black_engine, engine_control.Color.Black)
+        engine_control.finalize_engine(white_engine, engine_control.Color.White)
     except KeyboardInterrupt:
-        engine_setup.finalize_engine(black_engine, engine_setup.Color.Black)
-        engine_setup.finalize_engine(white_engine, engine_setup.Color.White)
+        engine_control.finalize_engine(black_engine, engine_control.Color.Black)
+        engine_control.finalize_engine(white_engine, engine_control.Color.White)
         raise
     except error.ComparatorError:  # If one engine fails, the other one might still be up and running
         black_engine.stop(True)
@@ -119,12 +119,14 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     return data.MatchReport(
         black_engine_stats,
         white_engine_stats,
+        len(match_results) + len(rematch_results),
         sum(map(win_black, match_results)) + sum(map(win_white, rematch_results)),
         sum(map(win_white, match_results)) + sum(map(win_black, rematch_results)),
         sum(map(tie, match_results)) + sum(map(tie, rematch_results)),
-        len(match_results) + len(rematch_results),
         statistics.mean([round.time for round in match_results] + [round.time for round in rematch_results]),
         statistics.mean([len(round.played_moves) for round in match_results] + [len(round.played_moves) for round in rematch_results]),
+        0.0,  # TODO
+        0.0,
         match_results,
         rematch_results,
         time.ctime()
@@ -135,8 +137,8 @@ def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, whit
     local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
 
-    engine_setup.setup_engine_board(black_engine, position)
-    engine_setup.setup_engine_board(white_engine, position)
+    engine_control.setup_engine_board(black_engine, position)
+    engine_control.setup_engine_board(white_engine, position)
 
     moves_played: list[str] = []
 
@@ -153,7 +155,7 @@ def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, whit
     begin = time.time()
 
     while True:
-        move, game_over = engine_setup.play_engine_move(current_player, next_player, local_board)
+        move, game_over = engine_control.play_engine_move(current_player, next_player, local_board)
 
         if move is not None:
             moves_played.append(move)
@@ -184,7 +186,7 @@ def _run_round(position: str, black_engine: checkers_engine.CheckersEngine, whit
 
 
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine) -> data.EngineStats:
-    name = engine_setup.get_engine_name(engine)
-    queried_params = engine_setup.get_engine_parameters(engine)
+    name = engine_control.get_engine_name(engine)
+    queried_params = engine_control.get_engine_parameters(engine)
 
     return data.EngineStats(name, queried_params)
