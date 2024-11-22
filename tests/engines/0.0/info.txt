@@ -1,1 +1,1 @@
-Search algorithm is very bare-bones. Can't compare it yet with other versions.
+Search algorithm is very bare-bones. Can't compare it with other versions yet.
