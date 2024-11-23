@@ -1,3 +1,3 @@
 #! /bin/bash
 
-perf stat -e cycles,instructions,L1-dcache-loads,L1-dcache-load-misses $1
+perf stat -e cycles,instructions,branches,branch-misses,cache-references,cache-misses $1
