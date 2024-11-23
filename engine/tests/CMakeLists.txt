@@ -11,14 +11,14 @@ add_executable(move-generation "src/move_generation.cpp")
 target_link_libraries(move-generation PRIVATE checkers-engine-core GTest::gtest_main)
 set_compile_options_features(move-generation)
 
-# Moves speed benchmark
+# Moves performance
 
-add_executable(move-generation-speed "src/move_generation_speed.cpp")
-target_link_libraries(move-generation-speed PRIVATE checkers-engine-core)
-set_compile_options_features(move-generation-speed)
+add_executable(move-generation-perf "src/move_generation_perf.cpp")
+target_link_libraries(move-generation-perf PRIVATE checkers-engine-core)
+set_compile_options_features(move-generation-perf)
 
-# Search cache benchmark
+# Search performance
 
-add_executable(search-cache "src/search_cache.cpp")
-target_link_libraries(search-cache PRIVATE checkers-engine-core)
-set_compile_options_features(search-cache)
+add_executable(search-perf "src/search_perf.cpp")
+target_link_libraries(search-perf PRIVATE checkers-engine-core)
+set_compile_options_features(search-perf)
