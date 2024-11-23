@@ -1,17 +1,10 @@
 #pragma once
 
-#ifdef CHECKERS_ENGINE_TEST
-    #include <string>
-#endif
+#include <string>
 
 #include "engine.hpp"
 
 namespace loop {
-    int main_loop(engine::Engine& engine);
-
-#ifdef CHECKERS_ENGINE_TEST
-    namespace test {
-        int main_loop(engine::Engine& engine, std::string(*read_next_input)());
-    }
-#endif
+    std::string read_input();
+    int main_loop(engine::Engine& engine, std::string(*read_input)());
 }

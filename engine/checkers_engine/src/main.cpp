@@ -12,5 +12,5 @@ int main() {
 
     messages::ready();
 
-    return loop::main_loop(checkers_engine);
+    return loop::main_loop(checkers_engine, loop::read_input);
 }

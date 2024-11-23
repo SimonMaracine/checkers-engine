@@ -14,39 +14,6 @@
 // https://en.cppreference.com/w/cpp/io/basic_istream/getline
 
 namespace loop {
-    static std::string read_input() {
-        // Doesn't return the new line
-
-        std::string result;
-
-        while (true) {
-            char buffer[256] {};
-            std::cin.getline(buffer, sizeof(buffer));
-
-            result += buffer;
-
-            // An error occurred...
-            if (std::cin.bad()) {
-                std::cin.clear();
-                return result;
-            }
-
-            // Extracted 256 characters without a new line
-            if (std::cin.fail()) {
-                std::cin.clear();
-                continue;
-            }
-
-            // Just go on
-            if (std::cin.eof()) {
-                std::cin.clear();
-                return result;
-            }
-
-            return result;
-        }
-    }
-
     static std::vector<std::string> tokenize_input(std::string&& input) {
         std::vector<std::string> tokens;
 
@@ -88,7 +55,40 @@ namespace loop {
         }
     }
 
-    int main_loop(engine::Engine& engine) {
+    std::string read_input() {
+        // Doesn't return the new line
+
+        std::string result;
+
+        while (true) {
+            char buffer[256] {};
+            std::cin.getline(buffer, sizeof(buffer));
+
+            result += buffer;
+
+            // An error occurred...
+            if (std::cin.bad()) {
+                std::cin.clear();
+                return result;
+            }
+
+            // Extracted 256 characters without a new line
+            if (std::cin.fail()) {
+                std::cin.clear();
+                continue;
+            }
+
+            // Just go on
+            if (std::cin.eof()) {
+                std::cin.clear();
+                return result;
+            }
+
+            return result;
+        }
+    }
+
+    int main_loop(engine::Engine& engine, std::string(*read_input)()) {
         while (true) {
             auto input {read_input()};
 
@@ -109,32 +109,6 @@ namespace loop {
                 execute_command(engine, tokens);
             } catch (error::InvalidCommand) {
                 continue;
-            }
-        }
-    }
-
-    // The linker may optimize this
-    namespace test {
-        int main_loop(engine::Engine& engine, std::string(*read_next_input)()) {
-            while (true) {
-                auto input {read_next_input()};
-
-                const std::vector<std::string> tokens {tokenize_input(std::move(input))};
-
-                if (tokens.empty()) {
-                    continue;
-                }
-
-                if (tokens.at(0) == "QUIT") {
-                    commands::quit(engine, tokens);
-                    return 0;
-                }
-
-                try {
-                    execute_command(engine, tokens);
-                } catch (error::InvalidCommand) {
-                    continue;
-                }
             }
         }
     }
