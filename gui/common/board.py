@@ -287,6 +287,31 @@ class CheckersBoard:
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
 
+    def get_position(self) -> str:
+        black: list[str] = []
+        white: list[str] = []
+
+        for i, square in enumerate(self._board):
+            match square:
+                case _Square.None_:
+                    pass
+                case _Square.Black:
+                    black.append(str(i))
+                    pass
+                case _Square.BlackKing:
+                    black.append(f"K{i}")
+                    pass
+                case _Square.White:
+                    white.append(str(i))
+                    pass
+                case _Square.WhiteKing:
+                    white.append(f"K{i}")
+                    pass
+
+        turn = "B" if self._turn == Player.Black else "W"
+
+        return f"{turn}:W{",".join(white)}:B{",".join(black)}"
+
     def _setup(self, position_string: str | None = None):
         START_POSITION = "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"
 
@@ -822,7 +847,7 @@ class CheckersBoard:
 
     @staticmethod
     def _valid_move_string(string: str) -> bool:
-        return re.match("([0-9]+x)+[0-9]+", string) is not None
+        return re.match("([0-9]+(x|-))+[0-9]+", string) is not None
 
     @staticmethod
     def _parse_move_string(string: str) -> Move:
@@ -837,7 +862,7 @@ class CheckersBoard:
 
     @staticmethod
     def _parse_squares(string: str) -> list[int]:
-        tokens = string.split("x")
+        tokens = string.replace("-", "x").split("x")
 
         squares = [int(token) for token in tokens]
 
