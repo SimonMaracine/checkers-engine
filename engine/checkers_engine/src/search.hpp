@@ -9,6 +9,7 @@
 #include "search_node.hpp"
 #include "evaluation.hpp"
 #include "parameters.hpp"
+#include "transposition_table.hpp"
 
 namespace search {
     class Search {
@@ -17,6 +18,7 @@ namespace search {
             std::condition_variable& cv,
             std::unique_lock<std::mutex>& lock,
             bool& best_move_available,
+            transposition_table::TranspositionTable& transposition_table,
             const parameters::Parameters& parameters
         );
 
@@ -60,5 +62,7 @@ namespace search {
         std::condition_variable& m_cv;
         std::unique_lock<std::mutex>& m_lock;
         bool& m_best_move_available;
+
+        transposition_table::TranspositionTable& m_transposition_table;
     };
 }

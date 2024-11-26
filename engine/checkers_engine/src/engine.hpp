@@ -9,6 +9,7 @@
 
 #include "game.hpp"
 #include "parameters.hpp"
+#include "transposition_table.hpp"
 
 namespace engine {
     class Engine {
@@ -32,7 +33,6 @@ namespace engine {
         void ignore_invalid_command_on_init(bool after_init = false) const;
 
         /* TODO
-            transposition table
             opening book
             other
         */
@@ -41,6 +41,7 @@ namespace engine {
         std::condition_variable m_cv;
         std::mutex m_mutex;
         parameters::Parameters m_parameters;
+        transposition_table::TranspositionTable m_transposition_table;
 
         // Setup at every instance invocation
         bool* m_should_stop {nullptr};

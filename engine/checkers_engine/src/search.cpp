@@ -13,9 +13,10 @@ namespace search {
         std::condition_variable& cv,
         std::unique_lock<std::mutex>& lock,
         bool& best_move_available,
+        transposition_table::TranspositionTable& transposition_table,
         const parameters::Parameters& parameters
     )
-        : m_cv(cv), m_lock(lock), m_best_move_available(best_move_available) {
+        : m_cv(cv), m_lock(lock), m_best_move_available(best_move_available), m_transposition_table(transposition_table) {
         m_parameters.piece = std::get<0>(parameters.at("piece"));
     }
 
@@ -68,6 +69,17 @@ namespace search {
             return 0;
         }
 
+        const auto* entry {m_transposition_table.retrieve({ current_node.board, current_node.player }, depth)};
+
+        if (entry != nullptr) {
+            if (plies_root == 0) {
+                m_best_move = entry->move;
+                notify_result_available();
+            }
+
+            return entry->eval;
+        }
+
         if (current_node.player == game::Player::Black) {
             evaluation::Eval min_evaluation {std::numeric_limits<evaluation::Eval>::max()};
 
@@ -77,6 +89,8 @@ namespace search {
                 m_nodes_evaluated++;
                 return evaluation::static_evaluation(current_node, m_parameters);
             }
+
+            game::Move best_move_in_position {};
 
             for (const game::Move& move : moves) {
                 SearchNode new_node;
@@ -92,11 +106,14 @@ namespace search {
                     min_evaluation = evaluation;
 
                     if (plies_root == 0) {
+                        best_move_in_position = move;
                         m_best_move = move;
                         notify_result_available();
                     }
                 }
             }
+
+            m_transposition_table.store({ current_node.board, current_node.player }, depth, min_evaluation, best_move_in_position);
 
             return min_evaluation;
         } else {
@@ -108,6 +125,8 @@ namespace search {
                 m_nodes_evaluated++;
                 return evaluation::static_evaluation(current_node, m_parameters);
             }
+
+            game::Move best_move_in_position {};
 
             for (const game::Move& move : moves) {
                 SearchNode new_node;
@@ -123,11 +142,14 @@ namespace search {
                     max_evaluation = evaluation;
 
                     if (plies_root == 0) {
+                        best_move_in_position = move;
                         m_best_move = move;
                         notify_result_available();
                     }
                 }
             }
+
+            m_transposition_table.store({ current_node.board, current_node.player }, depth, max_evaluation, best_move_in_position);
 
             return max_evaluation;
         }

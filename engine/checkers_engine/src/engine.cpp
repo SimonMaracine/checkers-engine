@@ -248,7 +248,9 @@ namespace engine {
     }
 
     std::optional<game::Move> Engine::search_move(std::unique_lock<std::mutex>& lock) {
-        search::Search instance {m_cv, lock, m_best_move_available, m_parameters};
+        m_transposition_table.clear();
+
+        search::Search instance {m_cv, lock, m_best_move_available, m_transposition_table, m_parameters};
 
         m_should_stop = instance.get_should_stop();
 
