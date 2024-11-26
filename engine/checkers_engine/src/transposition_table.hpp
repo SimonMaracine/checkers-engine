@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <cstdint>
-#include <optional>
+#include <utility>
 
 #include "game.hpp"
 #include "evaluation.hpp"
@@ -10,6 +10,7 @@
 // https://www.boost.org/doc/libs/1_86_0/libs/container_hash/doc/html/hash.html
 // https://en.cppreference.com/w/cpp/container/unordered_map
 // https://web.archive.org/web/20071031100051/http://www.brucemo.com/compchess/programming/hashing.htm
+// https://www.chessprogramming.org/Node_Types
 
 namespace transposition_table {
     struct Position {
@@ -52,16 +53,36 @@ struct std::hash<transposition_table::Position> {
 };
 
 namespace transposition_table {
+    enum class NodeType {
+        Pv,
+        Cut,
+        All
+    };
+
     struct TableEntry {
         unsigned int depth {};
+        NodeType node_type {};
         evaluation::Eval eval {};
         game::Move move {};
     };
 
     class TranspositionTable {
     public:
-        void store(const Position& position, unsigned int depth, evaluation::Eval eval, const game::Move& move);
-        const TableEntry* retrieve(const Position& position, unsigned int depth) const;
+        void store(
+            const Position& position,
+            unsigned int depth,
+            NodeType node_type,
+            evaluation::Eval eval,
+            const game::Move& move
+        );
+
+        std::pair<evaluation::Eval, game::Move> retrieve(
+            const Position& position,
+            unsigned int depth,
+            evaluation::Eval alpha,
+            evaluation::Eval beta
+        ) const;
+
         void clear();
         float load_factor() const;
     private:

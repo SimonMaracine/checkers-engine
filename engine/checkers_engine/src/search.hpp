@@ -11,6 +11,9 @@
 #include "parameters.hpp"
 #include "transposition_table.hpp"
 
+// https://web.archive.org/web/20071030220820/http://www.brucemo.com/compchess/programming/minmax.htm
+// https://web.archive.org/web/20071030084528/http://www.brucemo.com/compchess/programming/alphabeta.htm
+
 namespace search {
     class Search {
     public:
@@ -38,7 +41,13 @@ namespace search {
 
         bool* get_should_stop() { return &m_should_stop; }
     private:
-        evaluation::Eval minimax(unsigned int depth, unsigned int plies_root, const SearchNode& current_node);
+        evaluation::Eval alpha_beta(
+            unsigned int depth,
+            unsigned int plies_root,
+            evaluation::Eval alpha,
+            evaluation::Eval beta,
+            const SearchNode& current_node
+        );
 
         const SearchNode& setup_nodes(
             const game::Position& position,

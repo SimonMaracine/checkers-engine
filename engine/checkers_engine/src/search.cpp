@@ -1,6 +1,5 @@
 #include "search.hpp"
 
-#include <limits>
 #include <chrono>
 #include <cstddef>
 #include <cassert>
@@ -30,12 +29,14 @@ namespace search {
 
         const auto begin {std::chrono::steady_clock::now()};
 
-        const evaluation::Eval evaluation {minimax(depth, 0, current_node)};
+        const evaluation::Eval evaluation {
+            alpha_beta(depth, 0, evaluation::MIN, evaluation::MAX, current_node)
+        };
 
         const auto end {std::chrono::steady_clock::now()};
         const double time {std::chrono::duration<double>(end - begin).count()};
 
-        messages::info(m_nodes_evaluated, evaluation, time);
+        messages::info(m_nodes_evaluated, evaluation * (position.player == game::Player::Black ? -1 : 1), time);
 
         // If move is invalid, then the game must be over
         // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
@@ -48,7 +49,13 @@ namespace search {
         return std::make_optional(m_best_move);
     }
 
-    evaluation::Eval Search::minimax(unsigned int depth, unsigned int plies_root, const SearchNode& current_node) {
+    evaluation::Eval Search::alpha_beta(
+        unsigned int depth,
+        unsigned int plies_root,
+        evaluation::Eval alpha,
+        evaluation::Eval beta,
+        const SearchNode& current_node
+    ) {
         if (m_should_stop) {
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
@@ -69,90 +76,65 @@ namespace search {
             return 0;
         }
 
-        const auto* entry {m_transposition_table.retrieve({ current_node.board, current_node.player }, depth)};
+        const auto [evaluation, move] {
+            m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
+        };
 
-        if (entry != nullptr) {
+        if (evaluation != evaluation::INVALID) {
             if (plies_root == 0) {
-                m_best_move = entry->move;
+                m_best_move = move;
                 notify_result_available();
             }
 
-            return entry->eval;
+            return evaluation;
         }
 
-        if (current_node.player == game::Player::Black) {
-            evaluation::Eval min_evaluation {std::numeric_limits<evaluation::Eval>::max()};
+        const auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
-            const auto moves {moves::generate_moves(current_node.board, current_node.player)};
-
-            if (moves.empty()) {  // Game over
-                m_nodes_evaluated++;
-                return evaluation::static_evaluation(current_node, m_parameters);
-            }
-
-            game::Move best_move_in_position {};
-
-            for (const game::Move& move : moves) {
-                SearchNode new_node;
-                fill_node(new_node, current_node);
-
-                moves::play_move(new_node, move);
-
-                const evaluation::Eval evaluation {
-                    minimax(depth - 1, plies_root + 1, new_node)
-                };
-
-                if (evaluation < min_evaluation) {
-                    min_evaluation = evaluation;
-
-                    if (plies_root == 0) {
-                        best_move_in_position = move;
-                        m_best_move = move;
-                        notify_result_available();
-                    }
-                }
-            }
-
-            m_transposition_table.store({ current_node.board, current_node.player }, depth, min_evaluation, best_move_in_position);
-
-            return min_evaluation;
-        } else {
-            evaluation::Eval max_evaluation {std::numeric_limits<evaluation::Eval>::min()};
-
-            const auto moves {moves::generate_moves(current_node.board, current_node.player)};
-
-            if (moves.empty()) {  // Game over
-                m_nodes_evaluated++;
-                return evaluation::static_evaluation(current_node, m_parameters);
-            }
-
-            game::Move best_move_in_position {};
-
-            for (const game::Move& move : moves) {
-                SearchNode new_node;
-                fill_node(new_node, current_node);
-
-                moves::play_move(new_node, move);
-
-                const evaluation::Eval evaluation {
-                    minimax(depth - 1, plies_root + 1, new_node)
-                };
-
-                if (evaluation > max_evaluation) {
-                    max_evaluation = evaluation;
-
-                    if (plies_root == 0) {
-                        best_move_in_position = move;
-                        m_best_move = move;
-                        notify_result_available();
-                    }
-                }
-            }
-
-            m_transposition_table.store({ current_node.board, current_node.player }, depth, max_evaluation, best_move_in_position);
-
-            return max_evaluation;
+        if (moves.empty()) {  // Game over
+            m_nodes_evaluated++;
+            return evaluation::static_evaluation(current_node, m_parameters);
         }
+
+        auto node_type {transposition_table::NodeType::All};
+        game::Move best_move {};
+
+        for (const game::Move& move : moves) {
+            SearchNode new_node;
+            fill_node(new_node, current_node);
+
+            moves::play_move(new_node, move);
+
+            const evaluation::Eval evaluation {-alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node)};
+
+            if (evaluation >= beta) {
+                m_transposition_table.store(
+                    { current_node.board, current_node.player },
+                    depth,
+                    transposition_table::NodeType::Cut,
+                    beta,
+                    move
+                );
+
+                return beta;
+            }
+
+            if (evaluation > alpha) {
+                if (plies_root == 0) {
+                    m_best_move = move;
+                    notify_result_available();
+                }
+
+                best_move = move;
+
+                node_type = transposition_table::NodeType::Pv;
+                alpha = evaluation;
+            }
+        }
+
+        m_transposition_table.store({ current_node.board, current_node.player }, depth, node_type, alpha, best_move);
+
+        return alpha;
     }
 
     const SearchNode& Search::setup_nodes(
