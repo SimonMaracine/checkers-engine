@@ -3,8 +3,8 @@ import re
 
 from . import checkers_engine
 
-WHITE = "#c8c8c8"
-BLACK = "#4C3D2F"
+WHITE = "#C8C8C8"
+BLACK = "#4b7F52"
 DEFAULT_BOARD_SIZE = 400
 TXT_STATUS = "Status:"
 TXT_PLAYER = "Player:"

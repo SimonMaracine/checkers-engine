@@ -155,10 +155,11 @@ class _Diagonal(enum.Enum):
 
 
 class CheckersBoard:
-    PIECE_WHITE = "#8c0a0a"
-    PIECE_BLACK = "#101019"
-    GOLD = "#F3A916"
-    PINK = "#F69A8E"
+    PIECE_WHITE = "#F4F5F5"
+    PIECE_BLACK = "#E63946"
+    DARKER_WHITE = "#BFC5C5"
+    DARKER_BLACK = "#A31420"
+    GREEN = "#1E3321"
     INDIGO = "#958ECD"
     DARKER_INDIGO = "#6D63BB"
 
@@ -481,13 +482,13 @@ class CheckersBoard:
                 case _Square.None_:
                     pass
                 case _Square.Black:
-                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_BLACK, False)
+                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_BLACK, self.DARKER_BLACK, False)
                 case _Square.BlackKing:
-                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_BLACK, True)
+                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_BLACK, self.DARKER_BLACK, True)
                 case _Square.White:
-                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_WHITE, False)
+                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_WHITE, self.DARKER_WHITE, False)
                 case _Square.WhiteKing:
-                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_WHITE, True)
+                    CheckersBoard._create_piece(canvas, i, self._square_size(canvas), self.PIECE_WHITE, self.DARKER_WHITE, True)
 
         canvas.tag_raise("indices")
 
@@ -498,11 +499,11 @@ class CheckersBoard:
             match move.type():
                 case MoveType.Normal:
                     if move.normal().source_index == self._selected_piece_square:
-                        CheckersBoard._create_tile(canvas, move.normal().destination_index, self._square_size(canvas), self.PINK)
+                        CheckersBoard._create_tile(canvas, move.normal().destination_index, self._square_size(canvas), self.GREEN)
                 case MoveType.Capture:
                     if move.capture().source_index == self._selected_piece_square:
                         for index in move.capture().destination_indices:
-                            CheckersBoard._create_tile(canvas, index, self._square_size(canvas), self.PINK)
+                            CheckersBoard._create_tile(canvas, index, self._square_size(canvas), self.GREEN)
 
         for square in self._jump_squares:
             color = self.INDIGO if self._jump_squares.count(square) < 2 else self.DARKER_INDIGO
@@ -538,7 +539,7 @@ class CheckersBoard:
         return True
 
     @staticmethod
-    def _create_piece(canvas: tk.Canvas, square: int, square_size: float, color: str, king: bool):
+    def _create_piece(canvas: tk.Canvas, square: int, square_size: float, color: str, color2: str, king: bool):
         x0, y0, x1, y1 = CheckersBoard._piece_coordinates(square, square_size, 1.3)
 
         canvas.create_oval(x0, y0, x1, y1, fill=color, outline=color, tags=("all", "pieces"))
@@ -546,7 +547,7 @@ class CheckersBoard:
         x0, y0, x1, y1 = CheckersBoard._piece_coordinates(square, square_size, 2.4)
 
         if king:
-            canvas.create_oval(x0, y0, x1, y1, fill=CheckersBoard.GOLD, outline=CheckersBoard.GOLD, tags=("all", "pieces"))
+            canvas.create_oval(x0, y0, x1, y1, fill=color2, outline=color2, tags=("all", "pieces"))
 
     @staticmethod
     def _create_selection(canvas: tk.Canvas, square: int, square_size: float):
@@ -554,7 +555,7 @@ class CheckersBoard:
 
         canvas.delete("selection")
 
-        canvas.create_oval(x0, y0, x1, y1, fill=CheckersBoard.PINK, outline=CheckersBoard.PINK, tags=("all", "selection"))
+        canvas.create_oval(x0, y0, x1, y1, fill=CheckersBoard.GREEN, outline=CheckersBoard.GREEN, tags=("all", "selection"))
 
         canvas.tag_raise("pieces")
         canvas.tag_raise("indices")
