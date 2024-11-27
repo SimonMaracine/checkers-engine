@@ -426,7 +426,7 @@ class MainWindow(base_main_window.BaseMainWindow):
 
     def _reset_gui_status(self):
         self._var_status.set(common.TXT_STATUS + " game not started")
-        self._var_player.set(common.TXT_PLAYER + " black")
+        self._var_player.set(common.TXT_PLAYER + (" black" if self._board.get_turn() == board.Player.Black else " white"))
         self._var_plies_without_advancement.set(common.TXT_PLIES_WITHOUT_ADVANCEMENT + " 0")
 
     def _record_gui_move(self, move: board.Move, player: board.Player):

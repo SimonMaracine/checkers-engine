@@ -4,15 +4,32 @@
 #include <cstddef>
 #include <iterator>
 #include <utility>
+#include <array>
 #include <cassert>
 
 /*
-    triggered assertions B:W2,3,4,6,7,8,10,11,12,13,14:B17,20,21,25,23,27,28,29,30,31,32
-
-    capture loop B:W1,2,3,26,18,17,25:BK30,28
+    capture loop W:B1,2,3,26,18,17,25:WK30,28
 */
 
 namespace moves {
+    enum class Direction {
+        NorthEast,
+        NorthWest,
+        SouthEast,
+        SouthWest
+    };
+
+    enum Diagonal {
+        Short = 1,
+        Long = 2
+    };
+
+    struct JumpCtx {
+        game::Board board {};  // Use a copy of the board
+        game::Idx source_index {};
+        std::vector<game::Idx> destination_indices;
+    };
+
     static game::Idx get_jumped_piece_index(game::Idx index1, game::Idx index2) {
         // This works with indices in the range [1, 32]
 
@@ -62,24 +79,6 @@ namespace moves {
             board[game::_1_32_to_0_31(index)] = game::Square::None;
         }
     }
-
-    enum class Direction {
-        NorthEast,
-        NorthWest,
-        SouthEast,
-        SouthWest
-    };
-
-    enum Diagonal {
-        Short = 1,
-        Long = 2
-    };
-
-    struct JumpCtx {
-        game::Board board {};  // Use a copy of the board
-        game::Idx source_index {};
-        std::vector<game::Idx> destination_indices;
-    };
 
     static game::Idx offset(game::Idx square_index, Direction direction, Diagonal diagonal) {
         int result_index {square_index};
@@ -134,6 +133,36 @@ namespace moves {
         return static_cast<game::Idx>(result_index);
     }
 
+    static std::array<Direction, 4> get_directions(game::Player player, bool king, std::size_t& size) {
+        if (king) {
+            size = 4;
+
+            return {
+                Direction::NorthEast,
+                Direction::NorthWest,
+                Direction::SouthEast,
+                Direction::SouthWest
+            };
+        } else {
+            size = 2;
+
+            switch (player) {
+                case game::Player::Black:
+                    return {
+                        Direction::SouthEast,
+                        Direction::SouthWest
+                    };
+                case game::Player::White:
+                    return {
+                        Direction::NorthEast,
+                        Direction::NorthWest
+                    };
+            }
+        }
+
+        assert(false);
+    }
+
     static bool check_piece_jumps(
         std::vector<game::Move>& moves,
         game::Idx square_index,
@@ -141,33 +170,15 @@ namespace moves {
         bool king,
         JumpCtx& ctx
     ) {
-        Direction directions[4] {};
-        std::size_t index {0};
-
-        if (king) {
-            directions[index++] = Direction::NorthEast;
-            directions[index++] = Direction::NorthWest;
-            directions[index++] = Direction::SouthEast;
-            directions[index++] = Direction::SouthWest;
-        } else {
-            switch (player) {
-                case game::Player::Black:
-                    directions[index++] = Direction::NorthEast;
-                    directions[index++] = Direction::NorthWest;
-                    break;
-                case game::Player::White:
-                    directions[index++] = Direction::SouthEast;
-                    directions[index++] = Direction::SouthWest;
-                    break;
-            }
-        }
+        std::size_t size {};
+        const auto directions {get_directions(player, king, size)};
 
         // We want an enemy piece
         const unsigned char piece_mask {static_cast<unsigned char>(game::opponent(player))};
 
         bool sequence_jumps_ended {true};
 
-        for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
+        for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), size); iter++) {
             const game::Idx enemy_index {offset(square_index, *iter, Short)};
             const game::Idx target_index {offset(square_index, *iter, Long)};
 
@@ -239,29 +250,11 @@ namespace moves {
         bool king,
         std::vector<game::Move>& moves
     ) {
-        Direction directions[4] {};
-        std::size_t index {0};
-
-        if (king) {
-            directions[index++] = Direction::NorthEast;
-            directions[index++] = Direction::NorthWest;
-            directions[index++] = Direction::SouthEast;
-            directions[index++] = Direction::SouthWest;
-        } else {
-            switch (player) {
-                case game::Player::Black:
-                    directions[index++] = Direction::NorthEast;
-                    directions[index++] = Direction::NorthWest;
-                    break;
-                case game::Player::White:
-                    directions[index++] = Direction::SouthEast;
-                    directions[index++] = Direction::SouthWest;
-                    break;
-            }
-        }
+        std::size_t size {};
+        const auto directions {get_directions(player, king, size)};
 
         // Check the squares above or below in diagonal
-        for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), index); iter++) {
+        for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), size); iter++) {
             const game::Idx target_index {offset(square_index, *iter, Short)};
 
             if (target_index == game::NULL_INDEX) {
@@ -284,14 +277,14 @@ namespace moves {
     static void check_piece_crowning(game::Board& board, game::Idx square_index) {
         const int row {square_index / 4};
 
-        if (game::is_black_piece(board[square_index])) {
-            if (row == 0) {
+        if (game::is_black_piece(board[square_index])) {  // TODO opt.
+            if (row == 7) {
                 board[square_index] = game::Square::BlackKing;
             }
         } else {  // Assume it's white
             assert(game::is_white_piece(board[square_index]));
 
-            if (row == 7) {
+            if (row == 0) {
                 board[square_index] = game::Square::WhiteKing;
             }
         }
@@ -387,11 +380,8 @@ namespace moves {
         std::vector<game::Move> moves;
 
         for (game::Idx i {0}; i < 32; i++) {
-            const bool king {static_cast<bool>(static_cast<unsigned char>(board[i]) & (1u << 2))};
-            const bool piece {static_cast<bool>(static_cast<unsigned char>(board[i]) & static_cast<unsigned char>(player))};
-
-            if (piece) {
-                generate_piece_capture_moves(board, player, i, king, moves);
+            if (game::is_piece(board[i], player)) {
+                generate_piece_capture_moves(board, player, i, game::is_king_piece(board[i]), moves);
             }
         }
 
@@ -401,11 +391,8 @@ namespace moves {
         }
 
         for (game::Idx i {0}; i < 32; i++) {
-            const bool king {static_cast<bool>(static_cast<unsigned char>(board[i]) & (1u << 2))};
-            const bool piece {static_cast<bool>(static_cast<unsigned char>(board[i]) & static_cast<unsigned char>(player))};
-
-            if (piece) {
-                generate_piece_moves(board, player, i, king, moves);
+            if (game::is_piece(board[i], player)) {
+                generate_piece_moves(board, player, i, game::is_king_piece(board[i]), moves);
             }
         }
 

@@ -1,13 +1,13 @@
 """
-    branched capture B:W1,3,8,9,10,16,17:B12,20,21,23,26,27,29,31
-    longest capture W:WK4:B6,7,8,14,15,16,22,23,24
+    branched capture W:B1,3,8,9,10,16,17:W12,20,21,23,26,27,29,31
+    longest capture W:B6,7,8,14,15,16,22,23,24:WK4
 
-    winner white W:WK7,K8:B16
-    winner black W:W8:BK12,K15
-    winner white B:W1,2,K7:B5,6,15,9
-    winner black W:W25,6:BK14,29,30
+    winner black B:BK7,K8:W16
+    winner white B:B8:WK12,K15
+    winner black W:B1,2,K7:W5,6,15,9
+    winner white B:B25,6:WK14,29,30
 
-    tie W:WK2:BK30
+    tie B:BK30:WK2
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from typing import Callable, Iterator
 from . import common
 
 NULL_INDEX = -1
+
 
 def opponent(player: Player) -> Player:
     return CheckersBoard._opponent(player)
@@ -93,12 +94,12 @@ class MoveType(enum.Enum):
 class Move:
     # Indices are always in the range [0, 31]
 
-    @dataclasses.dataclass(slots=True)
+    @dataclasses.dataclass(slots=True, frozen=True)
     class _Normal:
         source_index: int
         destination_index: int
 
-    @dataclasses.dataclass(slots=True)
+    @dataclasses.dataclass(slots=True, frozen=True)
     class _Capture:
         source_index: int
         destination_indices: list[int]
@@ -310,10 +311,10 @@ class CheckersBoard:
 
         turn = "B" if self._turn == Player.Black else "W"
 
-        return f"{turn}:W{",".join(white)}:B{",".join(black)}"
+        return f"{turn}:B{",".join(black)}:W{",".join(white)}"
 
     def _setup(self, position_string: str | None = None):
-        START_POSITION = "B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"
+        START_POSITION = "B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32"
 
         string = position_string or START_POSITION
 
@@ -408,10 +409,10 @@ class CheckersBoard:
 
         match self._turn:
             case Player.Black:
-                if row == 0:
+                if row == 7:
                     self._board[destination_index] = _Square.BlackKing
             case Player.White:
-                if row == 7:
+                if row == 0:
                     self._board[destination_index] = _Square.WhiteKing
 
     def _change_turn(self):
@@ -618,22 +619,16 @@ class CheckersBoard:
         moves: list[Move] = []
 
         for i in range(32):
-            king = bool(board[i].value & (1 << 2))
-            piece = bool(board[i].value & player.value)
-
-            if piece:
-                CheckersBoard._generate_piece_capture_moves(board, moves, i, player, king)
+            if board[i].value & player.value:
+                CheckersBoard._generate_piece_capture_moves(board, moves, i, player, bool(board[i].value & (1 << 2)))
 
         # If there are possible captures, force the player to play these moves
         if moves:
             return moves
 
         for i in range(32):
-            king = bool(board[i].value & (1 << 2))
-            piece = bool(board[i].value & player.value)
-
-            if piece:
-                CheckersBoard._generate_piece_moves(board, moves, i, player, king)
+            if board[i].value & player.value:
+                CheckersBoard._generate_piece_moves(board, moves, i, player, bool(board[i].value & (1 << 2)))
 
         return moves
 
@@ -758,11 +753,11 @@ class CheckersBoard:
         else:
             match player:
                 case Player.Black:
-                    directions.append(_Direction.NorthEast)
-                    directions.append(_Direction.NorthWest)
-                case Player.White:
                     directions.append(_Direction.SouthEast)
                     directions.append(_Direction.SouthWest)
+                case Player.White:
+                    directions.append(_Direction.NorthEast)
+                    directions.append(_Direction.NorthWest)
 
         return directions
 

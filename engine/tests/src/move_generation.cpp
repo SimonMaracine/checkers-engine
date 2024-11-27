@@ -35,7 +35,7 @@ static std::uint64_t test_moves_from_position(unsigned int depth, const char* fe
     return count_moves(depth, position);
 }
 
-static const char* FEN_STRING {"B:W1,2,3,4,5,6,7,8,9,10,11,12:B21,22,23,24,25,26,27,28,29,30,31,32"};
+static const char* FEN_STRING {"B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32"};
 
 // https://oeis.org/A133046/list
 

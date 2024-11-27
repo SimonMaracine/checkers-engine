@@ -83,4 +83,8 @@ namespace game {
     constexpr bool is_king_piece(const Square square) {
         return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 2);
     }
+
+    constexpr bool is_piece(const Square square, const Player player) {
+        return static_cast<bool>(static_cast<unsigned char>(square) & static_cast<unsigned char>(player));
+    }
 }
