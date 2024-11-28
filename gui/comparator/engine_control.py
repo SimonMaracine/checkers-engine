@@ -111,7 +111,7 @@ def setup_engine_board(engine: checkers_engine.CheckersEngine, position: str):
         raise error.ComparatorError(err)
 
 
-def play_engine_move(engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> tuple[str | None, bool]:
+def play_engine_move(max_think_time: float, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> tuple[str | None, bool]:
     # Return the played move and return true if the game is over
 
     try:
@@ -120,7 +120,7 @@ def play_engine_move(engine_current: checkers_engine.CheckersEngine, engine_next
         engine_current.stop(True)
         raise error.ComparatorError(err)
 
-    result = _wait_for_engine_move(engine_current, 1.0)
+    result = _wait_for_engine_move(engine_current, max_think_time)
 
     if result is None:
         try:

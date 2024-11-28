@@ -225,7 +225,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
     game = saved_game.Game(extracted_match["position"], extracted_match["played_moves"])
 
     try:
-        saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}.json", game)
+        saved_game.save_game(f"replay--{_format_datetime(obj["datetime"])}--{match}-{index}.json", game)
     except saved_game.SavedGameError as err:
         raise DataError(f"Could not write file: {err}")
 

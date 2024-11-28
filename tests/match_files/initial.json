@@ -3,5 +3,6 @@
         "B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32"
     ],
     "black_engine_parameters": [],
-    "white_engine_parameters": []
+    "white_engine_parameters": [],
+    "max_think_time": 1.0
 }

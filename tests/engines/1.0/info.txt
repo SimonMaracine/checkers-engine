@@ -1,2 +1,2 @@
 Implemented a bare-bones and still useless transposition table.
-
+Colors are inversed, so this version is 100% useless.
