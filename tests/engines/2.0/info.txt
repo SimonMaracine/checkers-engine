@@ -1,0 +1,2 @@
+Implemented alpha-beta pruning and negamax search. Transposition table is still not used.
+Fixed colors.

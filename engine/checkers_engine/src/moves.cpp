@@ -161,6 +161,7 @@ namespace moves {
         }
 
         assert(false);
+        return {};
     }
 
     static bool check_piece_jumps(
