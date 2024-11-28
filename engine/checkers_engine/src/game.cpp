@@ -84,6 +84,12 @@ namespace game {
             pieces.push_back(parse_player_piece(token, player_type));
         }
 
+        for (const auto& [index, _] : pieces) {
+            if (index < 1 || index > 32) {
+                throw error::InvalidCommand();
+            }
+        }
+
         return pieces;
     }
 

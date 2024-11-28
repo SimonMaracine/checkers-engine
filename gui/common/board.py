@@ -28,6 +28,10 @@ def opponent(player: Player) -> Player:
     return CheckersBoard._opponent(player)
 
 
+class BoardError(RuntimeError):
+    pass
+
+
 class GameOver(enum.Enum):
     None_ = enum.auto()
     WinnerBlack = enum.auto()
@@ -255,18 +259,22 @@ class CheckersBoard:
             self._canvas.delete("tiles")
 
     def reset(self, position_string: str | None = None):
+        # Throws errors
+
         self._clear()
         self._setup(position_string)
 
     def play_move(self, move_string: str):
+        # Throws errors
+
         # Validate only the format
         if not CheckersBoard._valid_move_string(move_string):
-            raise RuntimeError(f"Invalid move string: {move_string}")
+            raise BoardError(f"Invalid move string: {move_string}")
 
         move = CheckersBoard._parse_move_string(move_string)
 
         if not move in self._legal_moves:
-            raise RuntimeError(f"Invalid move {move}")
+            raise BoardError(f"Invalid move {move}")
 
         # Play the move
         match move.type():
@@ -298,16 +306,16 @@ class CheckersBoard:
                 case _Square.None_:
                     pass
                 case _Square.Black:
-                    black.append(str(i))
+                    black.append(str(i + 1))
                     pass
                 case _Square.BlackKing:
-                    black.append(f"K{i}")
+                    black.append(f"K{i + 1}")
                     pass
                 case _Square.White:
-                    white.append(str(i))
+                    white.append(str(i + 1))
                     pass
                 case _Square.WhiteKing:
-                    white.append(f"K{i}")
+                    white.append(f"K{i + 1}")
                     pass
 
         turn = "B" if self._turn == Player.Black else "W"
@@ -321,8 +329,7 @@ class CheckersBoard:
 
         # Validate only the format
         if not CheckersBoard._valid_position_string(string):
-            print(f"Invalid position string: {string}", file=sys.stderr)
-            string = START_POSITION
+            raise BoardError(f"Invalid position string: {string}")
 
         position = CheckersBoard._parse_position_string(string)
 
@@ -794,7 +801,11 @@ class CheckersBoard:
         pieces2 = CheckersBoard._parse_player_pieces(player2)
 
         if player1[0] == player2[0]:
-            raise RuntimeError(f"Invalid player types: {player1, player2}")
+            raise BoardError(f"Invalid player types: {player1, player2}")
+
+        for index, _ in pieces1 + pieces2:
+            if index < 1 or index > 32:
+                raise BoardError(f"Invalid piece index: {index}")
 
         board = _Board()
 
@@ -814,7 +825,7 @@ class CheckersBoard:
             case "W":
                 return Player.White
 
-        raise RuntimeError(f"Invalid player type: {string}")
+        raise BoardError(f"Invalid player type: {string}")
 
     @staticmethod
     def _parse_player_pieces(string: str) -> list[tuple[int, _Square]]:
@@ -864,7 +875,7 @@ class CheckersBoard:
 
         for square in squares:
             if not 1 <= square <= 32:
-                raise RuntimeError(f"Invalid square: {square}")
+                raise BoardError(f"Invalid square: {square}")
 
         return squares
 

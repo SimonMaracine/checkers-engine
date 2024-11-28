@@ -303,7 +303,12 @@ class MainWindow(base_main_window.BaseMainWindow):
         if self._is_engine_busy() and not self._is_game_over():
             return
 
-        self._board.reset(string)
+        try:
+            self._board.reset(string)
+        except board.BoardError as err:
+            print(err, file=sys.stderr)
+            return
+
         self._reset_engine(string)
         self._reset_gui_status()
         self._clear_gui_moves()
@@ -775,6 +780,6 @@ class MainWindow(base_main_window.BaseMainWindow):
                 self._maybe_start_engine_thinking(self._var_player_white)
 
     @staticmethod
-    def _print_err_and_stop_engine(err: checkers_engine.CheckersEngineError | common.EngineWaitError, engine: checkers_engine.CheckersEngine):
+    def _print_err_and_stop_engine(err: checkers_engine.CheckersEngineError | common.EngineWaitError | board.BoardError, engine: checkers_engine.CheckersEngine):
         print(err, file=sys.stderr)
         engine.stop(True)
