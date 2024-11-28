@@ -127,8 +127,9 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         sum(map(tie, match_results)) + sum(map(tie, rematch_results)),
         statistics.mean([round.time for round in match_results] + [round.time for round in rematch_results]),
         statistics.mean([len(round.played_moves) for round in match_results] + [len(round.played_moves) for round in rematch_results]),
-        statistics.mean([move[1] for round in match_results for move in round.played_moves[::2]] + [move[1] for round in rematch_results for move in round.played_moves[1::2]]),
+        # Remember that in all positions white continues
         statistics.mean([move[1] for round in match_results for move in round.played_moves[1::2]] + [move[1] for round in rematch_results for move in round.played_moves[::2]]),
+        statistics.mean([move[1] for round in match_results for move in round.played_moves[::2]] + [move[1] for round in rematch_results for move in round.played_moves[1::2]]),
         match_results,
         rematch_results,
         time.ctime()

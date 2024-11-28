@@ -84,8 +84,8 @@ def generate_report(report: MatchReport):
         "total_draws": report.total_draws,
         "average_round_time": report.average_round_time,
         "average_round_plies": report.average_round_plies,
-        "average_black_engine_depth": report.average_black_engine_depth,
-        "average_white_engine_depth": report.average_white_engine_depth,
+        "average_black_engine_depth": float(report.average_black_engine_depth),
+        "average_white_engine_depth": float(report.average_white_engine_depth),
 
         "match": [
             {
@@ -239,7 +239,7 @@ def _write_report(name: str, obj: Any):
 
 
 def _format_datetime(datetime: str) -> str:
-    weekday, month, day, time, year = datetime.split(" ")
+    _, month, day, time, year = datetime.split(" ")
     hour, minute, second = time.split(":")
 
-    return f"{weekday}-{month}-{day}--{hour}-{minute}-{second}--{year}"
+    return f"{month}-{day}--{hour}-{minute}-{second}--{year}"
