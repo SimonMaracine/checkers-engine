@@ -279,7 +279,7 @@ namespace engine {
 
     void Engine::initialize_parameters() {
         m_parameters["piece"] = 10;
-        m_parameters["max_depth"] = 12;
+        m_parameters["max_depth"] = 15;
     }
 
     void Engine::ignore_invalid_command_on_init(bool after_init) const {

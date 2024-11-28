@@ -127,8 +127,8 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         sum(map(tie, match_results)) + sum(map(tie, rematch_results)),
         statistics.mean([round.time for round in match_results] + [round.time for round in rematch_results]),
         statistics.mean([len(round.played_moves) for round in match_results] + [len(round.played_moves) for round in rematch_results]),
-        0.0,  # TODO
-        0.0,
+        statistics.mean([move[1] for round in match_results for move in round.played_moves[::2]] + [move[1] for round in rematch_results for move in round.played_moves[1::2]]),
+        statistics.mean([move[1] for round in match_results for move in round.played_moves[1::2]] + [move[1] for round in rematch_results for move in round.played_moves[::2]]),
         match_results,
         rematch_results,
         time.ctime()
@@ -142,7 +142,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
     engine_control.setup_engine_board(black_engine, position)
     engine_control.setup_engine_board(white_engine, position)
 
-    moves_played: list[str] = []
+    played_moves: list[tuple[str, int]] = []
 
     match position.split(":")[0]:
         case "B":
@@ -160,7 +160,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
         move, game_over = engine_control.play_engine_move(max_think_time, current_player, next_player, local_board)
 
         if move is not None:
-            moves_played.append(move)
+            played_moves.append((move.move, move.depth))
 
         if game_over:
             break
@@ -184,7 +184,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
             print_status("Tie between both players", 2)
             ending = data.RoundEnding.TieBetweenBothPlayers
 
-    return data.RoundResult(index, position, ending, len(moves_played), moves_played, end - begin)
+    return data.RoundResult(index, position, ending, len(played_moves), played_moves, end - begin)
 
 
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine) -> data.EngineStats:

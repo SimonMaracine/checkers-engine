@@ -1,5 +1,6 @@
 import enum
 import time
+import dataclasses
 
 from common import checkers_engine
 from common import board
@@ -8,6 +9,12 @@ from . import error
 from .print import *
 
 type QueriedParams = list[tuple[str, str, str]]
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class Move:
+    move: str
+    depth: int
 
 
 class Color(enum.Enum):
@@ -111,7 +118,7 @@ def setup_engine_board(engine: checkers_engine.CheckersEngine, position: str):
         raise error.ComparatorError(err)
 
 
-def play_engine_move(max_think_time: float, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> tuple[str | None, bool]:
+def play_engine_move(max_think_time: float, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard) -> tuple[Move | None, bool]:
     # Return the played move and return true if the game is over
 
     try:
@@ -135,15 +142,15 @@ def play_engine_move(max_think_time: float, engine_current: checkers_engine.Chec
         if local_board.get_game_over() == board.GameOver.None_:
             raise error.ComparatorError("The engines say it's game over, but the GUI doesn't agree")
 
-        return result, True
+        return None, True
 
     try:
-        engine_next.send(f"MOVE {result}")
+        engine_next.send(f"MOVE {result.move}")
     except checkers_engine.CheckersEngineError as err:
         engine_next.stop(True)
         raise error.ComparatorError(err)
 
-    local_board.play_move(result)
+    local_board.play_move(result.move)
 
     return result, False
 
@@ -207,8 +214,11 @@ def _wait_for_engine_parameter(engine: checkers_engine.CheckersEngine) -> tuple[
             return type, value
 
 
-def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, max_seconds: float | None = None) -> str | None:
+def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, max_seconds: float | None = None) -> Move | None:
     # Wait indefinitely, if max_seconds is None
+
+    # If the depth info is missing, it will just return 0 as depth
+    max_depth = 0
 
     begin = time.time()
 
@@ -223,9 +233,13 @@ def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, max_seconds: f
             if "none" in message:
                 return None
             else:
-                return message.split()[1]
+                return Move(message.split()[1], max_depth)
         elif "INFO" in message:
-            pass  # TODO retrieve depth
+            tokens = message.split()
+
+            for i, token in enumerate(tokens):
+                if token == "depth":
+                    max_depth = int(tokens[i + 1])
 
         now = time.time()
 

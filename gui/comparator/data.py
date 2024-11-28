@@ -43,7 +43,7 @@ class RoundResult:
     position: str
     ending: RoundEnding
     plies: int
-    played_moves: list[str]
+    played_moves: list[tuple[str, int]]
     time: float
 
 
