@@ -13,6 +13,7 @@
 
 // https://web.archive.org/web/20071030220820/http://www.brucemo.com/compchess/programming/minmax.htm
 // https://web.archive.org/web/20071030084528/http://www.brucemo.com/compchess/programming/alphabeta.htm
+// https://web.archive.org/web/20071031100056/http://www.brucemo.com/compchess/programming/iterative.htm
 
 namespace search {
     class Search {
@@ -36,7 +37,7 @@ namespace search {
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played,
-            unsigned int depth
+            unsigned int max_depth
         );
 
         bool* get_should_stop() { return &m_should_stop; }
@@ -55,11 +56,13 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
+        void reset_after_search_iteration();
         void notify_result_available();
 
         bool m_notified_result_available {false};
         bool m_should_stop {false};
         unsigned int m_nodes_evaluated {};
+        unsigned int m_transpositions {};
         game::Move m_best_move {};
 
         // The current and previous positions (for threefold repetition)
@@ -71,7 +74,6 @@ namespace search {
         std::condition_variable& m_cv;
         std::unique_lock<std::mutex>& m_lock;
         bool& m_best_move_available;
-
         transposition_table::TranspositionTable& m_transposition_table;
     };
 }

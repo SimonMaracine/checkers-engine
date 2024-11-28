@@ -23,30 +23,42 @@ namespace search {
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played,
-        unsigned int depth
+        unsigned int max_depth
     ) {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
-        const auto begin {std::chrono::steady_clock::now()};
+        evaluation::Eval last_evaluation {evaluation::INVALID};
+        game::Move last_best_move {};
 
-        const evaluation::Eval evaluation {
-            alpha_beta(depth, 0, evaluation::MIN, evaluation::MAX, current_node)
-        };
+        for (unsigned int i {1}; i <= max_depth; i++) {
+            const auto begin {std::chrono::steady_clock::now()};
 
-        const auto end {std::chrono::steady_clock::now()};
-        const double time {std::chrono::duration<double>(end - begin).count()};
+            const evaluation::Eval evaluation {alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node)};
 
-        messages::info(m_nodes_evaluated, evaluation * (position.player == game::Player::Black ? -1 : 1), time);
+            if (m_should_stop) {
+                break;
+            }
 
-        // If move is invalid, then the game must be over
-        // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
-        // Notify the main thread that a "result" is available
-        if (game::is_move_invalid(m_best_move)) {
-            notify_result_available();
-            return std::nullopt;
+            last_evaluation = evaluation;
+            last_best_move = m_best_move;
+
+            const auto end {std::chrono::steady_clock::now()};
+            const double time {std::chrono::duration<double>(end - begin).count()};
+
+            messages::info(m_nodes_evaluated, m_transpositions, i, last_evaluation * evaluation::perspective(position.player), time);
+
+            // If move is invalid, then the game must be over
+            // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
+            // Notify the main thread that a "result" is available
+            if (game::is_move_invalid(last_best_move)) {
+                notify_result_available();
+                return std::nullopt;
+            }
+
+            reset_after_search_iteration();
         }
 
-        return std::make_optional(m_best_move);
+        return std::make_optional(last_best_move);
     }
 
     evaluation::Eval Search::alpha_beta(
@@ -86,6 +98,7 @@ namespace search {
                 notify_result_available();
             }
 
+            m_transpositions++;
             return evaluation;
         }
 
@@ -172,6 +185,11 @@ namespace search {
         assert(!m_nodes.empty());
 
         return m_nodes.back();
+    }
+
+    void Search::reset_after_search_iteration() {
+        m_nodes_evaluated = 0;
+        m_transpositions = 0;
     }
 
     void Search::notify_result_available() {

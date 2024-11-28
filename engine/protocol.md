@@ -119,16 +119,19 @@ The list may be empty, if the engine has no parameters.
 
 Responds with the name, type and value of the requested parameter after a **GETPARAMETER** command.
 
-### INFO [nodes `value`] [eval `value`] time `value`
+### INFO [nodes `value`] [transpositions `value`] [depth `value`] eval `value` time `value`
 
 Informs the GUI about its progress in calculating the best move. Can be sent at any time between the **GO**
 command and the **BESTMOVE** response.
 
-*nodes* represents the number of leaf nodes processed in the minimax algorithm. This value is optional,
-as the engine may not use the minimax algorithm.
+*nodes* represents the number of leaf nodes processed in the minimax algorithm. This value is optional.
+
+*transpositions* represents the number of times the transposition table has been hit. It is optional.
+
+*depth* represents the depth of the search the thinking algorithm got to until at that particular point.
+It is optional.
 
 *eval* represents how much advantage does the current player have. It is an implementation defined signed integer.
-It is optional.
 
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
 started.

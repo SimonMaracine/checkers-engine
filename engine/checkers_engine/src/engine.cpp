@@ -258,7 +258,7 @@ namespace engine {
             m_position,
             m_previous_positions,
             m_moves_played,
-            std::get<0>(m_parameters.at("depth"))
+            std::get<0>(m_parameters.at("max_depth"))
         )};
 
         // Must reset this back to null here, after the search
@@ -279,7 +279,7 @@ namespace engine {
 
     void Engine::initialize_parameters() {
         m_parameters["piece"] = 10;
-        m_parameters["depth"] = 4;
+        m_parameters["max_depth"] = 12;
     }
 
     void Engine::ignore_invalid_command_on_init(bool after_init) const {

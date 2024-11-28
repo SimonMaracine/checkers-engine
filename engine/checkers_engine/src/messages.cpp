@@ -95,11 +95,13 @@ namespace messages {
         std::cout << std::endl;
     }
 
-    void info(unsigned int nodes, evaluation::Eval eval, double time) {
+    void info(unsigned int nodes, unsigned int transpositions, unsigned int depth, evaluation::Eval eval, double time) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "INFO ";
         std::cout << "nodes " << nodes << ' ';
+        std::cout << "transpositions " << transpositions << ' ';
+        std::cout << "depth " << depth << ' ';
         std::cout << "eval " << eval << ' ';
         std::cout << "time " << time;
 
@@ -109,6 +111,6 @@ namespace messages {
     void name() {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        std::cout << "NAME " << "checkers|2.0" << std::endl;
+        std::cout << "NAME " << "checkers|3.0" << std::endl;
     }
 }

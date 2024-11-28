@@ -13,4 +13,8 @@ namespace evaluation {
     inline constexpr Eval INVALID {std::numeric_limits<Eval>::max()};
 
     Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters);
+
+    constexpr Eval perspective(game::Player player) {
+        return player == game::Player::Black ? -1 : 1;
+    }
 }
