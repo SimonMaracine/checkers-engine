@@ -55,14 +55,18 @@ namespace game {
         };
 
         MoveType type {};
+
+        bool operator==(const Move& other) const;
     };
 
     void set_position(Position& position, const std::string& fen_string);
     void play_move(Position& position, const std::string& move_string);
+    void play_move(Position& position, const Move& move);
+    void play_move(search::SearchNode& node, const Move& move);
     Move parse_move_string(const std::string& move_string);
     Player opponent(Player player);
     bool is_move_invalid(const Move& move);
-    bool is_move_advancement(const game::Board& board, const game::Move& move);
+    bool is_move_advancement(const Board& board, const Move& move);
 
     constexpr Idx _1_32_to_0_31(const Idx index) {
         return index - 1;

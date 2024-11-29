@@ -11,10 +11,6 @@
 #include "parameters.hpp"
 #include "transposition_table.hpp"
 
-// https://web.archive.org/web/20071030220820/http://www.brucemo.com/compchess/programming/minmax.htm
-// https://web.archive.org/web/20071030084528/http://www.brucemo.com/compchess/programming/alphabeta.htm
-// https://web.archive.org/web/20071031100056/http://www.brucemo.com/compchess/programming/iterative.htm
-
 namespace search {
     class Search {
     public:
@@ -47,7 +43,9 @@ namespace search {
             unsigned int plies_root,
             evaluation::Eval alpha,
             evaluation::Eval beta,
-            const SearchNode& current_node
+            const SearchNode& current_node,
+            PvLine& p_line,
+            const PvLine& pv_in
         );
 
         const SearchNode& setup_nodes(
@@ -56,11 +54,14 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
+        void concatenate_pv(PvLine& p_line, const PvLine& line, const game::Move& move);
+        void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, unsigned int plies_root);
         void reset_after_search_iteration();
         void notify_result_available();
 
         bool m_notified_result_available {false};
         bool m_should_stop {false};
+        bool m_reached_left_most_path {false};
         unsigned int m_nodes_evaluated {};
         unsigned int m_transpositions {};
         game::Move m_best_move {};

@@ -1,11 +1,20 @@
 #include "search.hpp"
 
 #include <chrono>
+#include <algorithm>
+#include <utility>
 #include <cstddef>
+#include <cstring>
 #include <cassert>
 
 #include "moves.hpp"
 #include "messages.hpp"
+
+// https://web.archive.org/web/20071030220820/http://www.brucemo.com/compchess/programming/minmax.htm
+// https://web.archive.org/web/20071030084528/http://www.brucemo.com/compchess/programming/alphabeta.htm
+// https://web.archive.org/web/20071031100056/http://www.brucemo.com/compchess/programming/iterative.htm
+// https://web.archive.org/web/20071031100114/http://www.brucemo.com/compchess/programming/pv.htm
+// https://www.chessprogramming.org/Leftmost_Node
 
 namespace search {
     Search::Search(
@@ -29,11 +38,14 @@ namespace search {
 
         evaluation::Eval last_evaluation {evaluation::INVALID};
         game::Move last_best_move {};
+        PvLine last_pv_line;
 
         for (unsigned int i {1}; i <= max_depth; i++) {
             const auto begin {std::chrono::steady_clock::now()};
 
-            const evaluation::Eval evaluation {alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node)};
+            PvLine line;
+
+            const evaluation::Eval evaluation {alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node, line, last_pv_line)};
 
             if (m_should_stop) {
                 break;
@@ -41,6 +53,7 @@ namespace search {
 
             last_evaluation = evaluation;
             last_best_move = m_best_move;
+            last_pv_line = line;
 
             const auto end {std::chrono::steady_clock::now()};
             const double time {std::chrono::duration<double>(end - begin).count()};
@@ -66,24 +79,30 @@ namespace search {
         unsigned int plies_root,
         evaluation::Eval alpha,
         evaluation::Eval beta,
-        const SearchNode& current_node
+        const SearchNode& current_node,
+        PvLine& p_line,
+        const PvLine& pv_in
     ) {
         if (m_should_stop) {
+            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
         if (depth == 0 || is_game_over_material(current_node)) {  // Game over
+            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
         if (is_forty_move_rule(current_node)) {  // Game over
+            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return 0;
         }
 
         if (is_threefold_repetition_rule(current_node)) {  // Game over
+            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return 0;
         }
@@ -98,16 +117,22 @@ namespace search {
                 notify_result_available();
             }
 
+            m_reached_left_most_path = true;
             m_transpositions++;
             return evaluation;
         }
 
-        const auto moves {moves::generate_moves(current_node.board, current_node.player)};
+        auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
         if (moves.empty()) {  // Game over
+            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
+
+        reorder_moves_pv(moves, pv_in, plies_root);
+
+        PvLine line;
 
         auto node_type {transposition_table::NodeType::All};
         game::Move best_move {};
@@ -116,9 +141,11 @@ namespace search {
             SearchNode new_node;
             fill_node(new_node, current_node);
 
-            moves::play_move(new_node, move);
+            game::play_move(new_node, move);
 
-            const evaluation::Eval evaluation {-alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node)};
+            const evaluation::Eval evaluation {
+                -alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node, line, pv_in)
+            };
 
             if (evaluation >= beta) {
                 m_transposition_table.store(
@@ -133,15 +160,17 @@ namespace search {
             }
 
             if (evaluation > alpha) {
+                alpha = evaluation;
+
                 if (plies_root == 0) {
                     m_best_move = move;
                     notify_result_available();
                 }
 
+                node_type = transposition_table::NodeType::Pv;
                 best_move = move;
 
-                node_type = transposition_table::NodeType::Pv;
-                alpha = evaluation;
+                concatenate_pv(p_line, line, move);
             }
         }
 
@@ -187,7 +216,28 @@ namespace search {
         return m_nodes.back();
     }
 
+    void Search::concatenate_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {
+        p_line.moves[0] = move;
+        std::memcpy(p_line.moves + 1, line.moves, line.size * sizeof(move));
+        p_line.size = line.size + 1;
+    }
+
+    void Search::reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, unsigned int plies_root) {
+        if (plies_root >= pv_in.size || m_reached_left_most_path) {
+            return;
+        }
+
+        const auto iter {std::find(moves.begin(), moves.end(), pv_in.moves[plies_root])};
+
+        if (iter == moves.end()) {
+            std::abort();
+        }
+
+        std::iter_swap(moves.begin(), iter);
+    }
+
     void Search::reset_after_search_iteration() {
+        m_reached_left_most_path = false;
         m_nodes_evaluated = 0;
         m_transpositions = 0;
     }

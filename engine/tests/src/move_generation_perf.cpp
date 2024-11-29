@@ -16,7 +16,7 @@ static void generate_moves(unsigned int depth, const game::Position& position) {
 
     for (const game::Move& move : moves) {
         game::Position new_position {position};
-        moves::play_move(new_position, move);
+        game::play_move(new_position, move);
 
         generate_moves(depth - 1, new_position);
     }

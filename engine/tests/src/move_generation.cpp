@@ -16,7 +16,7 @@ static std::uint64_t count_moves(unsigned int depth, const game::Position& posit
 
     for (const game::Move& move : moves) {
         game::Position new_position {position};
-        moves::play_move(new_position, move);
+        game::play_move(new_position, move);
 
         total_moves += count_moves(depth - 1, new_position);
     }

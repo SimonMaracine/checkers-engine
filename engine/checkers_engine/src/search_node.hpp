@@ -1,8 +1,15 @@
 #pragma once
 
+#include <cstddef>
+
 #include "game.hpp"
 
 namespace search {
+    struct PvLine {
+        game::Move moves[100] {};
+        std::size_t size {};
+    };
+
     struct SearchNode {
         game::Board board {};
         game::Player player {};

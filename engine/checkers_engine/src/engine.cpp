@@ -67,7 +67,7 @@ namespace engine {
                     m_previous_positions.push_back(m_position);
                     m_moves_played.push_back(*best_move);
 
-                    moves::play_move(m_position, *best_move);
+                    game::play_move(m_position, *best_move);
                 }
 
                 // Reset the search flag as a signal for the cv; the lock is still being held
