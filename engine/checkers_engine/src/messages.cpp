@@ -95,7 +95,15 @@ namespace messages {
         std::cout << std::endl;
     }
 
-    void info(unsigned int nodes, unsigned int transpositions, unsigned int depth, evaluation::Eval eval, double time) {
+    void info(
+        unsigned int nodes,
+        unsigned int transpositions,
+        unsigned int depth,
+        evaluation::Eval eval,
+        double time,
+        const game::Move* pv_moves,
+        std::size_t pv_size
+    ) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "INFO ";
@@ -104,6 +112,11 @@ namespace messages {
         std::cout << "depth " << depth << ' ';
         std::cout << "eval " << eval << ' ';
         std::cout << "time " << time;
+        std::cout << "pv";
+
+        for (std::size_t i {0}; i < pv_size; i++) {
+            std::cout << ' ' << move_to_string(pv_moves[i]);
+        }
 
         std::cout << std::endl;
     }

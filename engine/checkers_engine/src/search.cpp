@@ -58,7 +58,7 @@ namespace search {
             const auto end {std::chrono::steady_clock::now()};
             const double time {std::chrono::duration<double>(end - begin).count()};
 
-            messages::info(m_nodes_evaluated, m_transpositions, i, last_evaluation * evaluation::perspective(position.player), time);
+            messages::info(m_nodes_evaluated, m_transpositions, i, last_evaluation * evaluation::perspective(position.player), time, line.moves, line.size);
 
             // If move is invalid, then the game must be over
             // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible

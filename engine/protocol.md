@@ -119,7 +119,7 @@ The list may be empty, if the engine has no parameters.
 
 Responds with the name, type and value of the requested parameter after a **GETPARAMETER** command.
 
-### INFO [nodes `value`] [transpositions `value`] [depth `value`] eval `value` time `value`
+### INFO [nodes `value`] [transpositions `value`] [depth `value`] eval `value` time `value` pv `move1` `move2` ...
 
 Informs the GUI about its progress in calculating the best move. Can be sent at any time between the **GO**
 command and the **BESTMOVE** response.
@@ -135,6 +135,8 @@ It is optional.
 
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
 started.
+
+*pv* represents the principle variation of the search up until at that particular point.
 
 ### NAME `name`
 

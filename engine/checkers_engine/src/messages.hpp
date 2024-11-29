@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
+#include <cstddef>
 
 #include "game.hpp"
 #include "parameters.hpp"
@@ -14,6 +15,14 @@ namespace messages {
     void bestmove(const std::optional<game::Move>& move);
     void parameters(const std::unordered_map<std::string, parameters::Parameter>& parameters);
     void parameter(const std::string& name, const parameters::Parameter& value);
-    void info(unsigned int nodes, unsigned int transpositions, unsigned int depth, evaluation::Eval eval, double time);
+    void info(
+        unsigned int nodes,
+        unsigned int transpositions,
+        unsigned int depth,
+        evaluation::Eval eval,
+        double time,
+        const game::Move* pv_moves,
+        std::size_t pv_size
+    );
     void name();
 }
