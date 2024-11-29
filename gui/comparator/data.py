@@ -51,6 +51,7 @@ class RoundResult:
 class MatchReport:
     black_engine: EngineStats
     white_engine: EngineStats
+    max_think_time: float
     total_rounds: int
     total_black_engine_wins: int
     total_white_engine_wins: int
@@ -61,6 +62,7 @@ class MatchReport:
     average_white_engine_depth: float
     match: list[RoundResult]
     rematch: list[RoundResult]
+    start_time: str
     datetime: str
 
 
@@ -78,6 +80,7 @@ def generate_report(report: MatchReport):
             "parameters": [f"{parameter[0]} {parameter[1]} {parameter[2]}" for parameter in report.white_engine.parameters]
         },
 
+        "max_think_time": report.max_think_time,
         "total_rounds": report.total_rounds,
         "total_black_engine_wins": report.total_black_engine_wins,
         "total_white_engine_wins": report.total_white_engine_wins,
@@ -94,7 +97,7 @@ def generate_report(report: MatchReport):
                 "time": match.time,
                 "ending": str(match.ending),
                 "plies": match.plies,
-                "played_moves": [move for move in match.played_moves]
+                "played_moves": [move[0] for move in match.played_moves]
             }
             for match in report.match
         ],
@@ -106,11 +109,12 @@ def generate_report(report: MatchReport):
                 "time": rematch.time,
                 "ending": f"{rematch.ending} (swapped engines)",
                 "plies": rematch.plies,
-                "played_moves": [move for move in rematch.played_moves]
+                "played_moves": [move[0] for move in rematch.played_moves]
             }
             for rematch in report.rematch
         ],
 
+        "start_time": report.start_time,
         "datetime": report.datetime
     }
 
@@ -143,6 +147,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
                 },
                 "required": ["name", "parameters"]
             },
+            "max_think_time": { "type": "number" },
             "total_rounds": { "type": "integer" },
             "total_black_engine_wins": { "type": "integer" },
             "total_white_engine_wins": { "type": "integer" },
@@ -187,11 +192,13 @@ def extract_replay_file(file_path: str, match: str, index: int):
                     "required": ["index", "position", "time", "ending", "plies", "played_moves"]
                 }
             },
+            "start_time": { "type": "string" },
             "datetime": { "type": "string" }
         },
         "required": [
             "black_engine",
             "white_engine",
+            "max_think_time",
             "total_rounds",
             "total_black_engine_wins",
             "total_white_engine_wins",
@@ -202,6 +209,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
             "average_white_engine_depth",
             "match",
             "rematch",
+            "start_time",
             "datetime"
         ]
     }

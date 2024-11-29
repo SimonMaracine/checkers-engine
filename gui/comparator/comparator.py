@@ -72,7 +72,9 @@ def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: 
 
 
 def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str) -> data.MatchReport:
-    print_status("Running match")
+    start_time = time.ctime()
+
+    print_status(f"Starting match at {start_time}")
 
     for position in match_file.positions:
         if not common.validate_position_string(position):
@@ -121,6 +123,7 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     return data.MatchReport(
         black_engine_stats,
         white_engine_stats,
+        match_file.max_think_time,
         len(match_results) + len(rematch_results),
         sum(map(win_black, match_results)) + sum(map(win_white, rematch_results)),
         sum(map(win_white, match_results)) + sum(map(win_black, rematch_results)),
@@ -132,6 +135,7 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         statistics.mean([move[1] for round in match_results for move in round.played_moves[::2]] + [move[1] for round in rematch_results for move in round.played_moves[1::2]]),
         match_results,
         rematch_results,
+        start_time,
         time.ctime()
     )
 
