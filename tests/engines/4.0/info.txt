@@ -1,0 +1,3 @@
+The alpha-beta seatch now returns the PV, which is used for the next iteration.
+Don't probe the TT from the root of the search.
+Performance seems to be slightly worse, but I bet that is because there are many other unoptimized things. I will keep this change even if it loses against the previous version, because in theory it should be better (or I have a bug somewhere).
