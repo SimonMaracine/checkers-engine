@@ -111,7 +111,7 @@ namespace messages {
         std::cout << "transpositions " << transpositions << ' ';
         std::cout << "depth " << depth << ' ';
         std::cout << "eval " << eval << ' ';
-        std::cout << "time " << time;
+        std::cout << "time " << time << ' ';
         std::cout << "pv";
 
         for (std::size_t i {0}; i < pv_size; i++) {

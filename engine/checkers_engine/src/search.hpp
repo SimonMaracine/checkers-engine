@@ -54,7 +54,7 @@ namespace search {
             const std::vector<game::Move>& moves_played
         );
 
-        void concatenate_pv(PvLine& p_line, const PvLine& line, const game::Move& move);
+        void fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move);
         void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, unsigned int plies_root);
         void reset_after_search_iteration();
         void notify_result_available();
@@ -64,7 +64,6 @@ namespace search {
         bool m_reached_left_most_path {false};
         unsigned int m_nodes_evaluated {};
         unsigned int m_transpositions {};
-        game::Move m_best_move {};
 
         // The current and previous positions (for threefold repetition)
         // node0, node1, node2, ..., nodeN (current)

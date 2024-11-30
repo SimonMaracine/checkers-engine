@@ -20,6 +20,6 @@ namespace evaluation {
         eval -= black_pieces * parameters.piece;
         eval += white_pieces * parameters.piece;
 
-        return eval * perspective(node.player);
+        return eval * perspective(node);
     }
 }

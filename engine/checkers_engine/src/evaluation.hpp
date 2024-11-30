@@ -14,7 +14,11 @@ namespace evaluation {
 
     Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters);
 
-    constexpr Eval perspective(game::Player player) {
-        return player == game::Player::Black ? -1 : 1;
+    constexpr Eval perspective(const search::SearchNode& node) {
+        return node.player == game::Player::Black ? -1 : 1;
+    }
+
+    constexpr Eval perspective(const game::Position& position) {
+        return position.player == game::Player::Black ? -1 : 1;
     }
 }

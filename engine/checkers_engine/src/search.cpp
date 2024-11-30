@@ -37,7 +37,6 @@ namespace search {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         evaluation::Eval last_evaluation {evaluation::INVALID};
-        game::Move last_best_move {};
         PvLine last_pv_line;
 
         for (unsigned int i {1}; i <= max_depth; i++) {
@@ -45,25 +44,34 @@ namespace search {
 
             PvLine line;
 
-            const evaluation::Eval evaluation {alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node, line, last_pv_line)};
+            const evaluation::Eval evaluation {
+                alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node, line, last_pv_line)
+            };
 
             if (m_should_stop) {
                 break;
             }
 
             last_evaluation = evaluation;
-            last_best_move = m_best_move;
             last_pv_line = line;
 
             const auto end {std::chrono::steady_clock::now()};
             const double time {std::chrono::duration<double>(end - begin).count()};
 
-            messages::info(m_nodes_evaluated, m_transpositions, i, last_evaluation * evaluation::perspective(position.player), time, line.moves, line.size);
+            messages::info(
+                m_nodes_evaluated,
+                m_transpositions,
+                i,
+                last_evaluation * evaluation::perspective(position),
+                time,
+                line.moves,
+                line.size
+            );
 
             // If move is invalid, then the game must be over
             // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
             // Notify the main thread that a "result" is available
-            if (game::is_move_invalid(last_best_move)) {
+            if (game::is_move_invalid(last_pv_line.moves[0])) {
                 notify_result_available();
                 return std::nullopt;
             }
@@ -71,7 +79,7 @@ namespace search {
             reset_after_search_iteration();
         }
 
-        return std::make_optional(last_best_move);
+        return std::make_optional(last_pv_line.moves[0]);
     }
 
     evaluation::Eval Search::alpha_beta(
@@ -84,48 +92,45 @@ namespace search {
         const PvLine& pv_in
     ) {
         if (m_should_stop) {
-            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        if (depth == 0 || is_game_over_material(current_node)) {  // Game over
-            m_reached_left_most_path = true;
+        if (is_game_over_material(current_node)) {  // Game over
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
         if (is_forty_move_rule(current_node)) {  // Game over
-            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return 0;
         }
 
         if (is_threefold_repetition_rule(current_node)) {  // Game over
-            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return 0;
         }
 
-        const auto [evaluation, move] {
-            m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
-        };
+        if (depth == 0) {
+            m_nodes_evaluated++;
+            return evaluation::static_evaluation(current_node, m_parameters);
+        }
 
-        if (evaluation != evaluation::INVALID) {
-            if (plies_root == 0) {
-                m_best_move = move;
-                notify_result_available();
+        // Only check the transposition table in the root of the search
+        if (plies_root > 0) {
+            const auto [evaluation, move] {
+                m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
+            };
+
+            if (evaluation != evaluation::INVALID) {
+                m_transpositions++;
+                return evaluation;
             }
-
-            m_reached_left_most_path = true;
-            m_transpositions++;
-            return evaluation;
         }
 
         auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
         if (moves.empty()) {  // Game over
-            m_reached_left_most_path = true;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
@@ -147,6 +152,11 @@ namespace search {
                 -alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node, line, pv_in)
             };
 
+            // Now we stop using the PV from the last iteration
+            m_reached_left_most_path = true;
+
+            // Check if the move was way too good for the opponent to let us play it
+            // If so, don't evaluate the rest of the moves, because the opponent will not let us get here
             if (evaluation >= beta) {
                 m_transposition_table.store(
                     { current_node.board, current_node.player },
@@ -159,18 +169,18 @@ namespace search {
                 return beta;
             }
 
+            // Check if we found a better move than the last time
             if (evaluation > alpha) {
                 alpha = evaluation;
 
                 if (plies_root == 0) {
-                    m_best_move = move;
                     notify_result_available();
                 }
 
                 node_type = transposition_table::NodeType::Pv;
                 best_move = move;
 
-                concatenate_pv(p_line, line, move);
+                fill_pv(p_line, line, move);
             }
         }
 
@@ -216,7 +226,7 @@ namespace search {
         return m_nodes.back();
     }
 
-    void Search::concatenate_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {
+    void Search::fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {
         p_line.moves[0] = move;
         std::memcpy(p_line.moves + 1, line.moves, line.size * sizeof(move));
         p_line.size = line.size + 1;

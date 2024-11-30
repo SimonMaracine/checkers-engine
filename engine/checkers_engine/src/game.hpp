@@ -29,7 +29,7 @@ namespace game {
 
     struct Position {
         Board board {};
-        Player player {Player::Black};
+        Player player {Player::Black};  // Next player to move
         unsigned int plies {0};  // TODO might not be needed
         unsigned int plies_without_advancement {0};
     };

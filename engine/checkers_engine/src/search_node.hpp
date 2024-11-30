@@ -12,7 +12,7 @@ namespace search {
 
     struct SearchNode {
         game::Board board {};
-        game::Player player {};
+        game::Player player {};  // Next player to move
         unsigned int plies {0};  // TODO might not be needed
         unsigned int plies_without_advancement {0};
 
