@@ -26,6 +26,7 @@ namespace engine {
         void setparameter(const std::string& name, const std::string& value);
         void quit();
         void getname() const;
+        void board() const;
     private:
         std::optional<game::Move> search_move(std::unique_lock<std::mutex>& lock);
         void reset_position(const std::string& fen_string);

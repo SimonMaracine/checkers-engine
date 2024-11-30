@@ -247,6 +247,12 @@ namespace engine {
         messages::name();
     }
 
+    void Engine::board() const {
+        ignore_invalid_command_on_init();
+
+        messages::board(m_position);
+    }
+
     std::optional<game::Move> Engine::search_move(std::unique_lock<std::mutex>& lock) {
         m_transposition_table.clear();
 

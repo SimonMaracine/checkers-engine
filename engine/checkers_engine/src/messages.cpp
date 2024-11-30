@@ -30,6 +30,23 @@ namespace messages {
         return stream.str();
     }
 
+    static char get_square_char(game::Square square) {
+        switch (square) {
+            case game::Square::None:
+                return 'O';
+            case game::Square::Black:
+                return 'b';
+            case game::Square::BlackKing:
+                return 'B';
+            case game::Square::White:
+                return 'w';
+            case game::Square::WhiteKing:
+                return 'W';
+        }
+
+        return {};
+    }
+
     /*
         Using std::endl is crucial.
 
@@ -125,5 +142,35 @@ namespace messages {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "NAME " << "checkers|4.0" << std::endl;
+    }
+
+    void board(const game::Position& position) {
+        std::lock_guard<std::mutex> lock {g_mutex};
+
+        for (std::size_t i {0}, j {0}; i < 32; j++) {
+            if (j % 2 == 0) {
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << '\n';
+            } else {
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << get_square_char(position.board[i++]);
+                std::cout << 'O';
+                std::cout << '\n';
+            }
+        }
+
+        std::cout << std::endl;
     }
 }

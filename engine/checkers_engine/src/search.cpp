@@ -14,6 +14,7 @@
 // https://web.archive.org/web/20071030084528/http://www.brucemo.com/compchess/programming/alphabeta.htm
 // https://web.archive.org/web/20071031100056/http://www.brucemo.com/compchess/programming/iterative.htm
 // https://web.archive.org/web/20071031100114/http://www.brucemo.com/compchess/programming/pv.htm
+// https://www.chessprogramming.org/Principal_Variation
 // https://www.chessprogramming.org/Leftmost_Node
 
 namespace search {
@@ -77,6 +78,9 @@ namespace search {
             }
 
             reset_after_search_iteration();
+
+            // After the first iteration, we have some legal move available
+            notify_result_available();
         }
 
         return std::make_optional(last_pv_line.moves[0]);
@@ -97,32 +101,40 @@ namespace search {
         }
 
         if (is_game_over_material(current_node)) {  // Game over
+            p_line.size = 0;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
         if (is_forty_move_rule(current_node)) {  // Game over
+            p_line.size = 0;
             m_nodes_evaluated++;
             return 0;
         }
 
         if (is_threefold_repetition_rule(current_node)) {  // Game over
+            p_line.size = 0;
             m_nodes_evaluated++;
             return 0;
         }
 
         if (depth == 0) {
+            p_line.size = 0;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters);
         }
 
-        // Only check the transposition table in the root of the search
+        // Don't check the TT in the root of the search
         if (plies_root > 0) {
             const auto [evaluation, move] {
                 m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
             };
 
             if (evaluation != evaluation::INVALID) {
+                // TT may greatly disturb the PV, even making it sometimes non sensical
+                // Cut out the non-sense from the PV
+                p_line.size = 0;
+
                 m_transpositions++;
                 return evaluation;
             }
@@ -138,7 +150,6 @@ namespace search {
         reorder_moves_pv(moves, pv_in, plies_root);
 
         PvLine line;
-
         auto node_type {transposition_table::NodeType::All};
         game::Move best_move {};
 
@@ -172,10 +183,6 @@ namespace search {
             // Check if we found a better move than the last time
             if (evaluation > alpha) {
                 alpha = evaluation;
-
-                if (plies_root == 0) {
-                    notify_result_available();
-                }
 
                 node_type = transposition_table::NodeType::Pv;
                 best_move = move;

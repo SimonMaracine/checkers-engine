@@ -50,6 +50,8 @@ namespace loop {
             commands::setparameter(engine, input_tokens);
         } else if (command_name == "GETNAME") {
             commands::getname(engine, input_tokens);
+        } else if (command_name == "BOARD") {
+            commands::board(engine, input_tokens);
         } else {
             throw error::InvalidCommand();
         }

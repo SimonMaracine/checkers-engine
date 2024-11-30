@@ -89,4 +89,8 @@ namespace commands {
     void getname(engine::Engine& engine, const std::vector<std::string>&) {
         engine.getname();
     }
+
+    void board(engine::Engine& engine, const std::vector<std::string>&) {
+        engine.board();
+    }
 }

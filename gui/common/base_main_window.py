@@ -118,7 +118,7 @@ class BaseMainWindow(abc.ABC, tk.Frame):
                     self._cvs_board.create_text(
                         j * self._square_size + self._square_size / 2.0,
                         i * self._square_size + self._square_size / 2.0,
-                        fill="white",
+                        fill="gray25",
                         text=str(index),
                         tags=("all", "indices")
                     )

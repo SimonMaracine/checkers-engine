@@ -25,4 +25,5 @@ namespace messages {
         std::size_t pv_size
     );
     void name();
+    void board(const game::Position& position);
 }

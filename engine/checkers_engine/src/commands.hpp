@@ -17,4 +17,5 @@ namespace commands {
     void getparameter(engine::Engine& engine, const std::vector<std::string>& tokens);
     void quit(engine::Engine& engine, const std::vector<std::string>&);
     void getname(engine::Engine& engine, const std::vector<std::string>&);
+    void board(engine::Engine& engine, const std::vector<std::string>&);
 }
