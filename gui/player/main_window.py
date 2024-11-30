@@ -13,19 +13,11 @@ from . import saved_data
 # https://tkdocs.com/tutorial/canvas.html
 # https://freesound.org/people/Samulis/sounds/375743/
 
-# TODO
-# valgrind --tool=callgrind --cache-sim=yes --dump-instr=yes --branch=yes
-# kcachegrind
-# perf stat -e cycles,instructions,L1-dcache-loads,L1-dcache-load-misses
-# perf record -e cycles,instructions,L1-dcache-loads,L1-dcache-load-misses --call-graph=dwarf
-# hotspot
-# ldd
-
 
 class MainWindow(base_main_window.BaseMainWindow):
     HUMAN = 1
     COMPUTER = 2
-    CHECK_TIME_MS = 30
+    CHECK_TIME_MS = 20
     WAIT_TIME_S = 3
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"

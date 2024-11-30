@@ -147,7 +147,7 @@ namespace messages {
     void board(const game::Position& position) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        for (std::size_t i {0}, j {0}; i < 32; j++) {
+        for (game::Idx i {0}, j {0}; i < 32; j++) {
             if (j % 2 == 0) {
                 std::cout << 'O';
                 std::cout << get_square_char(position.board[i++]);

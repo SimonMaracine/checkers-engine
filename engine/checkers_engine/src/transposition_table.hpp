@@ -34,11 +34,11 @@ struct std::hash<transposition_table::Position> {
         std::uint64_t value0 {};
         std::uint64_t value1 {};
 
-        for (std::size_t i {0}; i < 16; i++) {
+        for (game::Idx i {0}; i < 16; i++) {
             value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
         }
 
-        for (std::size_t i {16}; i < 32; i++) {
+        for (game::Idx i {16}; i < 32; i++) {
             value1 |= static_cast<std::uint64_t>(position.board[i]) << ((i - 16) * 3);
         }
 

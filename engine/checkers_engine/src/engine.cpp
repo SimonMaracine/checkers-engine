@@ -285,6 +285,7 @@ namespace engine {
 
     void Engine::initialize_parameters() {
         m_parameters["piece"] = 10;
+        m_parameters["piece_king"] = 25;
         m_parameters["max_depth"] = 15;
     }
 

@@ -26,7 +26,7 @@ namespace search {
         const parameters::Parameters& parameters
     )
         : m_cv(cv), m_lock(lock), m_best_move_available(best_move_available), m_transposition_table(transposition_table) {
-        m_parameters.piece = std::get<0>(parameters.at("piece"));
+        setup_parameters(parameters);
     }
 
     std::optional<game::Move> Search::search(
@@ -231,6 +231,11 @@ namespace search {
         assert(!m_nodes.empty());
 
         return m_nodes.back();
+    }
+
+    void Search::setup_parameters(const parameters::Parameters& parameters) {
+        m_parameters.piece = std::get<0>(parameters.at("piece"));
+        m_parameters.piece_king = std::get<0>(parameters.at("piece_king"));
     }
 
     void Search::fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {
