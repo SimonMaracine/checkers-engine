@@ -236,6 +236,8 @@ namespace search {
     void Search::setup_parameters(const parameters::Parameters& parameters) {
         m_parameters.piece = std::get<0>(parameters.at("piece"));
         m_parameters.piece_king = std::get<0>(parameters.at("piece_king"));
+        m_parameters.positioning = std::get<0>(parameters.at("positioning"));
+        m_parameters.crowdness = std::get<0>(parameters.at("crowdness"));
     }
 
     void Search::fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {

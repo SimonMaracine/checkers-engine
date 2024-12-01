@@ -76,6 +76,23 @@ namespace game {
         return index + 1;
     }
 
+    // TODO needed?
+    // constexpr Idx _1_32_to_0_64(const Idx index) {
+    //     if (((index - 1) / 4) % 2 == 0) {
+    //         return index * 2 - 1;
+    //     } else {
+    //         return (index - 1) * 2;
+    //     }
+    // }
+
+    // constexpr Idx _0_64_to_1_32(const Idx index) {
+    //     if (index % 2 == 1) {
+    //         return (index + 1) / 2;
+    //     } else {
+    //         return (index / 2) + 1;
+    //     }
+    // }
+
     constexpr bool is_black_piece(const Square square) {
         return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 0);
     }

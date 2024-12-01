@@ -379,7 +379,8 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._stopped = True
         self._var_stopped.set(f"{self.TXT_STOPPED} {self._stopped}")
 
-        self._gui_game_over = False
+        # The setup position might be already game over
+        self._gui_game_over = self._board.get_game_over() != board.GameOver.None_
 
         self._btn_black_human.config(state="normal")
         self._btn_black_computer.config(state="normal")

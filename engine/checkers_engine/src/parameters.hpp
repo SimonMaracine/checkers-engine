@@ -16,5 +16,7 @@ namespace parameters {
     struct SearchParameters {
         Int piece {};
         Int piece_king {};
+        Int positioning {};
+        Int crowdness {};
     };
 }

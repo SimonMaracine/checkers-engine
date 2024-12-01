@@ -1,18 +1,49 @@
 #include "evaluation.hpp"
 
+#include <algorithm>
+
 #include "game.hpp"
 
 namespace evaluation {
-    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+    template<game::Player Player, int Offset1, int Offset2>
+    static int neighbor(int index, const game::Board& board, bool even_row) {
+        const int result_index {index - (even_row ? Offset1 : Offset2)};
+
+        if (std::abs(index / 4 - result_index / 4) != 1) {
+            return 0;
+        }
+
+        if (result_index < 0 || result_index > 31) {
+            return 0;
+        }
+
+        return game::is_piece(board[result_index], Player);
+    }
+
+    template<game::Player Player>
+    static int neighbors(int index, const game::Board& board) {
+        const bool even_row {(index / 4) % 2 == 0};
+        int count {0};
+
+        count += neighbor<Player, 3, 4>(index, board, even_row);
+        count += neighbor<Player, 4, 5>(index, board, even_row);
+        count += neighbor<Player, 5, 4>(index, board, even_row);
+        count += neighbor<Player, 4, 3>(index, board, even_row);
+
+        return count;
+    }
+
+    // Bonus points for material (self explanatory)
+    static Eval calculate_material(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
         Eval eval {0};
 
-        Eval black_pieces {0};
-        Eval black_king_pieces {0};
-        Eval white_pieces {0};
-        Eval white_king_pieces {0};
+        int black_pieces {0};
+        int black_king_pieces {0};
+        int white_pieces {0};
+        int white_king_pieces {0};
 
-        for (game::Idx i {0}; i < 32; i++) {
-              switch (node.board[i]) {
+        for (int i {0}; i < 32; i++) {
+            switch (node.board[i]) {
                 case game::Square::None:
                     break;
                 case game::Square::Black:
@@ -34,6 +65,135 @@ namespace evaluation {
         eval += white_pieces * parameters.piece;
         eval -= black_king_pieces * parameters.piece_king;
         eval += white_king_pieces * parameters.piece_king;
+
+        return eval;
+    }
+
+    // Bonus points are given for pieces that are in better spots
+    // Pawn pieces are encouraged to advance the rank while generally avoiding the sides (less freedom)
+    // King pieces are encouraged to control the center (this helps the endgame)
+    static Eval calculate_positioning(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+        static constexpr Eval POSITIONING_PAWN_BLACK[] {
+            7, 0, 7, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            1, 1, 1, 0,
+            1, 2, 2, 2,
+            3, 3, 3, 2,
+            3, 4, 4, 4,
+            0, 0, 0, 0
+        };
+
+        static constexpr Eval POSITIONING_PAWNS_WHITE[] {
+            0, 0, 0, 0,
+            3, 4, 4, 4,
+            3, 3, 3, 2,
+            1, 2, 2, 2,
+            1, 1, 1, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 7, 0, 7
+        };
+
+        static constexpr Eval POSITIONING_KING[] {
+            0, 0, 0, 0,
+            0, 1, 1, 1,
+            1, 2, 2, 0,
+            0, 2, 2, 1,
+            1, 2, 2, 0,
+            0, 2, 2, 1,
+            1, 1, 1, 0,
+            0, 0, 0, 0
+        };
+
+        Eval eval {0};
+
+        for (int i {0}; i < 32; i++) {
+            switch (node.board[i]) {
+                case game::Square::None:
+                    break;
+                case game::Square::Black:
+                    eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning;
+                    break;
+                case game::Square::BlackKing:
+                    eval -= POSITIONING_KING[i] * parameters.positioning;
+                    break;
+                case game::Square::White:
+                    eval += POSITIONING_PAWNS_WHITE[i] * parameters.positioning;
+                    break;
+                case game::Square::WhiteKing:
+                    eval += POSITIONING_KING[i] * parameters.positioning;
+                    break;
+            }
+        }
+
+        return eval;
+    }
+
+    // Bonus points are given for pieces that have neighbors of the same color
+    static Eval calculate_crowdness(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+        Eval eval {0};
+
+        for (int i {0}; i < 32; i++) {
+            switch (node.board[i]) {
+                case game::Square::None:
+                    break;
+                case game::Square::Black:
+                case game::Square::BlackKing: {
+                    const int count {neighbors<game::Player::Black>(i, node.board)};
+
+                    if (count == 4) {
+                        eval -= 2 * parameters.crowdness;
+                    } else {
+                        eval -= static_cast<Eval>(count) * parameters.crowdness;
+                    }
+
+                    break;
+                }
+                case game::Square::White:
+                case game::Square::WhiteKing: {
+                    const int count {neighbors<game::Player::White>(i, node.board)};
+
+                    if (count == 4) {
+                        eval += 2 * parameters.crowdness;
+                    } else {
+                        eval += static_cast<Eval>(count) * parameters.crowdness;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return eval;
+    }
+
+    // static Eval calculate_engagement(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+    //     struct Position {
+    //         int x {};
+    //         int y {};
+    //     };
+
+    //     static constexpr Position WORLD[] {
+    //         { 1, 0 }, { 3, 0 }, { 5, 0 }, { 7, 0 },
+    //         { 0, 1 }, { 2, 1 }, { 4, 1 }, { 6, 1 },
+    //         { 1, 2 }, { 3, 2 }, { 5, 2 }, { 7, 2 },
+    //         { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 },
+    //         { 1, 4 }, { 3, 4 }, { 5, 4 }, { 7, 4 },
+    //         { 0, 5 }, { 2, 5 }, { 4, 5 }, { 6, 5 },
+    //         { 1, 6 }, { 3, 6 }, { 5, 6 }, { 7, 6 },
+    //         { 0, 7 }, { 2, 7 }, { 4, 7 }, { 6, 7 }
+    //     };
+
+    //     Eval eval {0};
+
+    // }
+
+    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+        Eval eval {0};
+        eval += calculate_material(node, parameters);
+        eval += calculate_positioning(node, parameters);
+        eval += calculate_crowdness(node, parameters);
 
         return eval * perspective(node);
     }

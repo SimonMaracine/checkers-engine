@@ -338,6 +338,9 @@ class CheckersBoard:
 
         self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
 
+        # There might be already no legal moves
+        self._check_legal_moves(self._legal_moves)
+
         if self._redraw and self._canvas:
             self._draw_pieces(self._canvas)
 
@@ -452,10 +455,11 @@ class CheckersBoard:
         # Insert current position even after advancement
         self._repetition_positions.append(current)
 
-    def _check_legal_moves(self):
+    def _check_legal_moves(self, moves: list[Move] | None = None):
         # Must be called after changing the turn
 
-        moves = CheckersBoard._generate_moves(self._board, self._turn)
+        if moves is None:
+            moves = CheckersBoard._generate_moves(self._board, self._turn)
 
         if not moves:
             # Either they have no pieces left or they are blocked
