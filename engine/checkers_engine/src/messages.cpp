@@ -33,7 +33,7 @@ namespace messages {
     static char get_square_char(game::Square square) {
         switch (square) {
             case game::Square::None:
-                return 'O';
+                return ' ';
             case game::Square::Black:
                 return 'b';
             case game::Square::BlackKing:
@@ -147,28 +147,31 @@ namespace messages {
     void board(const game::Position& position) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        for (game::Idx i {0}, j {0}; i < 32; j++) {
-            if (j % 2 == 0) {
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << '\n';
-            } else {
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << get_square_char(position.board[i++]);
-                std::cout << 'O';
-                std::cout << '\n';
+        game::Idx pc {0};
+        unsigned int k {0};
+
+        std::cout << "+---++---++---++---++---++---++---++---+\n";
+
+        for (unsigned int i {0}; i < 8; i++) {
+            std::cout << "| ";
+
+            for (unsigned int j {0}; j < 7; j++, k++) {
+                if (k % 2 == 0) {
+                    std::cout << "  || ";
+                } else {
+                    std::cout << get_square_char(position.board[pc++]);
+                    std::cout << " || ";
+                }
             }
+
+            if (k % 2 == 0) {
+                std::cout << ' ';
+            } else {
+                std::cout << get_square_char(position.board[pc++]);
+            }
+            std::cout << " |\n";
+
+            std::cout << "+---++---++---++---++---++---++---++---+\n";
         }
 
         std::cout << std::endl;
