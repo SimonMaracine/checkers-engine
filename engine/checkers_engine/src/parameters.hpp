@@ -14,9 +14,10 @@ namespace parameters {
     using Parameters = std::unordered_map<std::string, Parameter>;
 
     struct SearchParameters {
-        Int piece {};
-        Int piece_king {};
-        Int positioning {};
+        Int material_pawn {};
+        Int material_king {};
+        Int positioning_pawn {};
+        Int positioning_king {};
         Int crowdness {};
     };
 }

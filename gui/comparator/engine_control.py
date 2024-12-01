@@ -92,6 +92,7 @@ def setup_engine_parameters(engine: checkers_engine.CheckersEngine, parameters: 
         tokens = parameter.split("=")
 
         if len(tokens) != 2:
+            print_status(f"Invalid parameter `{parameter}` for engine {color}", 1)
             continue
 
         name = tokens[0]

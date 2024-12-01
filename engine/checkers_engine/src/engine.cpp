@@ -284,9 +284,10 @@ namespace engine {
     }
 
     void Engine::initialize_parameters() {
-        m_parameters["piece"] = 15;
-        m_parameters["piece_king"] = 35;
-        m_parameters["positioning"] = 1;
+        m_parameters["material_pawn"] = 15;
+        m_parameters["material_king"] = 35;
+        m_parameters["positioning_pawn"] = 1;
+        m_parameters["positioning_king"] = 2;
         m_parameters["crowdness"] = 1;
         m_parameters["max_depth"] = 15;
     }

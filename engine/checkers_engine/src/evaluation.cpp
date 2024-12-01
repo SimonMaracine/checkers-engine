@@ -37,34 +37,34 @@ namespace evaluation {
     static Eval calculate_material(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
         Eval eval {0};
 
-        int black_pieces {0};
-        int black_king_pieces {0};
-        int white_pieces {0};
-        int white_king_pieces {0};
+        int black_pawns {0};
+        int black_kings {0};
+        int white_pawns {0};
+        int white_kings {0};
 
         for (int i {0}; i < 32; i++) {
             switch (node.board[i]) {
                 case game::Square::None:
                     break;
                 case game::Square::Black:
-                    black_pieces++;
+                    black_pawns++;
                     break;
                 case game::Square::BlackKing:
-                    black_king_pieces++;
+                    black_kings++;
                     break;
                 case game::Square::White:
-                    white_pieces++;
+                    white_pawns++;
                     break;
                 case game::Square::WhiteKing:
-                    white_king_pieces++;
+                    white_kings++;
                     break;
             }
         }
 
-        eval -= black_pieces * parameters.piece;
-        eval += white_pieces * parameters.piece;
-        eval -= black_king_pieces * parameters.piece_king;
-        eval += white_king_pieces * parameters.piece_king;
+        eval -= black_pawns * parameters.material_pawn;
+        eval += white_pawns * parameters.material_pawn;
+        eval -= black_kings * parameters.material_king;
+        eval += white_kings * parameters.material_king;
 
         return eval;
     }
@@ -84,7 +84,7 @@ namespace evaluation {
             0, 0, 0, 0
         };
 
-        static constexpr Eval POSITIONING_PAWNS_WHITE[] {
+        static constexpr Eval POSITIONING_PAWN_WHITE[] {
             0, 0, 0, 0,
             3, 4, 4, 4,
             3, 3, 3, 2,
@@ -113,16 +113,16 @@ namespace evaluation {
                 case game::Square::None:
                     break;
                 case game::Square::Black:
-                    eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning;
+                    eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::BlackKing:
-                    eval -= POSITIONING_KING[i] * parameters.positioning;
+                    eval -= POSITIONING_KING[i] * parameters.positioning_king;
                     break;
                 case game::Square::White:
-                    eval += POSITIONING_PAWNS_WHITE[i] * parameters.positioning;
+                    eval += POSITIONING_PAWN_WHITE[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::WhiteKing:
-                    eval += POSITIONING_KING[i] * parameters.positioning;
+                    eval += POSITIONING_KING[i] * parameters.positioning_king;
                     break;
             }
         }

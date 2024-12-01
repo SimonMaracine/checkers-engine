@@ -234,9 +234,10 @@ namespace search {
     }
 
     void Search::setup_parameters(const parameters::Parameters& parameters) {
-        m_parameters.piece = std::get<0>(parameters.at("piece"));
-        m_parameters.piece_king = std::get<0>(parameters.at("piece_king"));
-        m_parameters.positioning = std::get<0>(parameters.at("positioning"));
+        m_parameters.material_pawn = std::get<0>(parameters.at("material_pawn"));
+        m_parameters.material_king = std::get<0>(parameters.at("material_king"));
+        m_parameters.positioning_pawn = std::get<0>(parameters.at("positioning_pawn"));
+        m_parameters.positioning_king = std::get<0>(parameters.at("positioning_king"));
         m_parameters.crowdness = std::get<0>(parameters.at("crowdness"));
     }
 

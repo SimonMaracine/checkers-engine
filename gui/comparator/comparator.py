@@ -96,6 +96,8 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         black_engine_stats = _engine_stats(path_engine_black, black_engine, engine_control.Color.Black)
         white_engine_stats = _engine_stats(path_engine_white, white_engine, engine_control.Color.White)
 
+        print_status(f"Max thinking time: {match_file.max_think_time}", 1)
+
         match_results: list[data.RoundResult] = []
         rematch_results: list[data.RoundResult] = []
 
@@ -120,6 +122,9 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     win_white = lambda round: round.ending == data.RoundEnding.WinnerWhite
     tie = lambda round: round.ending == data.RoundEnding.TieBetweenBothPlayers
 
+    played_moves_black = lambda round, rematch: round.played_moves[::2] if round.position[0] == ("W" if rematch else "B") else round.played_moves[1::2]
+    played_moves_white = lambda round, rematch: round.played_moves[::2] if round.position[0] == ("B" if rematch else "W") else round.played_moves[1::2]
+
     return data.MatchReport(
         black_engine_stats,
         white_engine_stats,
@@ -130,9 +135,8 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         sum(map(tie, match_results)) + sum(map(tie, rematch_results)),
         statistics.mean([round.time for round in match_results] + [round.time for round in rematch_results]),
         statistics.mean([len(round.played_moves) for round in match_results] + [len(round.played_moves) for round in rematch_results]),
-        # Remember that in all positions white continues
-        statistics.mean([move[1] for round in match_results for move in round.played_moves[1::2]] + [move[1] for round in rematch_results for move in round.played_moves[::2]]),
-        statistics.mean([move[1] for round in match_results for move in round.played_moves[::2]] + [move[1] for round in rematch_results for move in round.played_moves[1::2]]),
+        statistics.mean([move[1] for round in match_results for move in played_moves_black(round, False)] + [move[1] for round in rematch_results for move in played_moves_black(round, True)]),
+        statistics.mean([move[1] for round in match_results for move in played_moves_white(round, False)] + [move[1] for round in rematch_results for move in played_moves_white(round, True)]),
         match_results,
         rematch_results,
         start_time,
