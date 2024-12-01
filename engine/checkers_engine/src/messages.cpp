@@ -150,17 +150,17 @@ namespace messages {
         game::Idx pc {0};
         unsigned int k {0};
 
-        std::cout << "+---++---++---++---++---++---++---++---+\n";
+        std::cout << "+---+---+---+---+---+---+---+---+\n";
 
         for (unsigned int i {0}; i < 8; i++) {
             std::cout << "| ";
 
             for (unsigned int j {0}; j < 7; j++, k++) {
                 if (k % 2 == 0) {
-                    std::cout << "  || ";
+                    std::cout << "  | ";
                 } else {
                     std::cout << get_square_char(position.board[pc++]);
-                    std::cout << " || ";
+                    std::cout << " | ";
                 }
             }
 
@@ -171,7 +171,7 @@ namespace messages {
             }
             std::cout << " |\n";
 
-            std::cout << "+---++---++---++---++---++---++---++---+\n";
+            std::cout << "+---+---+---+---+---+---+---+---+\n";
         }
 
         std::cout << std::endl;
