@@ -201,6 +201,6 @@ def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine, color:
     name = engine_control.get_engine_name(engine, color)
     queried_params = engine_control.get_engine_parameters(engine, color)
 
-    print_status(f"Engine {color} name: {name}")
+    print_status(f"Engine {color} name: {name}", 1)
 
     return data.EngineStats(name, queried_params)
