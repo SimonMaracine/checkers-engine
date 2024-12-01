@@ -247,7 +247,7 @@ def _write_report(name: str, obj: Any):
 
 
 def _format_datetime(datetime: str) -> str:
-    _, month, day, time, year = datetime.split(" ")
+    _, month, day, time, year = datetime.split()
     hour, minute, second = time.split(":")
 
     return f"{month}-{day}--{hour}-{minute}-{second}--{year}"

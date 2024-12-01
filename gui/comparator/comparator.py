@@ -185,10 +185,10 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
         case board.GameOver.None_:
             assert False
         case board.GameOver.WinnerBlack:
-            print_status(f"Engine {"white" if rematch else "black"} won the game (color black)", 2)
+            print_status(f"Winner engine {"white" if rematch else "black"} (color black)", 2)
             ending = data.RoundEnding.WinnerBlack
         case board.GameOver.WinnerWhite:
-            print_status(f"Engine {"black" if rematch else "white"} won the game (color white)", 2)
+            print_status(f"Winner engine {"black" if rematch else "white"} (color white)", 2)
             ending = data.RoundEnding.WinnerWhite
         case board.GameOver.TieBetweenBothPlayers:
             print_status("Tie between both players", 2)
@@ -200,5 +200,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
 def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine, color: engine_control.Color) -> data.EngineStats:
     name = engine_control.get_engine_name(engine, color)
     queried_params = engine_control.get_engine_parameters(engine, color)
+
+    print_status(f"Engine {color} name: {name}")
 
     return data.EngineStats(name, queried_params)
