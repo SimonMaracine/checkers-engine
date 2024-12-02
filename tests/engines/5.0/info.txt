@@ -1,0 +1,1 @@
+Greatly improve the static evaluation function regarding a few things: material, positioning and crowdness.
