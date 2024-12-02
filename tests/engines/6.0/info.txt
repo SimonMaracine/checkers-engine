@@ -1,0 +1,3 @@
+Return min or max evaluation on game over.
+Check game over by no available legal moves before returning with heuristic evaluation.
+Keep this change even if doesn't improve the engine by much, because 1. it is more correct and 2. it should in theory improve it.
