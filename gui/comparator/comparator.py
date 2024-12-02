@@ -93,8 +93,8 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         engine_control.setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, engine_control.Color.Black)
         engine_control.setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, engine_control.Color.White)
 
-        black_engine_stats = _engine_stats(path_engine_black, black_engine, engine_control.Color.Black)
-        white_engine_stats = _engine_stats(path_engine_white, white_engine, engine_control.Color.White)
+        black_engine_stats = _engine_stats(black_engine, engine_control.Color.Black)
+        white_engine_stats = _engine_stats(white_engine, engine_control.Color.White)
 
         print_status(f"Max thinking time: {match_file.max_think_time}", 1)
 
@@ -189,19 +189,19 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
         case board.GameOver.None_:
             assert False
         case board.GameOver.WinnerBlack:
-            print_status(f"Winner engine {"white" if rematch else "black"} (color black)", 2)
+            print_status_red(f"Winner engine {"white" if rematch else "black"} (color black)", 2)
             ending = data.RoundEnding.WinnerBlack
         case board.GameOver.WinnerWhite:
-            print_status(f"Winner engine {"black" if rematch else "white"} (color white)", 2)
+            print_status_white(f"Winner engine {"black" if rematch else "white"} (color white)", 2)
             ending = data.RoundEnding.WinnerWhite
         case board.GameOver.TieBetweenBothPlayers:
-            print_status("Tie between both players", 2)
+            print_status_cyan("Tie between both players", 2)
             ending = data.RoundEnding.TieBetweenBothPlayers
 
     return data.RoundResult(index, position, ending, len(played_moves), played_moves, end - begin)
 
 
-def _engine_stats(file_path: str, engine: checkers_engine.CheckersEngine, color: engine_control.Color) -> data.EngineStats:
+def _engine_stats(engine: checkers_engine.CheckersEngine, color: engine_control.Color) -> data.EngineStats:
     name = engine_control.get_engine_name(engine, color)
     queried_params = engine_control.get_engine_parameters(engine, color)
 

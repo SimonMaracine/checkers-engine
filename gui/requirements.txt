@@ -1,3 +1,4 @@
 pygame
 jsonschema
 types-jsonschema
+colorama
