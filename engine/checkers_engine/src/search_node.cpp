@@ -31,34 +31,4 @@ namespace search {
 
         return false;
     }
-
-    evaluation::Eval is_game_over_material(const SearchNode& node) {
-        int black_pieces {0};
-        int white_pieces {0};
-
-        for (int i {0}; i < 32; i++) {
-            switch (node.board[i]) {
-                case game::Square::None:
-                    break;
-                case game::Square::Black:
-                case game::Square::BlackKing:
-                    black_pieces++;
-                    break;
-                case game::Square::White:
-                case game::Square::WhiteKing:
-                    white_pieces++;
-                    break;
-            }
-        }
-
-        if (black_pieces == 0) {
-            return evaluation::MAX;
-        }
-
-        if (white_pieces == 0) {
-            return evaluation::MIN;
-        }
-
-        return 0;
-    }
 }

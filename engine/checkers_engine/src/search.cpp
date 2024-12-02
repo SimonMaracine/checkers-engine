@@ -99,11 +99,17 @@ namespace search {
             return 0;
         }
 
-        if (const auto result {is_game_over_material(current_node)}; result != 0) {  // Game over
+        // Generate moves here, because we need to check game over condition on unavailable legal moves
+        // At the same time, this also checks game over on unavailable material, 2 in 1
+        auto moves {moves::generate_moves(current_node.board, current_node.player)};
+
+        if (moves.empty()) {  // Game over
             p_line.size = 0;
             m_nodes_evaluated++;
-            return result * search::perspective(current_node);;
+            return (current_node.player == game::Player::Black ? evaluation::MAX : evaluation::MIN) * perspective(current_node);
         }
+
+        // Then check for tie
 
         if (is_forty_move_rule(current_node)) {  // Game over
             p_line.size = 0;
@@ -117,6 +123,8 @@ namespace search {
             return 0;
         }
 
+        // The game is not over
+        // If we reached maximum depth, return heuristic value
         if (depth == 0) {
             p_line.size = 0;
             m_nodes_evaluated++;
@@ -139,14 +147,7 @@ namespace search {
             }
         }
 
-        auto moves {moves::generate_moves(current_node.board, current_node.player)};
-
-        if (moves.empty()) {  // Game over
-            p_line.size = 0;
-            m_nodes_evaluated++;
-            return (current_node.player == game::Player::Black ? evaluation::MAX : evaluation::MIN) * perspective(current_node);
-        }
-
+        // It's very important to reorder the moves based on the previous PV
         reorder_moves_pv(moves, pv_in, plies_root);
 
         PvLine line;
