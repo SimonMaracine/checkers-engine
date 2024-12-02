@@ -32,22 +32,33 @@ namespace search {
         return false;
     }
 
-    bool is_game_over_material(const SearchNode& node) {
-        unsigned int black_pieces {0};
-        unsigned int white_pieces {0};
+    evaluation::Eval is_game_over_material(const SearchNode& node) {
+        int black_pieces {0};
+        int white_pieces {0};
 
-        for (game::Idx i {0}; i < 32; i++) {
-            if (static_cast<unsigned char>(node.board[i]) & 1u << 0) {  // TODO opt.
-                black_pieces++;
-            } else if (static_cast<unsigned char>(node.board[i]) & 1u << 1) {
-                white_pieces++;
+        for (int i {0}; i < 32; i++) {
+            switch (node.board[i]) {
+                case game::Square::None:
+                    break;
+                case game::Square::Black:
+                case game::Square::BlackKing:
+                    black_pieces++;
+                    break;
+                case game::Square::White:
+                case game::Square::WhiteKing:
+                    white_pieces++;
+                    break;
             }
         }
 
-        if (black_pieces == 0 || white_pieces == 0) {
-            return true;
+        if (black_pieces == 0) {
+            return evaluation::MAX;
         }
 
-        return false;
+        if (white_pieces == 0) {
+            return evaluation::MIN;
+        }
+
+        return 0;
     }
 }

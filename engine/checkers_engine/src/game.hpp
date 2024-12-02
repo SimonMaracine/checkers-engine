@@ -65,7 +65,6 @@ namespace game {
     void play_move(search::SearchNode& node, const Move& move);
     Move parse_move_string(const std::string& move_string);
     Player opponent(Player player);
-    bool is_move_invalid(const Move& move);
     bool is_move_advancement(const Board& board, const Move& move);
 
     constexpr Idx _1_32_to_0_31(const Idx index) {
@@ -75,23 +74,6 @@ namespace game {
     constexpr Idx _0_31_to_1_32(const Idx index) {
         return index + 1;
     }
-
-    // TODO needed?
-    // constexpr Idx _1_32_to_0_64(const Idx index) {
-    //     if (((index - 1) / 4) % 2 == 0) {
-    //         return index * 2 - 1;
-    //     } else {
-    //         return (index - 1) * 2;
-    //     }
-    // }
-
-    // constexpr Idx _0_64_to_1_32(const Idx index) {
-    //     if (index % 2 == 1) {
-    //         return (index + 1) / 2;
-    //     } else {
-    //         return (index / 2) + 1;
-    //     }
-    // }
 
     constexpr bool is_black_piece(const Square square) {
         return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 0);

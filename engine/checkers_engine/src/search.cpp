@@ -37,7 +37,6 @@ namespace search {
     ) {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
-        evaluation::Eval last_evaluation {evaluation::INVALID};
         PvLine last_pv_line;
 
         for (unsigned int i {1}; i <= max_depth; i++) {
@@ -46,14 +45,14 @@ namespace search {
             PvLine line;
 
             const evaluation::Eval evaluation {
-                alpha_beta(i, 0, evaluation::MIN, evaluation::MAX, current_node, line, last_pv_line)
+                alpha_beta(i, 0, evaluation::WINDOW_MIN, evaluation::WINDOW_MAX, current_node, line, last_pv_line)
             };
 
             if (m_should_stop) {
+                // Exit immediately; discard the PV, as it's probably broken
                 break;
             }
 
-            last_evaluation = evaluation;
             last_pv_line = line;
 
             const auto end {std::chrono::steady_clock::now()};
@@ -63,16 +62,16 @@ namespace search {
                 m_nodes_evaluated,
                 m_transpositions,
                 i,
-                last_evaluation * evaluation::perspective(position),
+                evaluation * perspective(current_node),
                 time,
                 line.moves,
                 line.size
             );
 
-            // If move is invalid, then the game must be over
-            // The engine actually waits for a result from the search algorithm, so invalid moves from too little time are impossible
+            // If we got no PV, then the game must be over
+            // The engine actually waits for a result from the search algorithm, so invalid PV from too little time is impossible
             // Notify the main thread that a "result" is available
-            if (game::is_move_invalid(last_pv_line.moves[0])) {
+            if (last_pv_line.size == 0) {
                 notify_result_available();
                 return std::nullopt;
             }
@@ -96,14 +95,14 @@ namespace search {
         const PvLine& pv_in
     ) {
         if (m_should_stop) {
-            m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters);
+            // Discard this search; this should only happen for iterations 2 onwards
+            return 0;
         }
 
-        if (is_game_over_material(current_node)) {  // Game over
+        if (const auto result {is_game_over_material(current_node)}; result != 0) {  // Game over
             p_line.size = 0;
             m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters);
+            return result * search::perspective(current_node);;
         }
 
         if (is_forty_move_rule(current_node)) {  // Game over
@@ -121,10 +120,10 @@ namespace search {
         if (depth == 0) {
             p_line.size = 0;
             m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters);
+            return evaluation::static_evaluation(current_node, m_parameters) * search::perspective(current_node);
         }
 
-        // Don't check the TT in the root of the search
+        // Don't check the TT at the root of the search
         if (plies_root > 0) {
             const auto [evaluation, move] {
                 m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
@@ -143,8 +142,9 @@ namespace search {
         auto moves {moves::generate_moves(current_node.board, current_node.player)};
 
         if (moves.empty()) {  // Game over
+            p_line.size = 0;
             m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters);
+            return (current_node.player == game::Player::Black ? evaluation::MAX : evaluation::MIN) * perspective(current_node);
         }
 
         reorder_moves_pv(moves, pv_in, plies_root);

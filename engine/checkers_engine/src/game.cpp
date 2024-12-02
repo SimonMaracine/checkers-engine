@@ -402,19 +402,6 @@ namespace game {
         }
     }
 
-    bool is_move_invalid(const Move& move) {
-        static constexpr Move INVALID_MOVE {};
-
-        if (move.type == MoveType::Normal) {
-            return (
-                move.normal.source_index == INVALID_MOVE.normal.source_index &&
-                move.normal.destination_index == INVALID_MOVE.normal.destination_index
-            );
-        }
-
-        return false;
-    }
-
     bool is_move_advancement(const Board& board, const Move& move) {
         // Must be called right before the move has been played on the board
 

@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "game.hpp"
+#include "evaluation.hpp"
 
 namespace search {
     struct PvLine {
@@ -22,5 +23,11 @@ namespace search {
     void fill_node(SearchNode& current, const SearchNode& previous);
     bool is_forty_move_rule(const SearchNode& node);
     bool is_threefold_repetition_rule(const SearchNode& node);
-    bool is_game_over_material(const SearchNode& node);
+
+    // Check if a player lost by running out of material and return 0 or the min or max evaluation
+    evaluation::Eval is_game_over_material(const SearchNode& node);
+
+    constexpr evaluation::Eval perspective(const SearchNode& node) {
+        return node.player == game::Player::Black ? -1 : 1;
+    }
 }

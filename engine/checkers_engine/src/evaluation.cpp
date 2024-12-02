@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "game.hpp"
+#include "search_node.hpp"
 
 namespace evaluation {
     template<game::Player Player, int Offset1, int Offset2>
@@ -195,6 +196,6 @@ namespace evaluation {
         eval += calculate_positioning(node, parameters);
         eval += calculate_crowdness(node, parameters);
 
-        return eval * perspective(node);
+        return eval;
     }
 }
