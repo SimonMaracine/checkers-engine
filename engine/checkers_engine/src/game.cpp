@@ -26,13 +26,13 @@ namespace game {
     }
 
     static bool valid_fen_string(const std::string& fen_string) {
-        const std::regex pattern {"(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}"};
+        const std::regex pattern {"(W|B)(:(W|B)(K?[0-9]+(,K?[0-9]+){0,11})?){2}"};
 
         return std::regex_match(fen_string, pattern);
     }
 
     static bool valid_move_string(const std::string& move_string) {
-        const std::regex pattern {"([0-9]+x)+[0-9]+"};
+        const std::regex pattern {"([0-9]+(x|-))+[0-9]+"};
 
         return std::regex_match(move_string, pattern);
     }

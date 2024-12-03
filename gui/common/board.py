@@ -835,9 +835,14 @@ class CheckersBoard:
     def _parse_player_pieces(string: str) -> list[tuple[int, _Square]]:
         player_type = CheckersBoard._parse_player_type(string[0])
 
+        tokens = string[1:].split(",")
+
+        if len(tokens) == 1 and not tokens[0]:
+            return []
+
         return list(map(
             lambda piece: CheckersBoard._parse_player_piece(piece, player_type),
-            string[1:].split(",")
+            tokens
         ))
 
     @staticmethod
