@@ -153,7 +153,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
 
     played_moves: list[tuple[str, int]] = []
 
-    match position.split(":")[0]:
+    match position[0]:
         case "B":
             current_player = black_engine
             next_player = white_engine
