@@ -164,6 +164,13 @@ namespace search {
                 -alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node, line, pv_in)
             };
 
+            // We need to check for the stop flag here too, because we previously just returned 0,
+            // which would have been evaluated and the move put into the TT
+            // This then would have caused next iterations to retrive bad moves from the TT
+            if (m_should_stop) {
+                return 0;
+            }
+
             // Now we stop using the PV from the last iteration
             m_reached_left_most_path = true;
 
