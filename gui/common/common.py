@@ -58,4 +58,4 @@ def wait_for_engine_to_start(engine: checkers_engine.CheckersEngine, wait_time: 
 
 
 def validate_position_string(string: str) -> bool:
-    return re.match("(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}", string) is not None
+    return re.match("(W|B)(:(W|B)K?[0-9]+(,K?[0-9]+){0,11}){2}", string) is not None  # FIXME game over positions are invalid (also in engine)

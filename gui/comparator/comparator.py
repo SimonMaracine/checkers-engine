@@ -11,7 +11,7 @@ from common import common
 from . import engine_control
 from . import data
 from . import error
-from .print import *
+from .print import print_status, print_status_red, print_status_white, print_status_cyan
 
 
 @dataclasses.dataclass(slots=True, frozen=True)
@@ -165,7 +165,7 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
             current_color = engine_control.Color.White
             next_color = engine_control.Color.Black
 
-    print_status(f"Begin {"rematch round" if rematch else "match round"} {index + 1}...", 1, " ")
+    print_status(f"Begin {"rematch" if rematch else "match"} round {index + 1}...", 1, " ")
 
     begin = time.time()
 

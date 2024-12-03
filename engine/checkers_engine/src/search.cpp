@@ -134,7 +134,7 @@ namespace search {
         // Don't check the TT at the root of the search
         if (plies_root > 0) {
             const auto [evaluation, move] {
-                m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)
+                m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)  // TODO use the move
             };
 
             if (evaluation != evaluation::INVALID) {
@@ -149,6 +149,8 @@ namespace search {
 
         // It's very important to reorder the moves based on the previous PV
         reorder_moves_pv(moves, pv_in, plies_root);
+
+        // TODO use the hash move from TT, if available, to reorder the moves
 
         PvLine line;
         auto node_type {transposition_table::NodeType::All};
@@ -166,7 +168,6 @@ namespace search {
 
             // We need to check for the stop flag here too, because we previously just returned 0,
             // which would have been evaluated and the move put into the TT
-            // This then would have caused next iterations to retrive bad moves from the TT
             if (m_should_stop) {
                 return 0;
             }
@@ -199,7 +200,7 @@ namespace search {
             }
         }
 
-        m_transposition_table.store({ current_node.board, current_node.player }, depth, node_type, alpha, best_move);
+        m_transposition_table.store({ current_node.board, current_node.player }, depth, node_type, alpha, best_move);  // TODO invalid moves are regularly being inserted
 
         return alpha;
     }

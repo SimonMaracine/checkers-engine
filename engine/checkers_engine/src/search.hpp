@@ -38,6 +38,7 @@ namespace search {
 
         bool* get_should_stop() { return &m_should_stop; }
     private:
+        // Return positive if the side to move is doing better and negative if the opposite side is doing better
         evaluation::Eval alpha_beta(
             unsigned int depth,
             unsigned int plies_root,

@@ -6,7 +6,7 @@ from common import checkers_engine
 from common import board
 from common import common
 from . import error
-from .print import *
+from .print import print_status
 
 type QueriedParams = list[tuple[str, str, str]]
 
