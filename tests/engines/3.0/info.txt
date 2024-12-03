@@ -1,1 +1,1 @@
-Implemented iterative deepening. Right now it works okay only because the transposition table is finally put to good use. Requires principal variation to be good.
+Implemented iterative deepening. Right now it works okay only because the TT is finally put to good use. Requires PV to be good.
