@@ -6,6 +6,11 @@
 #include "search_node.hpp"
 
 namespace evaluation {
+    template<typename T>
+    static constexpr T map(T x, T in_min, T in_max, T out_min, T out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
     template<game::Player Player, int Offset1, int Offset2>
     static int neighbor(int index, const game::Board& board, bool even_row) {
         const int result_index {index - (even_row ? Offset1 : Offset2)};
@@ -78,19 +83,19 @@ namespace evaluation {
             7, 0, 7, 0,
             0, 0, 0, 0,
             0, 0, 0, 0,
-            1, 1, 1, 0,
-            1, 2, 2, 2,
-            3, 3, 3, 2,
-            3, 4, 4, 4,
+            1, 2, 1, 0,
+            1, 2, 3, 2,
+            3, 4, 3, 2,
+            3, 4, 5, 4,
             0, 0, 0, 0
         };
 
         static constexpr Eval POSITIONING_PAWN_WHITE[] {
             0, 0, 0, 0,
-            3, 4, 4, 4,
-            3, 3, 3, 2,
-            1, 2, 2, 2,
-            1, 1, 1, 0,
+            3, 4, 5, 4,
+            3, 4, 3, 2,
+            1, 2, 3, 2,
+            1, 2, 1, 0,
             0, 0, 0, 0,
             0, 0, 0, 0,
             0, 7, 0, 7
@@ -99,28 +104,36 @@ namespace evaluation {
         static constexpr Eval POSITIONING_KING[] {
             0, 0, 0, 0,
             0, 1, 1, 1,
-            1, 2, 2, 0,
-            0, 2, 2, 1,
-            1, 2, 2, 0,
-            0, 2, 2, 1,
+            1, 3, 2, 0,
+            0, 2, 3, 1,
+            1, 3, 2, 0,
+            0, 2, 3, 1,
             1, 1, 1, 0,
             0, 0, 0, 0
         };
 
         Eval eval {0};
 
+        int kings {0};
+
+        for (int i {0}; i < 32; i++) {
+            kings += game::is_king_piece(node.board[i]);
+        }
+
+        const int endgame_tension {map(kings, 0, 10, -3, 0)};
+
         for (int i {0}; i < 32; i++) {
             switch (node.board[i]) {
                 case game::Square::None:
                     break;
                 case game::Square::Black:
-                    eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning_pawn;
+                    eval -= (POSITIONING_PAWN_BLACK[i] - endgame_tension) * parameters.positioning_pawn;
                     break;
                 case game::Square::BlackKing:
                     eval -= POSITIONING_KING[i] * parameters.positioning_king;
                     break;
                 case game::Square::White:
-                    eval += POSITIONING_PAWN_WHITE[i] * parameters.positioning_pawn;
+                    eval += (POSITIONING_PAWN_WHITE[i] - endgame_tension) * parameters.positioning_pawn;
                     break;
                 case game::Square::WhiteKing:
                     eval += POSITIONING_KING[i] * parameters.positioning_king;

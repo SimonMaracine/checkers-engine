@@ -284,8 +284,8 @@ namespace engine {
     }
 
     void Engine::initialize_parameters() {
-        m_parameters["material_pawn"] = 15;
-        m_parameters["material_king"] = 35;
+        m_parameters["material_pawn"] = 20;
+        m_parameters["material_king"] = 45;
         m_parameters["positioning_pawn"] = 1;
         m_parameters["positioning_king"] = 2;
         m_parameters["crowdness"] = 1;

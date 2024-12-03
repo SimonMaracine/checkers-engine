@@ -7,7 +7,7 @@ static std::string read_next_input() {
 
     static const std::string commands[] {
         "INIT",
-        "SETPARAMETER depth 11",
+        "SETPARAMETER depth 15",
         "GO",
         "QUIT"
     };
