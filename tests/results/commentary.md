@@ -43,3 +43,7 @@ as version 5.0, but it performs slightly worse.
 ## 6.1 black vs 7.0 white | match--Dec-3--23-59-43--2024.json
 
 Engine 7.0 won against 6.1, having only some tweaked parameters and a few changes to its evaluation function.
+
+## 7.0 black vs 8.0 white | match--Dec-4--15-30-30--2024.json
+
+Engine 8.0 lost against the previous version. It seems that the little changes that I made were not beneficial.
