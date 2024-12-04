@@ -107,47 +107,28 @@ namespace evaluation {
     // King pieces' table change depending on how many kings there are in the game
     static Eval calculate_positioning(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
         static constexpr Eval POSITIONING_PAWN_BLACK[] {
-            7, 0, 7, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            1, 2, 1, 0,
-            1, 2, 3, 2,
-            3, 4, 3, 2,
-            3, 4, 5, 4,
+            8, 0, 8, 0,
+            0, 1, 2, 1,
+            2, 3, 2, 1,
+            2, 3, 4, 3,
+            4, 5, 4, 3,
+            4, 5, 6, 5,
+            6, 7, 6, 5,
             0, 0, 0, 0
         };
 
         static constexpr Eval POSITIONING_PAWN_WHITE[] {
             0, 0, 0, 0,
+            5, 6, 7, 6,
+            5, 6, 5, 4,
             3, 4, 5, 4,
             3, 4, 3, 2,
             1, 2, 3, 2,
             1, 2, 1, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 7, 0, 7
+            0, 8, 0, 8
         };
 
-        static constexpr auto POSITIONING_KING0 {positioning_king<0>()};
-        static constexpr auto POSITIONING_KING1 {positioning_king<-1>()};
-        static constexpr auto POSITIONING_KING2 {positioning_king<-2>()};
-
-        const decltype(POSITIONING_KING0)* POSITIONING_KING {};
-
-        switch (std::max(map(count_kings(node), 0, 8, 2, 0), 0)) {
-            case 0:
-                POSITIONING_KING = &POSITIONING_KING0;
-                break;
-            case 1:
-                POSITIONING_KING = &POSITIONING_KING1;
-                break;
-            case 2:
-                POSITIONING_KING = &POSITIONING_KING2;
-                break;
-            default:
-                assert(false);
-                break;
-        }
+        static constexpr auto POSITIONING_KING {positioning_king<-1>()};
 
         Eval eval {0};
 
@@ -159,13 +140,13 @@ namespace evaluation {
                     eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::BlackKing:
-                    eval -= (*POSITIONING_KING)[i] * parameters.positioning_king;
+                    eval -= POSITIONING_KING[i] * parameters.positioning_king;
                     break;
                 case game::Square::White:
                     eval += POSITIONING_PAWN_WHITE[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::WhiteKing:
-                    eval += (*POSITIONING_KING)[i] * parameters.positioning_king;
+                    eval += POSITIONING_KING[i] * parameters.positioning_king;
                     break;
             }
         }
