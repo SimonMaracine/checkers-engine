@@ -1,1 +1,1 @@
-Implemented iterative deepening. Right now it works okay only because the TT is finally put to good use. Requires PV to be good.
+Implement iterative deepening. Right now it works okay only because the TT is finally put to good use. Requires PV to be good.

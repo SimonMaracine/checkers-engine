@@ -1,1 +1,1 @@
-Tweaked some parameters and the positioning evaluation function.
+Tweak some parameters and the positioning evaluation function.

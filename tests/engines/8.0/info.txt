@@ -1,0 +1,1 @@
+Tweak the positioning evaluation function again and encourage the engine to finish earlier, if it's winning.
