@@ -47,3 +47,7 @@ Engine 7.0 won against 6.1, having only some tweaked parameters and a few change
 ## 7.0 black vs 8.0 white | match--Dec-4--15-30-30--2024.json
 
 Engine 8.0 lost against the previous version. It seems that the little changes that I made were not beneficial.
+
+## 7.0 black vs 8.1 white | match--Dec-4--18-13-45--2024.json
+
+Engine 8.1 lost against engine 7.0. The changes made insignificant improvements.
