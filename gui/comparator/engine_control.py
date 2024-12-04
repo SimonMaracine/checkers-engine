@@ -225,7 +225,7 @@ def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, color: Color, 
 
     while True:
         try:
-            message = engine.receive(0.1)
+            message = engine.receive(0.09)
         except checkers_engine.CheckersEngineError as err:
             engine.stop(True)
             raise error.ComparatorError(f"Could not receive message from engine {color}: {err}")
