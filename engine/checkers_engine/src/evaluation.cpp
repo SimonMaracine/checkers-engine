@@ -17,12 +17,12 @@ namespace evaluation {
     static constexpr auto positioning_king() {
         return std::array<Eval, 32> {
             M, M, M, M,
-            M, 1, 1, 1,
-            1, 3, 2, M,
-            M, 2, 3, 1,
-            1, 3, 2, M,
-            M, 2, 3, 1,
-            1, 1, 1, M,
+            M, 0, 0, 0,
+            0, 1, 1, M,
+            M, 1, 1, 0,
+            0, 1, 1, M,
+            M, 1, 1, 0,
+            0, 0, 0, M,
             M, M, M, M
         };
     }
@@ -104,7 +104,6 @@ namespace evaluation {
     // Bonus points are given for pieces that are in better spots
     // Pawn pieces are encouraged to advance the rank while generally avoiding the sides (less freedom)
     // King pieces are encouraged to control the center (this helps the endgame)
-    // King pieces' table change depending on how many kings there are in the game
     static Eval calculate_positioning(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
         static constexpr Eval POSITIONING_PAWN_BLACK[] {
             8, 0, 8, 0,
@@ -128,7 +127,7 @@ namespace evaluation {
             0, 8, 0, 8
         };
 
-        static constexpr auto POSITIONING_KING {positioning_king<-1>()};
+        static constexpr auto POSITIONING_KING {positioning_king<-2>()};
 
         Eval eval {0};
 
