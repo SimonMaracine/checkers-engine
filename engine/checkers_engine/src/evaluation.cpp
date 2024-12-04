@@ -1,6 +1,8 @@
 #include "evaluation.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <cassert>
 
 #include "game.hpp"
 #include "search_node.hpp"
@@ -9,6 +11,20 @@ namespace evaluation {
     template<typename T>
     static constexpr T map(T x, T in_min, T in_max, T out_min, T out_max) {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
+    template<Eval M>
+    static constexpr auto positioning_king() {
+        return std::array<Eval, 32> {
+            M, M, M, M,
+            M, 1, 1, 1,
+            1, 3, 2, M,
+            M, 2, 3, 1,
+            1, 3, 2, M,
+            M, 2, 3, 1,
+            1, 1, 1, M,
+            M, M, M, M
+        };
     }
 
     template<game::Player Player, int Offset1, int Offset2>
@@ -37,6 +53,16 @@ namespace evaluation {
         count += neighbor<Player, 4, 3>(index, board, even_row);
 
         return count;
+    }
+
+    static constexpr int count_kings(const search::SearchNode& node) {
+        int kings {0};
+
+        for (int i {0}; i < 32; i++) {
+            kings += game::is_king_piece(node.board[i]);
+        }
+
+        return kings;
     }
 
     // Bonus points for material (self explanatory)
@@ -78,6 +104,7 @@ namespace evaluation {
     // Bonus points are given for pieces that are in better spots
     // Pawn pieces are encouraged to advance the rank while generally avoiding the sides (less freedom)
     // King pieces are encouraged to control the center (this helps the endgame)
+    // King pieces' table change depending on how many kings there are in the game
     static Eval calculate_positioning(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
         static constexpr Eval POSITIONING_PAWN_BLACK[] {
             7, 0, 7, 0,
@@ -101,42 +128,44 @@ namespace evaluation {
             0, 7, 0, 7
         };
 
-        static constexpr Eval POSITIONING_KING[] {
-            0, 0, 0, 0,
-            0, 1, 1, 1,
-            1, 3, 2, 0,
-            0, 2, 3, 1,
-            1, 3, 2, 0,
-            0, 2, 3, 1,
-            1, 1, 1, 0,
-            0, 0, 0, 0
-        };
+        static constexpr auto POSITIONING_KING0 {positioning_king<0>()};
+        static constexpr auto POSITIONING_KING1 {positioning_king<-1>()};
+        static constexpr auto POSITIONING_KING2 {positioning_king<-2>()};
 
-        Eval eval {0};
+        const decltype(POSITIONING_KING0)* POSITIONING_KING {};
 
-        int kings {0};
-
-        for (int i {0}; i < 32; i++) {
-            kings += game::is_king_piece(node.board[i]);
+        switch (std::max(map(count_kings(node), 0, 8, 2, 0), 0)) {
+            case 0:
+                POSITIONING_KING = &POSITIONING_KING0;
+                break;
+            case 1:
+                POSITIONING_KING = &POSITIONING_KING1;
+                break;
+            case 2:
+                POSITIONING_KING = &POSITIONING_KING2;
+                break;
+            default:
+                assert(false);
+                break;
         }
 
-        const int endgame_tension {map(kings, 0, 10, -3, 0)};
+        Eval eval {0};
 
         for (int i {0}; i < 32; i++) {
             switch (node.board[i]) {
                 case game::Square::None:
                     break;
                 case game::Square::Black:
-                    eval -= (POSITIONING_PAWN_BLACK[i] - endgame_tension) * parameters.positioning_pawn;
+                    eval -= POSITIONING_PAWN_BLACK[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::BlackKing:
-                    eval -= POSITIONING_KING[i] * parameters.positioning_king;
+                    eval -= (*POSITIONING_KING)[i] * parameters.positioning_king;
                     break;
                 case game::Square::White:
-                    eval += (POSITIONING_PAWN_WHITE[i] - endgame_tension) * parameters.positioning_pawn;
+                    eval += POSITIONING_PAWN_WHITE[i] * parameters.positioning_pawn;
                     break;
                 case game::Square::WhiteKing:
-                    eval += POSITIONING_KING[i] * parameters.positioning_king;
+                    eval += (*POSITIONING_KING)[i] * parameters.positioning_king;
                     break;
             }
         }

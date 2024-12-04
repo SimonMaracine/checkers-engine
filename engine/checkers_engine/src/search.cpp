@@ -106,7 +106,7 @@ namespace search {
         if (moves.empty()) {  // Game over
             p_line.size = 0;
             m_nodes_evaluated++;
-            return (current_node.player == game::Player::Black ? evaluation::MAX : evaluation::MIN) * perspective(current_node);
+            return evaluation::MIN + plies_root;  // Encourage the winning side to finish earlier (though rare)
         }
 
         // Then check for tie
@@ -130,6 +130,8 @@ namespace search {
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters) * search::perspective(current_node);
         }
+
+        // We didn't insert game over evaluations into the TT, as it may cause problems
 
         // Don't check the TT at the root of the search
         if (plies_root > 0) {
