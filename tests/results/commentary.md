@@ -39,3 +39,7 @@ The change made it so that the moves are generated in every single node, whereas
 if depth > 0 or game is over. The newer version thus does a lot more work in the alpha-beta search, while saving
 some time not evaluating the game over nodes in the end game. The result is that, on average, it searches as deep
 as version 5.0, but it performs slightly worse.
+
+## 6.1 black vs 7.0 white | match--Dec-3--23-59-43--2024.json
+
+Engine 7.0 won against 6.1, having only some tweaked parameters and a few changes to its evaluation function.
