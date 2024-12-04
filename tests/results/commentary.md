@@ -51,3 +51,8 @@ Engine 8.0 lost against the previous version. It seems that the little changes t
 ## 7.0 black vs 8.1 white | match--Dec-4--18-13-45--2024.json
 
 Engine 8.1 lost against engine 7.0. The changes made insignificant improvements.
+
+## 7.0 black vs 8.2 white | match--Dec-4--20-47-18--2024.json
+
+The match turned out to be a tie. I'm keeping these changes, since they make much more sense than engine 7.0's state,
+so I will build upon this newest version.
