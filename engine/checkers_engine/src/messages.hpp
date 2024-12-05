@@ -3,7 +3,6 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
-#include <cstddef>
 
 #include "game.hpp"
 #include "parameters.hpp"
@@ -22,7 +21,7 @@ namespace messages {
         evaluation::Eval eval,
         double time,
         const game::Move* pv_moves,
-        std::size_t pv_size
+        int pv_size
     );
     void name();
     void board(const game::Position& position);

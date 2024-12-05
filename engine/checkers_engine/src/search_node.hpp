@@ -7,7 +7,7 @@
 
 namespace search {
     struct PvLine {
-        game::Move moves[100] {};
+        game::Move moves[100];
         int size {};
     };
 

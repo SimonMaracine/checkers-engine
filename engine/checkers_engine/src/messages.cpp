@@ -8,20 +8,19 @@
 namespace messages {
     static std::mutex g_mutex;
 
-    static std::string move_to_string(const game::Move& move) {
+    static std::string move_to_string(game::Move move) {
         std::ostringstream stream;
 
-        switch (move.type) {
+        switch (move.type()) {
             case game::MoveType::Normal:
-                stream << static_cast<int>(game::_0_31_to_1_32(move.normal.source_index))
-                    << 'x' << static_cast<int>(game::_0_31_to_1_32(move.normal.destination_index));
+                stream << game::_0_31_to_1_32(move.source_index()) << 'x' << game::_0_31_to_1_32(move.destination_index());
 
                 break;
             case game::MoveType::Capture:
-                stream << static_cast<int>(game::_0_31_to_1_32(move.capture.source_index));
+                stream << game::_0_31_to_1_32(move.source_index());
 
-                for (unsigned char i {0}; i < move.capture.destination_indices_size; i++) {
-                    stream << 'x' << static_cast<int>(game::_0_31_to_1_32(move.capture.destination_indices[i]));
+                for (int i {0}; i < move.destination_indices_size(); i++) {
+                    stream << 'x' << game::_0_31_to_1_32(move.destination_index(i));
                 }
 
                 break;
@@ -119,7 +118,7 @@ namespace messages {
         evaluation::Eval eval,
         double time,
         const game::Move* pv_moves,
-        std::size_t pv_size
+        int pv_size
     ) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
@@ -131,7 +130,7 @@ namespace messages {
         std::cout << "time " << time << ' ';
         std::cout << "pv";
 
-        for (std::size_t i {0}; i < pv_size; i++) {
+        for (int i {0}; i < pv_size; i++) {
             std::cout << ' ' << move_to_string(pv_moves[i]);
         }
 

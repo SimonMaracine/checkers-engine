@@ -160,7 +160,7 @@ namespace search {
         auto node_type {transposition_table::NodeType::All};
         game::Move best_move {};
 
-        for (const game::Move& move : moves) {
+        for (const game::Move move : moves) {
             SearchNode new_node;
             fill_node(new_node, current_node);
 
@@ -218,7 +218,7 @@ namespace search {
 
         for (std::size_t i {0}; i < previous_positions.size(); i++) {
             const game::Position& previous_position {previous_positions.at(i)};
-            const game::Move& move_played {moves_played.at(i)};
+            const game::Move move_played {moves_played.at(i)};
 
             if (game::is_move_advancement(previous_position.board, move_played)) {
                 // Clear any previous inserted nodes, as they don't need to be checked
@@ -253,7 +253,7 @@ namespace search {
         m_parameters.crowdness = std::get<0>(parameters.at("crowdness"));
     }
 
-    void Search::fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move) {
+    void Search::fill_pv(PvLine& p_line, const PvLine& line, game::Move move) {
         p_line.moves[0] = move;
         std::memcpy(p_line.moves + 1, line.moves, line.size * sizeof(move));
         p_line.size = line.size + 1;

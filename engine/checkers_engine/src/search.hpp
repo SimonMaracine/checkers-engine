@@ -56,7 +56,7 @@ namespace search {
         );
 
         void setup_parameters(const parameters::Parameters& parameters);
-        void fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move);
+        void fill_pv(PvLine& p_line, const PvLine& line, game::Move move);
         void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, int plies_root);
         void reset_after_search_iteration();
         void notify_result_available();

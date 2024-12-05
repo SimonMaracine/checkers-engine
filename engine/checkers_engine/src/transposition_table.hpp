@@ -27,7 +27,7 @@ template<>
 struct std::hash<transposition_table::Position> {
     template<typename T>
     static void hash_combine(std::size_t& seed, const T& value) noexcept {
-        seed ^= std::hash<T>()(value) + 0x9e3779b9u + (seed << 6) + (seed >> 2);
+        seed ^= std::hash<T>()(value) + 0x9E3779B9u + (seed << 6) + (seed >> 2);
     }
 
     std::size_t operator()(const transposition_table::Position& position) const noexcept {
@@ -73,7 +73,7 @@ namespace transposition_table {
             int depth,
             NodeType node_type,
             evaluation::Eval eval,
-            const game::Move& move
+            game::Move move
         );
 
         std::pair<evaluation::Eval, game::Move> retrieve(
@@ -84,7 +84,6 @@ namespace transposition_table {
         ) const;
 
         void clear();
-        float load_factor() const;
     private:
         std::unordered_map<Position, TableEntry> m_table;
     };

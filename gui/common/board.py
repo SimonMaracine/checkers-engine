@@ -846,10 +846,10 @@ class CheckersBoard:
         ))
 
     @staticmethod
-    def _parse_player_piece(string: str, player_type: Player) -> tuple[int, _Square]:
+    def _parse_player_piece(string: str, player: Player) -> tuple[int, _Square]:
         king = string[0] == "K"
 
-        match player_type:
+        match player:
             case Player.Black:
                 if king:
                     return (int(string[1:]), _Square.BlackKing)

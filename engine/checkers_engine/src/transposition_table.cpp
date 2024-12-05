@@ -6,7 +6,7 @@ namespace transposition_table {
         int depth,
         NodeType node_type,
         evaluation::Eval eval,
-        const game::Move& move
+        game::Move move
     ) {
         m_table[position] = { depth, node_type, eval, move };
     }
@@ -20,7 +20,7 @@ namespace transposition_table {
         const auto iter {m_table.find(position)};
 
         if (iter == m_table.cend()) {
-            return std::make_pair(evaluation::INVALID, game::Move());
+            return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
         }
 
         const TableEntry& entry {iter->second};
@@ -39,14 +39,10 @@ namespace transposition_table {
             }
         }
 
-        return std::make_pair(evaluation::INVALID, game::Move());
+        return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
     }
 
     void TranspositionTable::clear() {
         m_table.clear();
-    }
-
-    float TranspositionTable::load_factor() const {
-        return m_table.load_factor();
     }
 }

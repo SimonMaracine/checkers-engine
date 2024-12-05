@@ -1,10 +1,10 @@
 #include "moves.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <iterator>
 #include <utility>
 #include <array>
+#include <cstddef>
 #include <cassert>
 
 /*
@@ -26,11 +26,11 @@ namespace moves {
 
     struct JumpCtx {
         game::Board board {};  // Use a copy of the board
-        game::Idx source_index {};
-        std::vector<game::Idx> destination_indices;
+        int source_index {};
+        std::vector<int> destination_indices;
     };
 
-    static game::Idx offset(game::Idx square_index, Direction direction, Diagonal diagonal) {
+    static int offset(int square_index, Direction direction, Diagonal diagonal) {
         int result_index {square_index};
 
         const bool even_row {(square_index / 4) % 2 == 0};
@@ -71,7 +71,7 @@ namespace moves {
         }
 
         // Check edge cases (literally)
-        if (std::abs(square_index / 4 - result_index / 4) != static_cast<int>(diagonal)) {
+        if (std::abs(square_index / 4 - result_index / 4) != diagonal) {
             return game::NULL_INDEX;
         }
 
@@ -80,7 +80,7 @@ namespace moves {
             return game::NULL_INDEX;
         }
 
-        return static_cast<game::Idx>(result_index);
+        return result_index;
     }
 
     static std::array<Direction, 4> get_directions(game::Player player, bool king, std::size_t& size) {
@@ -116,7 +116,7 @@ namespace moves {
 
     static bool check_piece_jumps(
         std::vector<game::Move>& moves,
-        game::Idx square_index,
+        int square_index,
         game::Player player,
         bool king,
         JumpCtx& ctx
@@ -125,19 +125,19 @@ namespace moves {
         const auto directions {get_directions(player, king, size)};
 
         // We want an enemy piece
-        const unsigned char piece_mask {static_cast<unsigned char>(game::opponent(player))};
+        const unsigned int piece_mask {static_cast<unsigned int>(game::opponent(player))};
 
         bool sequence_jumps_ended {true};
 
         for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), size); iter++) {
-            const game::Idx enemy_index {offset(square_index, *iter, Short)};
-            const game::Idx target_index {offset(square_index, *iter, Long)};
+            const int enemy_index {offset(square_index, *iter, Short)};
+            const int target_index {offset(square_index, *iter, Long)};
 
             if (enemy_index == game::NULL_INDEX || target_index == game::NULL_INDEX) {
                 continue;
             }
 
-            const bool is_enemy_piece {static_cast<bool>(static_cast<unsigned char>(ctx.board[enemy_index]) & piece_mask)};
+            const bool is_enemy_piece {static_cast<bool>(static_cast<unsigned int>(ctx.board[enemy_index]) & piece_mask)};
 
             if (!is_enemy_piece || ctx.board[target_index] != game::Square::None) {
                 continue;
@@ -156,16 +156,20 @@ namespace moves {
             if (check_piece_jumps(moves, target_index, player, king, ctx)) {
                 // This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
-                game::Move move;
-                move.type = game::MoveType::Capture;
-                move.capture.source_index = ctx.source_index;
-                move.capture.destination_indices_size = static_cast<unsigned char>(ctx.destination_indices.size());
+                game::Move::DestinationIndices destination_indices {};
 
                 for (std::size_t i {0}; i < ctx.destination_indices.size(); i++) {
-                    move.capture.destination_indices[i] = ctx.destination_indices[i];
+                    destination_indices[i] = ctx.destination_indices[i];
                 }
 
-                moves.push_back(move);
+                moves.push_back(
+                    game::create_move(
+                        game::MoveType::Capture,
+                        ctx.source_index,
+                        destination_indices,
+                        static_cast<int>(ctx.destination_indices.size())
+                    )
+                );
             }
 
             // Restore jumped piece
@@ -183,7 +187,7 @@ namespace moves {
     static void generate_piece_capture_moves(
         const game::Board& board,
         game::Player player,
-        game::Idx square_index,
+        int square_index,
         bool king,
         std::vector<game::Move>& moves
     ) {
@@ -197,7 +201,7 @@ namespace moves {
     static void generate_piece_moves(
         const game::Board& board,
         game::Player player,
-        game::Idx square_index,
+        int square_index,
         bool king,
         std::vector<game::Move>& moves
     ) {
@@ -206,7 +210,7 @@ namespace moves {
 
         // Check the squares above or below in diagonal
         for (auto iter {std::begin(directions)}; iter != std::next(std::begin(directions), size); iter++) {
-            const game::Idx target_index {offset(square_index, *iter, Short)};
+            const int target_index {offset(square_index, *iter, Short)};
 
             if (target_index == game::NULL_INDEX) {
                 continue;
@@ -216,19 +220,24 @@ namespace moves {
                 continue;
             }
 
-            game::Move move;
-            move.type = game::MoveType::Normal;
-            move.normal.source_index = square_index;
-            move.normal.destination_index = target_index;
+            game::Move::DestinationIndices destination_indices {};
+            destination_indices[0] = target_index;
 
-            moves.push_back(move);
+            moves.push_back(
+                game::create_move(
+                    game::MoveType::Normal,
+                    square_index,
+                    destination_indices,
+                    1
+                )
+            );
         }
     }
 
     std::vector<game::Move> generate_moves(const game::Board& board, game::Player player) {
         std::vector<game::Move> moves;
 
-        for (game::Idx i {0}; i < 32; i++) {
+        for (int i {0}; i < 32; i++) {
             if (game::is_piece(board[i], player)) {
                 generate_piece_capture_moves(board, player, i, game::is_king_piece(board[i]), moves);
             }
@@ -239,7 +248,7 @@ namespace moves {
             return moves;
         }
 
-        for (game::Idx i {0}; i < 32; i++) {
+        for (int i {0}; i < 32; i++) {
             if (game::is_piece(board[i], player)) {
                 generate_piece_moves(board, player, i, game::is_king_piece(board[i]), moves);
             }

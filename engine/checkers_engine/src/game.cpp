@@ -47,22 +47,22 @@ namespace game {
         }
     }
 
-    static std::pair<Idx, Square> parse_player_piece(const std::string& string, Player player_type) {
+    static std::pair<int, Square> parse_player_piece(const std::string& string, Player player) {
         const bool king {string.at(0) == 'K'};
 
         try {
-            switch (player_type) {
+            switch (player) {
                 case Player::Black:
                     if (king) {
-                        return std::make_pair(static_cast<Idx>(std::stoi(string.substr(1))), Square::BlackKing);
+                        return std::make_pair(std::stoi(string.substr(1)), Square::BlackKing);
                     } else {
-                        return std::make_pair(static_cast<Idx>(std::stoi(string)), Square::Black);
+                        return std::make_pair(std::stoi(string), Square::Black);
                     }
                 case Player::White:
                     if (king) {
-                        return std::make_pair(static_cast<Idx>(std::stoi(string.substr(1))), Square::WhiteKing);
+                        return std::make_pair(std::stoi(string.substr(1)), Square::WhiteKing);
                     } else {
-                        return std::make_pair(static_cast<Idx>(std::stoi(string)), Square::White);
+                        return std::make_pair(std::stoi(string), Square::White);
                     }
             }
         } catch (...) {  // stoi
@@ -72,12 +72,12 @@ namespace game {
         return {};
     }
 
-    static std::vector<std::pair<Idx, Square>> parse_player_pieces(const std::string& string) {
+    static std::vector<std::pair<int, Square>> parse_player_pieces(const std::string& string) {
         const Player player_type {parse_player_type(string.substr(0, 1))};
 
         const auto tokens {split(string.substr(1), ",")};
 
-        std::vector<std::pair<Idx, Square>> pieces;
+        std::vector<std::pair<int, Square>> pieces;
 
         for (const auto& token : tokens) {
             pieces.push_back(parse_player_piece(token, player_type));
@@ -120,10 +120,10 @@ namespace game {
         return std::make_pair(board, turn);
     }
 
-    static bool is_capture_move(Idx source, Idx destination) {
+    static bool is_capture_move(int source, int destination) {
         // Indices must be in the range [1, 32]
 
-        const auto distance {std::abs(_1_32_to_0_31(source) - _1_32_to_0_31(destination))};
+        const int distance {std::abs(_1_32_to_0_31(source) - _1_32_to_0_31(destination))};
 
         if (distance >= 3 && distance <= 5) {
             return false;
@@ -135,14 +135,14 @@ namespace game {
         }
     }
 
-    static std::vector<Idx> parse_squares(const std::string& string) {
-        const auto tokens {split(string, "x")};
+    static std::vector<int> parse_squares(const std::string& string) {
+        const auto tokens {split(string, "x-")};
 
-        std::vector<Idx> squares;
+        std::vector<int> squares;
 
         try {
             for (const auto& token : tokens) {
-                squares.push_back(static_cast<Idx>(std::stoi(token)));
+                squares.push_back(std::stoi(token));
             }
         } catch (...) {  // stoi
             throw error::InvalidCommand();
@@ -157,7 +157,7 @@ namespace game {
         return squares;
     }
 
-    static Idx get_jumped_piece_index(Idx index1, Idx index2) {
+    static int get_jumped_piece_index(int index1, int index2) {
         // This works with indices in the range [1, 32]
 
         const int sum {index1 + index2};
@@ -165,24 +165,24 @@ namespace game {
         assert(sum % 2 == 1);
 
         if (((_1_32_to_0_31(index1)) / 4) % 2 == 0) {
-            return static_cast<Idx>((sum + 1) / 2);
+            return (sum + 1) / 2;
         } else {
-            return static_cast<Idx>((sum - 1) / 2);
+            return (sum - 1) / 2;
         }
     }
 
-    static void remove_jumped_pieces(Board& board, const Move& move) {
-        assert(move.type == MoveType::Capture);
+    static void remove_jumped_pieces(Board& board, Move move) {
+        assert(move.type() == MoveType::Capture);
 
         {
             assert(
-                board[move.capture.destination_indices[0]] == Square::None ||
-                move.capture.source_index == move.capture.destination_indices[0]
+                board[move.destination_index()] == Square::None ||
+                move.source_index() == move.destination_index()
             );
 
             const auto index {get_jumped_piece_index(
-                _0_31_to_1_32(move.capture.source_index),
-                _0_31_to_1_32(move.capture.destination_indices[0])
+                _0_31_to_1_32(move.source_index()),
+                _0_31_to_1_32(move.destination_index())
             )};
 
             assert(board[_1_32_to_0_31(index)] != Square::None);
@@ -190,15 +190,15 @@ namespace game {
             board[_1_32_to_0_31(index)] = Square::None;
         }
 
-        for (unsigned char i {0}; i < move.capture.destination_indices_size - 1; i++) {
+        for (int i {0}; i < move.destination_indices_size() - 1; i++) {
             assert(
-                board[move.capture.destination_indices[i + 1]] == Square::None ||
-                move.capture.source_index == move.capture.destination_indices[i + 1]
+                board[move.destination_index(i + 1)] == Square::None ||
+                move.source_index() == move.destination_index(i + 1)
             );
 
             const auto index {get_jumped_piece_index(
-                _0_31_to_1_32(move.capture.destination_indices[i]),
-                _0_31_to_1_32(move.capture.destination_indices[i + 1])
+                _0_31_to_1_32(move.destination_index(i)),
+                _0_31_to_1_32(move.destination_index(i + 1))
             )};
 
             assert(board[_1_32_to_0_31(index)] != Square::None);
@@ -207,7 +207,7 @@ namespace game {
         }
     }
 
-    static void check_piece_crowning(Board& board, Idx square_index) {
+    static void check_piece_crowning(Board& board, int square_index) {
         const int row {square_index / 4};
 
         if (is_black_piece(board[square_index])) {  // TODO opt.
@@ -221,43 +221,6 @@ namespace game {
                 board[square_index] = Square::WhiteKing;
             }
         }
-    }
-
-    bool Move::operator==(const Move& other) const {
-        if (type != other.type) {
-            return false;
-        }
-
-        switch (type) {
-            case MoveType::Normal:
-                if (normal.source_index != other.normal.source_index) {
-                    return false;
-                }
-
-                if (normal.destination_index != other.normal.destination_index) {
-                    return false;
-                }
-
-                break;
-            case MoveType::Capture:
-                if (capture.source_index != other.capture.source_index) {
-                    return false;
-                }
-
-                if (capture.destination_indices_size != other.capture.destination_indices_size) {
-                    return false;
-                }
-
-                for (unsigned char i {0}; i < capture.destination_indices_size; i++) {
-                    if (capture.destination_indices[i] != other.capture.destination_indices[i]) {
-                        return false;
-                    }
-                }
-
-                break;
-        }
-
-        return true;
     }
 
     void set_position(Position& position, const std::string& fen_string) {
@@ -281,41 +244,41 @@ namespace game {
         play_move(position, move);
     }
 
-    void play_move(Position& position, const Move& move) {
+    void play_move(Position& position, Move move) {
         auto& board {position.board};
 
-        switch (move.type) {
+        switch (move.type()) {
             case MoveType::Normal:
-                assert(board[move.normal.source_index] != Square::None);
-                assert(board[move.normal.destination_index] == Square::None);
+                assert(board[move.source_index()] != Square::None);
+                assert(board[move.destination_index()] == Square::None);
 
-                std::swap(board[move.normal.source_index], board[move.normal.destination_index]);
+                std::swap(board[move.source_index()], board[move.destination_index()]);
 
-                if (!is_king_piece(board[move.normal.destination_index])) {
+                if (!is_king_piece(board[move.destination_index()])) {
                     position.plies_without_advancement = 0;
                 } else {
                     position.plies_without_advancement++;
                 }
 
-                check_piece_crowning(board, move.normal.destination_index);
+                check_piece_crowning(board, move.destination_index());
 
                 break;
             case MoveType::Capture:
-                assert(board[move.capture.source_index] != Square::None);
+                assert(board[move.source_index()] != Square::None);
                 assert(
-                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == Square::None ||
-                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]
+                    board[move.destination_index(move.destination_indices_size() - 1)] == Square::None ||
+                    move.source_index() == move.destination_index(move.destination_indices_size() - 1)
                 );
 
                 remove_jumped_pieces(board, move);
                 std::swap(
-                    board[move.capture.source_index],
-                    board[move.capture.destination_indices[move.capture.destination_indices_size - 1]]
+                    board[move.source_index()],
+                    board[move.destination_index(move.destination_indices_size() - 1)]
                 );
 
                 position.plies_without_advancement = 0;
 
-                check_piece_crowning(board, move.capture.destination_indices[move.capture.destination_indices_size - 1]);
+                check_piece_crowning(board, move.destination_index(move.destination_indices_size() - 1));
 
                 break;
         }
@@ -323,41 +286,41 @@ namespace game {
         position.player = opponent(position.player);
     }
 
-    void play_move(search::SearchNode& node, const Move& move) {
-        switch (move.type) {
+    void play_move(search::SearchNode& node, Move move) {
+        switch (move.type()) {
             case MoveType::Normal:
-                assert(node.board[move.normal.source_index] != Square::None);
-                assert(node.board[move.normal.destination_index] == Square::None);
+                assert(node.board[move.source_index()] != Square::None);
+                assert(node.board[move.destination_index()] == Square::None);
 
-                std::swap(node.board[move.normal.source_index], node.board[move.normal.destination_index]);
+                std::swap(node.board[move.source_index()], node.board[move.destination_index()]);
 
-                if (!is_king_piece(node.board[move.normal.destination_index])) {
+                if (!is_king_piece(node.board[move.destination_index()])) {
                     node.plies_without_advancement = 0;
                     node.previous = nullptr;
                 } else {
                     node.plies_without_advancement++;
                 }
 
-                check_piece_crowning(node.board, move.normal.destination_index);
+                check_piece_crowning(node.board, move.destination_index());
 
                 break;
             case MoveType::Capture:
-                assert(node.board[move.capture.source_index] != Square::None);
+                assert(node.board[move.source_index()] != Square::None);
                 assert(
-                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1]] == Square::None ||
-                    move.capture.source_index == move.capture.destination_indices[move.capture.destination_indices_size - 1]
+                    node.board[move.destination_index(move.destination_indices_size() - 1)] == Square::None ||
+                    move.source_index() == move.destination_index(move.destination_indices_size() - 1)
                 );
 
                 remove_jumped_pieces(node.board, move);
                 std::swap(
-                    node.board[move.capture.source_index],
-                    node.board[move.capture.destination_indices[move.capture.destination_indices_size - 1]]
+                    node.board[move.source_index()],
+                    node.board[move.destination_index(move.destination_indices_size() - 1)]
                 );
 
                 node.plies_without_advancement = 0;
                 node.previous = nullptr;
 
-                check_piece_crowning(node.board, move.capture.destination_indices[move.capture.destination_indices_size - 1]);
+                check_piece_crowning(node.board, move.destination_index(move.destination_indices_size() - 1));
 
                 break;
         }
@@ -373,21 +336,43 @@ namespace game {
             throw error::InvalidCommand();
         }
 
-        Move move;
-
         if (is_capture_move(squares.at(0), squares.at(1))) {
-            move.type = MoveType::Capture;
-            move.capture.source_index = _1_32_to_0_31(squares.at(0));
-            move.capture.destination_indices_size = static_cast<unsigned char>(squares.size() - 1);
+            Move::DestinationIndices destination_indices {};
 
             for (std::size_t i {0}; i < squares.size() - 1; i++) {
-                move.capture.destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
+                destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
             }
+
+            return create_move(
+                MoveType::Capture,
+                _1_32_to_0_31(squares.at(0)),
+                destination_indices,
+                static_cast<int>(squares.size() - 1)
+            );
         } else {
-            move.type = MoveType::Normal;
-            move.normal.source_index = _1_32_to_0_31(squares.at(0));
-            move.normal.destination_index = _1_32_to_0_31(squares.at(1));
+            Move::DestinationIndices destination_indices {};
+            destination_indices[0] = _1_32_to_0_31(squares.at(1));
+
+            return create_move(
+                MoveType::Normal,
+                _1_32_to_0_31(squares.at(0)),
+                destination_indices,
+                1
+            );
         }
+    }
+
+    Move create_move(MoveType type, int source_index, const Move::DestinationIndices& destination_indices, int destination_indices_size) {
+        Move move {NULL_MOVE};
+
+        move.value |= static_cast<std::uint64_t>(type);
+        move.value |= static_cast<std::uint64_t>(source_index) << 1;
+
+        for (int i {0}; i < 9; i++) {
+            move.value |= static_cast<std::uint64_t>(destination_indices[i]) << (i * 5 + 6);
+        }
+
+        move.value |= static_cast<std::uint64_t>(destination_indices_size) << 51;
 
         return move;
     }
@@ -400,17 +385,17 @@ namespace game {
         }
     }
 
-    bool is_move_advancement(const Board& board, const Move& move) {
+    bool is_move_advancement(const Board& board, Move move) {
         // Must be called right before the move has been played on the board
 
-        if (move.type == MoveType::Normal) {
-            return !is_king_piece(board[move.normal.source_index]);
+        if (move.type() == MoveType::Normal) {
+            return !is_king_piece(board[move.source_index()]);
         } else {
             return true;
         }
     }
 
-    bool is_move_capture(const Move& move) {
-        return move.type == MoveType::Capture;
+    bool is_move_capture(Move move) {
+        return move.type() == MoveType::Capture;
     }
 }
