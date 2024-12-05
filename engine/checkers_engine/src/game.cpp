@@ -343,7 +343,7 @@ namespace game {
                 destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
             }
 
-            return create_move(
+            return Move(
                 MoveType::Capture,
                 _1_32_to_0_31(squares.at(0)),
                 destination_indices,
@@ -353,28 +353,13 @@ namespace game {
             Move::DestinationIndices destination_indices {};
             destination_indices[0] = _1_32_to_0_31(squares.at(1));
 
-            return create_move(
+            return Move(
                 MoveType::Normal,
                 _1_32_to_0_31(squares.at(0)),
                 destination_indices,
                 1
             );
         }
-    }
-
-    Move create_move(MoveType type, int source_index, const Move::DestinationIndices& destination_indices, int destination_indices_size) {
-        Move move {NULL_MOVE};
-
-        move.value |= static_cast<std::uint64_t>(type);
-        move.value |= static_cast<std::uint64_t>(source_index) << 1;
-
-        for (int i {0}; i < 9; i++) {
-            move.value |= static_cast<std::uint64_t>(destination_indices[i]) << (i * 5 + 6);
-        }
-
-        move.value |= static_cast<std::uint64_t>(destination_indices_size) << 51;
-
-        return move;
     }
 
     Player opponent(Player player) {

@@ -27,7 +27,7 @@ namespace moves {
     struct JumpCtx {
         game::Board board {};  // Use a copy of the board
         int source_index {};
-        std::vector<int> destination_indices;
+        array::Array<int, 9> destination_indices;
     };
 
     static int offset(int square_index, Direction direction, Diagonal diagonal) {
@@ -115,11 +115,11 @@ namespace moves {
     }
 
     static bool check_piece_jumps(
-        std::vector<game::Move>& moves,
         int square_index,
         game::Player player,
         bool king,
-        JumpCtx& ctx
+        JumpCtx& ctx,
+        Moves& moves
     ) {
         std::size_t size {};
         const auto directions {get_directions(player, king, size)};
@@ -153,22 +153,20 @@ namespace moves {
             // Jump this piece to avoid other illegal jumps
             std::swap(ctx.board[square_index], ctx.board[target_index]);
 
-            if (check_piece_jumps(moves, target_index, player, king, ctx)) {
+            if (check_piece_jumps(target_index, player, king, ctx, moves)) {
                 // This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
                 game::Move::DestinationIndices destination_indices {};
 
-                for (std::size_t i {0}; i < ctx.destination_indices.size(); i++) {
+                for (int i {0}; i < ctx.destination_indices.size(); i++) {
                     destination_indices[i] = ctx.destination_indices[i];
                 }
 
-                moves.push_back(
-                    game::create_move(
-                        game::MoveType::Capture,
-                        ctx.source_index,
-                        destination_indices,
-                        static_cast<int>(ctx.destination_indices.size())
-                    )
+                moves.emplace_back(
+                    game::MoveType::Capture,
+                    ctx.source_index,
+                    destination_indices,
+                    ctx.destination_indices.size()
                 );
             }
 
@@ -189,13 +187,13 @@ namespace moves {
         game::Player player,
         int square_index,
         bool king,
-        std::vector<game::Move>& moves
+        Moves& moves
     ) {
         JumpCtx ctx;
         ctx.board = board;
         ctx.source_index = square_index;
 
-        check_piece_jumps(moves, square_index, player, king, ctx);
+        check_piece_jumps(square_index, player, king, ctx, moves);
     }
 
     static void generate_piece_moves(
@@ -203,7 +201,7 @@ namespace moves {
         game::Player player,
         int square_index,
         bool king,
-        std::vector<game::Move>& moves
+        Moves& moves
     ) {
         std::size_t size {};
         const auto directions {get_directions(player, king, size)};
@@ -223,19 +221,17 @@ namespace moves {
             game::Move::DestinationIndices destination_indices {};
             destination_indices[0] = target_index;
 
-            moves.push_back(
-                game::create_move(
-                    game::MoveType::Normal,
-                    square_index,
-                    destination_indices,
-                    1
-                )
+            moves.emplace_back(
+                game::MoveType::Normal,
+                square_index,
+                destination_indices,
+                1
             );
         }
     }
 
-    std::vector<game::Move> generate_moves(const game::Board& board, game::Player player) {
-        std::vector<game::Move> moves;
+    Moves generate_moves(const game::Board& board, game::Player player) {
+        Moves moves;
 
         for (int i {0}; i < 32; i++) {
             if (game::is_piece(board[i], player)) {

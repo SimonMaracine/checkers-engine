@@ -42,7 +42,18 @@ namespace game {
 
         using DestinationIndices = std::array<int, 9>;
 
-        std::uint64_t value {};
+        constexpr Move() = default;
+
+        constexpr Move(MoveType type, int source_index, const DestinationIndices& destination_indices, int destination_indices_size) {
+            value |= static_cast<std::uint64_t>(type);
+            value |= static_cast<std::uint64_t>(source_index) << 1;
+
+            for (int i {0}; i < 9; i++) {
+                value |= static_cast<std::uint64_t>(destination_indices[i]) << (i * 5 + 6);
+            }
+
+            value |= static_cast<std::uint64_t>(destination_indices_size) << 51;
+        }
 
         constexpr MoveType type() const {
             return static_cast<MoveType>(value & 1ul);
@@ -67,6 +78,8 @@ namespace game {
         constexpr bool operator!=(Move other) const {
             return value != other.value;
         }
+
+        std::uint64_t value {};
     };
 
     inline constexpr Move NULL_MOVE {};
@@ -76,7 +89,6 @@ namespace game {
     void play_move(Position& position, Move move);
     void play_move(search::SearchNode& node, Move move);
     Move parse_move_string(const std::string& move_string);
-    Move create_move(MoveType type, int source_index, const Move::DestinationIndices& destination_indices, int destination_indices_size);
     Player opponent(Player player);
     bool is_move_advancement(const Board& board, Move move);
     bool is_move_capture(Move move);

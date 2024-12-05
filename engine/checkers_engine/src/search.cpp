@@ -7,7 +7,6 @@
 #include <cstring>
 #include <cassert>
 
-#include "moves.hpp"
 #include "messages.hpp"
 
 // https://web.archive.org/web/20071030220820/http://www.brucemo.com/compchess/programming/minmax.htm
@@ -127,7 +126,7 @@ namespace search {
         // The game is not over
         // If we reached maximum depth and there are no captures available, return heuristic value
         // This is a form of quiescent alpha beta
-        if (depth <= 0 && !game::is_move_capture(moves.at(0))) {
+        if (depth <= 0 && !game::is_move_capture(moves[0])) {
             p_line.size = 0;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters) * search::perspective(current_node);
@@ -259,7 +258,7 @@ namespace search {
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, int plies_root) {
+    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) {
         if (plies_root >= pv_in.size || m_reached_left_most_path) {
             return;
         }

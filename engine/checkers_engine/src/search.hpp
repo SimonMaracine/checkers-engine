@@ -10,6 +10,7 @@
 #include "evaluation.hpp"
 #include "parameters.hpp"
 #include "transposition_table.hpp"
+#include "moves.hpp"
 
 namespace search {
     class Search {
@@ -57,7 +58,7 @@ namespace search {
 
         void setup_parameters(const parameters::Parameters& parameters);
         void fill_pv(PvLine& p_line, const PvLine& line, game::Move move);
-        void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, int plies_root);
+        void reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root);
         void reset_after_search_iteration();
         void notify_result_available();
 

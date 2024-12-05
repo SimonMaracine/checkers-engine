@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.20)
 # Core library
 
 add_library(checkers-engine-core STATIC
+    "src/array.hpp"
     "src/commands.cpp"
     "src/commands.hpp"
     "src/engine.cpp"

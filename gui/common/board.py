@@ -11,7 +11,6 @@
 """
 
 from __future__ import annotations
-import sys
 import enum
 import dataclasses
 import re
@@ -632,7 +631,7 @@ class CheckersBoard:
 
         for i in range(32):
             if board[i].value & player.value:
-                CheckersBoard._generate_piece_capture_moves(board, moves, i, player, bool(board[i].value & (1 << 2)))
+                CheckersBoard._generate_piece_capture_moves(board, i, player, bool(board[i].value & (1 << 2)), moves)
 
         # If there are possible captures, force the player to play these moves
         if moves:
@@ -640,21 +639,21 @@ class CheckersBoard:
 
         for i in range(32):
             if board[i].value & player.value:
-                CheckersBoard._generate_piece_moves(board, moves, i, player, bool(board[i].value & (1 << 2)))
+                CheckersBoard._generate_piece_moves(board, i, player, bool(board[i].value & (1 << 2)), moves)
 
         return moves
 
     @staticmethod
-    def _generate_piece_capture_moves(board: _Board, moves: list[Move], square_index: int, player: Player, king: bool):
+    def _generate_piece_capture_moves(board: _Board, square_index: int, player: Player, king: bool, moves: list[Move]):
         # Board must not be modified here
         # The context is local to these function calls
         ctx = _JumpCtx(copy.copy(board), square_index, [])
 
         # Call recursively
-        CheckersBoard._check_piece_jumps(moves, square_index, player, king, ctx)
+        CheckersBoard._check_piece_jumps(square_index, player, king, ctx, moves)
 
     @staticmethod
-    def _generate_piece_moves(board: _Board, moves: list[Move], square_index: int, player: Player, king: bool):
+    def _generate_piece_moves(board: _Board, square_index: int, player: Player, king: bool, moves: list[Move]):
         directions = CheckersBoard._get_directions(player, king)
 
         # Check the squares above or below in diagonal
@@ -670,7 +669,7 @@ class CheckersBoard:
             moves.append(Move(Move._Normal(square_index, target_index)))
 
     @staticmethod
-    def _check_piece_jumps(moves: list[Move], square_index: int, player: Player, king: bool, ctx: _JumpCtx) -> bool:
+    def _check_piece_jumps(square_index: int, player: Player, king: bool, ctx: _JumpCtx, moves: list[Move]) -> bool:
         directions = CheckersBoard._get_directions(player, king)
 
         # We want an enemy piece
@@ -700,7 +699,7 @@ class CheckersBoard:
             # Jump this piece to avoid other illegal jumps
             CheckersBoard._swap(ctx.board, square_index, target_index)
 
-            if CheckersBoard._check_piece_jumps(moves, target_index, player, king, ctx):
+            if CheckersBoard._check_piece_jumps(target_index, player, king, ctx, moves):
                 # This means that it reached the end of a sequence of jumps; the piece can't jump anymore
 
                 moves.append(Move(Move._Capture(ctx.source_index, copy.copy(ctx.destination_indices))))

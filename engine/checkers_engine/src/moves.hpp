@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
-
 #include "game.hpp"
+#include "array.hpp"
 
 namespace moves {
-    std::vector<game::Move> generate_moves(const game::Board& board, game::Player player);
+    using Moves = array::Array<game::Move, 42>;
+
+    Moves generate_moves(const game::Board& board, game::Player player);
 }
