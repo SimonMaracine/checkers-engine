@@ -1,0 +1,1 @@
+Implement quiescent search and remove the unused plies counter from the search nodes.

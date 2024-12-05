@@ -56,3 +56,8 @@ Engine 8.1 lost against engine 7.0. The changes made insignificant improvements.
 
 The match turned out to be a tie. I'm keeping these changes, since they make much more sense than engine 7.0's state,
 so I will build upon this newest version.
+
+## 8.2 black vs 9.0 white | match--Dec-5--15-19-07--2024.json
+
+Engine 9.0 won the match by far, which pleasantly surprised me. I didn't expect the quiescent search to be that
+effective.
