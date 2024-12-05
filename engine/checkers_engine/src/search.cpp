@@ -16,6 +16,7 @@
 // https://web.archive.org/web/20071031100114/http://www.brucemo.com/compchess/programming/pv.htm
 // https://www.chessprogramming.org/Principal_Variation
 // https://www.chessprogramming.org/Leftmost_Node
+// https://web.archive.org/web/20071027170528/http://www.brucemo.com/compchess/programming/quiescent.htm
 
 namespace search {
     Search::Search(
@@ -33,13 +34,13 @@ namespace search {
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played,
-        unsigned int max_depth
+        int max_depth
     ) {
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         PvLine last_pv_line;
 
-        for (unsigned int i {1}; i <= max_depth; i++) {
+        for (int i {1}; i <= max_depth; i++) {
             const auto begin {std::chrono::steady_clock::now()};
 
             PvLine line;
@@ -86,8 +87,8 @@ namespace search {
     }
 
     evaluation::Eval Search::alpha_beta(
-        unsigned int depth,
-        unsigned int plies_root,
+        int depth,
+        int plies_root,
         evaluation::Eval alpha,
         evaluation::Eval beta,
         const SearchNode& current_node,
@@ -124,8 +125,9 @@ namespace search {
         }
 
         // The game is not over
-        // If we reached maximum depth, return heuristic value
-        if (depth == 0) {
+        // If we reached maximum depth and there are no captures available, return heuristic value
+        // This is a form of quiescent alpha beta
+        if (depth <= 0 && !game::is_move_capture(moves.at(0))) {
             p_line.size = 0;
             m_nodes_evaluated++;
             return evaluation::static_evaluation(current_node, m_parameters) * search::perspective(current_node);
@@ -225,14 +227,13 @@ namespace search {
                 m_nodes.push_back({
                     previous_position.board,
                     previous_position.player,
-                    previous_position.plies,
                     previous_position.plies_without_advancement,
                     nullptr
                 });
             }
         }
 
-        m_nodes.push_back({position.board, position.player, position.plies, position.plies_without_advancement, nullptr});
+        m_nodes.push_back({position.board, position.player, position.plies_without_advancement, nullptr});
 
         // Go backwards and link the nodes
         for (std::size_t i {m_nodes.size() - 1}; i > 0; i--) {
@@ -258,7 +259,7 @@ namespace search {
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, unsigned int plies_root) {
+    void Search::reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, int plies_root) {
         if (plies_root >= pv_in.size || m_reached_left_most_path) {
             return;
         }

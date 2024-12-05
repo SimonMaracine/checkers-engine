@@ -30,8 +30,7 @@ namespace game {
     struct Position {
         Board board {};
         Player player {Player::Black};  // Next player to move
-        unsigned int plies {0};  // TODO might not be needed
-        unsigned int plies_without_advancement {0};
+        int plies_without_advancement {0};
     };
 
     enum class MoveType : unsigned char {
@@ -66,6 +65,7 @@ namespace game {
     Move parse_move_string(const std::string& move_string);
     Player opponent(Player player);
     bool is_move_advancement(const Board& board, const Move& move);
+    bool is_move_capture(const Move& move);
 
     constexpr Idx _1_32_to_0_31(const Idx index) {
         return index - 1;
@@ -76,18 +76,18 @@ namespace game {
     }
 
     constexpr bool is_black_piece(const Square square) {
-        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 0);
+        return static_cast<unsigned char>(square) & 1u << 0;
     }
 
     constexpr bool is_white_piece(const Square square) {
-        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 1);
+        return static_cast<unsigned char>(square) & 1u << 1;
     }
 
     constexpr bool is_king_piece(const Square square) {
-        return static_cast<bool>(static_cast<unsigned char>(square) & 1u << 2);
+        return static_cast<unsigned char>(square) & 1u << 2;
     }
 
     constexpr bool is_piece(const Square square, const Player player) {
-        return static_cast<bool>(static_cast<unsigned char>(square) & static_cast<unsigned char>(player));
+        return static_cast<unsigned char>(square) & static_cast<unsigned char>(player);
     }
 }

@@ -4,7 +4,6 @@ namespace search {
     void fill_node(SearchNode& current, const SearchNode& previous) {
         current.board = previous.board;
         current.player = previous.player;
-        current.plies = previous.plies;
         current.plies_without_advancement = previous.plies_without_advancement;
 
         current.previous = &previous;
@@ -17,7 +16,7 @@ namespace search {
     bool is_threefold_repetition_rule(const SearchNode& node) {
         const SearchNode* prev_node {node.previous};
 
-        unsigned int repetitions {1};
+        int repetitions {1};
 
         while (prev_node != nullptr) {
             if (prev_node->board == node.board && prev_node->player == node.player) {

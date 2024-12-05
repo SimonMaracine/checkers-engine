@@ -5,7 +5,7 @@
 #include <moves.hpp>
 #include <game.hpp>
 
-static std::uint64_t count_moves(unsigned int depth, const game::Position& position) {
+static std::uint64_t count_moves(int depth, const game::Position& position) {
     std::uint64_t total_moves {0};
 
     if (depth == 0) {
@@ -21,14 +21,10 @@ static std::uint64_t count_moves(unsigned int depth, const game::Position& posit
         total_moves += count_moves(depth - 1, new_position);
     }
 
-    if (position.plies == 1) {
-        std::cout << total_moves << '\n';
-    }
-
     return total_moves;
 }
 
-static std::uint64_t test_moves_from_position(unsigned int depth, const char* fen_string) {
+static std::uint64_t test_moves_from_position(int depth, const char* fen_string) {
     game::Position position;
     game::set_position(position, fen_string);
 

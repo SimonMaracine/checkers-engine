@@ -33,15 +33,15 @@ namespace search {
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played,
-            unsigned int max_depth
+            int max_depth
         );
 
         bool* get_should_stop() { return &m_should_stop; }
     private:
         // Return positive if the side to move is doing better and negative if the opposite side is doing better
         evaluation::Eval alpha_beta(
-            unsigned int depth,
-            unsigned int plies_root,
+            int depth,
+            int plies_root,
             evaluation::Eval alpha,
             evaluation::Eval beta,
             const SearchNode& current_node,
@@ -57,15 +57,15 @@ namespace search {
 
         void setup_parameters(const parameters::Parameters& parameters);
         void fill_pv(PvLine& p_line, const PvLine& line, const game::Move& move);
-        void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, unsigned int plies_root);
+        void reorder_moves_pv(std::vector<game::Move>& moves, const PvLine& pv_in, int plies_root);
         void reset_after_search_iteration();
         void notify_result_available();
 
         bool m_notified_result_available {false};
         bool m_should_stop {false};
         bool m_reached_left_most_path {false};
-        unsigned int m_nodes_evaluated {};
-        unsigned int m_transpositions {};
+        int m_nodes_evaluated {};
+        int m_transpositions {};
 
         // The current and previous positions (for threefold repetition)
         // node0, node1, node2, ..., nodeN (current)

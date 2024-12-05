@@ -3,7 +3,7 @@
 namespace transposition_table {
     void TranspositionTable::store(
         const Position& position,
-        unsigned int depth,
+        int depth,
         NodeType node_type,
         evaluation::Eval eval,
         const game::Move& move
@@ -13,7 +13,7 @@ namespace transposition_table {
 
     std::pair<evaluation::Eval, game::Move> TranspositionTable::retrieve(
         const Position& position,
-        unsigned int depth,
+        int depth,
         evaluation::Eval alpha,
         evaluation::Eval beta
     ) const {

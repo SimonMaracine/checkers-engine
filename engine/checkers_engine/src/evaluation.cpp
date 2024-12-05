@@ -1,8 +1,6 @@
 #include "evaluation.hpp"
 
 #include <algorithm>
-#include <cstddef>
-#include <cassert>
 
 #include "game.hpp"
 #include "search_node.hpp"
@@ -168,7 +166,7 @@ namespace evaluation {
                     if (count == 4) {
                         eval -= 2 * parameters.crowdness;
                     } else {
-                        eval -= static_cast<Eval>(count) * parameters.crowdness;
+                        eval -= count * parameters.crowdness;
                     }
 
                     break;
@@ -180,7 +178,7 @@ namespace evaluation {
                     if (count == 4) {
                         eval += 2 * parameters.crowdness;
                     } else {
-                        eval += static_cast<Eval>(count) * parameters.crowdness;
+                        eval += count * parameters.crowdness;
                     }
 
                     break;

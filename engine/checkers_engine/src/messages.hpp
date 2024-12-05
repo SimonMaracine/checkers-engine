@@ -16,9 +16,9 @@ namespace messages {
     void parameters(const std::unordered_map<std::string, parameters::Parameter>& parameters);
     void parameter(const std::string& name, const parameters::Parameter& value);
     void info(
-        unsigned int nodes,
-        unsigned int transpositions,
-        unsigned int depth,
+        int nodes,
+        int transpositions,
+        int depth,
         evaluation::Eval eval,
         double time,
         const game::Move* pv_moves,

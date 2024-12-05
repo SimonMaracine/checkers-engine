@@ -34,11 +34,11 @@ struct std::hash<transposition_table::Position> {
         std::uint64_t value0 {};
         std::uint64_t value1 {};
 
-        for (game::Idx i {0}; i < 16; i++) {
+        for (int i {0}; i < 16; i++) {
             value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
         }
 
-        for (game::Idx i {16}; i < 32; i++) {
+        for (int i {16}; i < 32; i++) {
             value1 |= static_cast<std::uint64_t>(position.board[i]) << ((i - 16) * 3);
         }
 
@@ -60,7 +60,7 @@ namespace transposition_table {
     };
 
     struct TableEntry {
-        unsigned int depth {};
+        int depth {};
         NodeType node_type {};
         evaluation::Eval eval {};
         game::Move move {};
@@ -70,7 +70,7 @@ namespace transposition_table {
     public:
         void store(
             const Position& position,
-            unsigned int depth,
+            int depth,
             NodeType node_type,
             evaluation::Eval eval,
             const game::Move& move
@@ -78,7 +78,7 @@ namespace transposition_table {
 
         std::pair<evaluation::Eval, game::Move> retrieve(
             const Position& position,
-            unsigned int depth,
+            int depth,
             evaluation::Eval alpha,
             evaluation::Eval beta
         ) const;

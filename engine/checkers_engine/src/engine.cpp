@@ -276,7 +276,6 @@ namespace engine {
     void Engine::reset_position(const std::string& fen_string) {
         game::set_position(m_position, fen_string);
 
-        m_position.plies = 0;
         m_position.plies_without_advancement = 0;
 
         m_previous_positions.clear();

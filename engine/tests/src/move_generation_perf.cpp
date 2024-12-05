@@ -7,7 +7,7 @@
 #include <moves.hpp>
 #include <game.hpp>
 
-static void generate_moves(unsigned int depth, const game::Position& position) {
+static void generate_moves(int depth, const game::Position& position) {
     if (depth == 0) {
         return;
     }
@@ -22,7 +22,7 @@ static void generate_moves(unsigned int depth, const game::Position& position) {
     }
 }
 
-static double test_moves_from_position(unsigned int depth, const char* fen_string) {
+static double test_moves_from_position(int depth, const char* fen_string) {
     game::Position position;
     game::set_position(position, fen_string);
 
@@ -38,7 +38,7 @@ int main() {
 
     std::vector<double> times;
 
-    for (unsigned int i {1}; i <= 11; i++) {
+    for (int i {1}; i <= 11; i++) {
         const auto time {test_moves_from_position(i, fen_string)};
 
         times.push_back(time);

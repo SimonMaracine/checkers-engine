@@ -113,9 +113,9 @@ namespace messages {
     }
 
     void info(
-        unsigned int nodes,
-        unsigned int transpositions,
-        unsigned int depth,
+        int nodes,
+        int transpositions,
+        int depth,
         evaluation::Eval eval,
         double time,
         const game::Move* pv_moves,
@@ -141,21 +141,21 @@ namespace messages {
     void name() {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        std::cout << "NAME " << "checkers|8.2" << std::endl;
+        std::cout << "NAME " << "checkers|9.0" << std::endl;
     }
 
     void board(const game::Position& position) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        game::Idx pc {0};
-        unsigned int k {0};
+        int pc {0};
+        int k {0};
 
         std::cout << "+---+---+---+---+---+---+---+---+\n";
 
-        for (unsigned int i {0}; i < 8; i++) {
+        for (int i {0}; i < 8; i++) {
             std::cout << "| ";
 
-            for (unsigned int j {0}; j < 7; j++, k++) {
+            for (int j {0}; j < 7; j++, k++) {
                 if (k % 2 == 0) {
                     std::cout << "  | ";
                 } else {

@@ -321,7 +321,6 @@ namespace game {
         }
 
         position.player = opponent(position.player);
-        position.plies++;
     }
 
     void play_move(search::SearchNode& node, const Move& move) {
@@ -364,7 +363,6 @@ namespace game {
         }
 
         node.player = opponent(node.player);
-        node.plies++;
     }
 
     Move parse_move_string(const std::string& move_string) {
@@ -410,5 +408,9 @@ namespace game {
         } else {
             return true;
         }
+    }
+
+    bool is_move_capture(const Move& move) {
+        return move.type == MoveType::Capture;
     }
 }
