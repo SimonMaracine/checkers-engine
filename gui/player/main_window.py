@@ -17,7 +17,7 @@ from . import saved_data
 class MainWindow(base_main_window.BaseMainWindow):
     HUMAN = 1
     COMPUTER = 2
-    CHECK_TIME_MS = 20
+    CHECK_TIME_MS = 10
     WAIT_TIME_S = 3
     TXT_ENGINE = "Engine:"
     TXT_STOPPED = "Stopped:"
