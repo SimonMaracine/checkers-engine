@@ -28,6 +28,7 @@ add_library(checkers-engine-core STATIC
     "src/search.hpp"
     "src/transposition_table.cpp"
     "src/transposition_table.hpp"
+    "src/utils.hpp"
 )
 
 target_include_directories(checkers-engine-core PUBLIC "src")

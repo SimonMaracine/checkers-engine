@@ -265,9 +265,7 @@ namespace search {
 
         const auto iter {std::find(moves.begin(), moves.end(), pv_in.moves[plies_root])};
 
-        if (iter == moves.end()) {
-            std::abort();
-        }
+        assert(iter != moves.end());
 
         std::iter_swap(moves.begin(), iter);
     }

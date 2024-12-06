@@ -9,6 +9,7 @@
 
 #include "error.hpp"
 #include "search_node.hpp"
+#include "utils.hpp"
 
 namespace game {
     static std::vector<std::string> split(const std::string& string, const char* delimiter) {
@@ -131,7 +132,7 @@ namespace game {
             return true;
         } else {
             assert(false);
-            return {};
+            utils::unreachable();
         }
     }
 
@@ -207,19 +208,20 @@ namespace game {
         }
     }
 
-    static void check_piece_crowning(Board& board, int square_index) {
+    static void check_piece_crowning(Board& board, int square_index, Player player) {
         const int row {square_index / 4};
 
-        if (is_black_piece(board[square_index])) {  // TODO opt.
-            if (row == 7) {
-                board[square_index] = Square::BlackKing;
-            }
-        } else {  // Assume it's white
-            assert(is_white_piece(board[square_index]));
-
-            if (row == 0) {
-                board[square_index] = Square::WhiteKing;
-            }
+        switch (player) {
+            case Player::Black:
+                if (row == 7) {
+                    board[square_index] = Square::BlackKing;
+                }
+                break;
+            case Player::White:
+                if (row == 0) {
+                    board[square_index] = Square::WhiteKing;
+                }
+                break;
         }
     }
 
@@ -245,40 +247,38 @@ namespace game {
     }
 
     void play_move(Position& position, Move move) {
-        auto& board {position.board};
-
         switch (move.type()) {
             case MoveType::Normal:
-                assert(board[move.source_index()] != Square::None);
-                assert(board[move.destination_index()] == Square::None);
+                assert(position.board[move.source_index()] != Square::None);
+                assert(position.board[move.destination_index()] == Square::None);
 
-                std::swap(board[move.source_index()], board[move.destination_index()]);
+                std::swap(position.board[move.source_index()], position.board[move.destination_index()]);
 
-                if (!is_king_piece(board[move.destination_index()])) {
+                if (!is_king_piece(position.board[move.destination_index()])) {
                     position.plies_without_advancement = 0;
                 } else {
                     position.plies_without_advancement++;
                 }
 
-                check_piece_crowning(board, move.destination_index());
+                check_piece_crowning(position.board, move.destination_index(), position.player);
 
                 break;
             case MoveType::Capture:
-                assert(board[move.source_index()] != Square::None);
+                assert(position.board[move.source_index()] != Square::None);
                 assert(
-                    board[move.destination_index(move.destination_indices_size() - 1)] == Square::None ||
+                    position.board[move.destination_index(move.destination_indices_size() - 1)] == Square::None ||
                     move.source_index() == move.destination_index(move.destination_indices_size() - 1)
                 );
 
-                remove_jumped_pieces(board, move);
+                remove_jumped_pieces(position.board, move);
                 std::swap(
-                    board[move.source_index()],
-                    board[move.destination_index(move.destination_indices_size() - 1)]
+                    position.board[move.source_index()],
+                    position.board[move.destination_index(move.destination_indices_size() - 1)]
                 );
 
                 position.plies_without_advancement = 0;
 
-                check_piece_crowning(board, move.destination_index(move.destination_indices_size() - 1));
+                check_piece_crowning(position.board, move.destination_index(move.destination_indices_size() - 1), position.player);
 
                 break;
         }
@@ -301,7 +301,7 @@ namespace game {
                     node.plies_without_advancement++;
                 }
 
-                check_piece_crowning(node.board, move.destination_index());
+                check_piece_crowning(node.board, move.destination_index(), node.player);
 
                 break;
             case MoveType::Capture:
@@ -320,7 +320,7 @@ namespace game {
                 node.plies_without_advancement = 0;
                 node.previous = nullptr;
 
-                check_piece_crowning(node.board, move.destination_index(move.destination_indices_size() - 1));
+                check_piece_crowning(node.board, move.destination_index(move.destination_indices_size() - 1), node.player);
 
                 break;
         }
@@ -344,26 +344,17 @@ namespace game {
             }
 
             return Move(
-                MoveType::Capture,
                 _1_32_to_0_31(squares.at(0)),
                 destination_indices,
                 static_cast<int>(squares.size() - 1)
             );
         } else {
-            Move::DestinationIndices destination_indices {};
-            destination_indices[0] = _1_32_to_0_31(squares.at(1));
-
-            return Move(
-                MoveType::Normal,
-                _1_32_to_0_31(squares.at(0)),
-                destination_indices,
-                1
-            );
+            return Move(_1_32_to_0_31(squares.at(0)), _1_32_to_0_31(squares.at(1)));
         }
     }
 
     Player opponent(Player player) {
-        if (player == Player::Black) {  // TODO opt. maybe do xor
+        if (player == Player::Black) {
             return Player::White;
         } else {
             return Player::Black;

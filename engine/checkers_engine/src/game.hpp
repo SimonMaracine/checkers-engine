@@ -40,12 +40,21 @@ namespace game {
     struct Move {
         // Indices are always in the range [0, 31]
 
+        // destination_indices must be a clean array
+
         using DestinationIndices = std::array<int, 9>;
 
         constexpr Move() = default;
 
-        constexpr Move(MoveType type, int source_index, const DestinationIndices& destination_indices, int destination_indices_size) {
-            value |= static_cast<std::uint64_t>(type);
+        constexpr Move(int source_index, int destination_index) {
+            value |= static_cast<std::uint64_t>(MoveType::Normal);
+            value |= static_cast<std::uint64_t>(source_index) << 1;
+            value |= static_cast<std::uint64_t>(destination_index) << 6;
+            value |= static_cast<std::uint64_t>(1) << 51;
+        }
+
+        constexpr Move(int source_index, const DestinationIndices& destination_indices, int destination_indices_size) {
+            value |= static_cast<std::uint64_t>(MoveType::Capture);
             value |= static_cast<std::uint64_t>(source_index) << 1;
 
             for (int i {0}; i < 9; i++) {
