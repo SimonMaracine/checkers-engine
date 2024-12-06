@@ -61,3 +61,8 @@ so I will build upon this newest version.
 
 Engine 9.0 won the match by far, which pleasantly surprised me. I didn't expect the quiescent search to be that
 effective.
+
+## 9.0 black vs 10.0 white | match--Dec-6--16-49-38--2024.json
+
+Engine 10.0 won, but not by much. It was very close to be a tie. The savings in space didn't have a large effect
+this time. The program binary size in this version is smaller in the newer version though.

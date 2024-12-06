@@ -1,0 +1,1 @@
+Pack moves into 64-bit integers and use static arrays for move generation.
