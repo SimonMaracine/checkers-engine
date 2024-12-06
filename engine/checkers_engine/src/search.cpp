@@ -39,14 +39,17 @@ namespace search {
 
         PvLine last_pv_line;
 
-        for (int i {1}; i <= max_depth; i++) {
-            const auto begin {std::chrono::steady_clock::now()};
-
+        for (int i {1}; i <= std::min(max_depth, MAX_DEPTH); i++) {
             PvLine line;
+
+            const auto begin {std::chrono::steady_clock::now()};
 
             const evaluation::Eval evaluation {
                 alpha_beta(i, 0, evaluation::WINDOW_MIN, evaluation::WINDOW_MAX, current_node, line, last_pv_line)
             };
+
+            const auto end {std::chrono::steady_clock::now()};
+            const double time {std::chrono::duration<double>(end - begin).count()};
 
             if (m_should_stop) {
                 // Exit immediately; discard the PV, as it's probably broken
@@ -54,9 +57,6 @@ namespace search {
             }
 
             last_pv_line = line;
-
-            const auto end {std::chrono::steady_clock::now()};
-            const double time {std::chrono::duration<double>(end - begin).count()};
 
             messages::info(
                 m_nodes_evaluated,
@@ -71,7 +71,7 @@ namespace search {
             // If we got no PV, then the game must be over
             // The engine actually waits for a result from the search algorithm, so invalid PV from too little time is impossible
             // Notify the main thread that a "result" is available
-            if (last_pv_line.size == 0) {
+            if (line.size == 0) {
                 notify_result_available();
                 return std::nullopt;
             }

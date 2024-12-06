@@ -6,8 +6,10 @@
 #include "evaluation.hpp"
 
 namespace search {
+    inline constexpr int MAX_DEPTH {90};
+
     struct PvLine {
-        game::Move moves[100];
+        game::Move moves[MAX_DEPTH];
         int size {};
     };
 

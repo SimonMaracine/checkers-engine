@@ -17,21 +17,19 @@ namespace array {
             std::is_nothrow_move_assignable_v<T>
         );
 
-        using Underlying = std::array<T, Size>;
-
         void push_back(const T& item) noexcept {
-            assert(m_size < Size - 1);
+            assert(m_size < Size);
             m_data[m_size++] = item;
         }
 
         void push_back(T&& item) noexcept {
-            assert(m_size < Size - 1);
+            assert(m_size < Size);
             m_data[m_size++] = std::move(item);
         }
 
         template<typename... Args>
         void emplace_back(Args&&... args) noexcept {
-            assert(m_size < Size - 1);
+            assert(m_size < Size);
             auto address {&m_data[m_size++]};
             new (address) T(std::forward<Args>(args)...);
         }

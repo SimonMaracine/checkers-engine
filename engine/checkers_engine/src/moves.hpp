@@ -4,7 +4,7 @@
 #include "array.hpp"
 
 namespace moves {
-    using Moves = array::Array<game::Move, 42>;
+    using Moves = array::Array<game::Move, 36>;
 
     Moves generate_moves(const game::Board& board, game::Player player);
 }
