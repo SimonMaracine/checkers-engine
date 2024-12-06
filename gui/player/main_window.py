@@ -373,7 +373,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             case board.Player.White:
                 self._enable_or_disable_gui_user_input(self._var_player_white)
                 self._enable_or_disable_gui_stop(self._var_player_white)
-                self._enable_or_disable_gui_continue(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_white)
                 self._record_gui_dummy_black_move()
 
         self._stopped = True
@@ -396,7 +396,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             case board.Player.White:
                 self._enable_or_disable_gui_user_input(self._var_player_white)
                 self._enable_or_disable_gui_stop(self._var_player_white)
-                self._enable_or_disable_gui_continue(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_white)
 
         self._btn_black_human.config(state="normal")
         self._btn_black_computer.config(state="normal")
@@ -618,7 +618,7 @@ class MainWindow(base_main_window.BaseMainWindow):
             to=256,
             textvariable=var_parameter,
             command=lambda: self._set_engine_parameter(name, var_parameter.get())
-        ).grid(row=0, column=1, sticky="ew")  # TODO extend protocol to include possible values
+        ).grid(row=0, column=1, sticky="ew")
 
     def _add_gui_parameter_float(self, name: str, value: str):
         frm_parameter = self._make_gui_parameter_frame_label(name)
@@ -768,9 +768,13 @@ class MainWindow(base_main_window.BaseMainWindow):
             case board.Player.Black:
                 self._enable_or_disable_gui_user_input(self._var_player_black)
                 self._maybe_start_engine_thinking(self._var_player_black)
+                self._enable_or_disable_gui_stop(self._var_player_black)
+                self._enable_or_disable_gui_continue(self._var_player_black)
             case board.Player.White:
                 self._enable_or_disable_gui_user_input(self._var_player_white)
                 self._maybe_start_engine_thinking(self._var_player_white)
+                self._enable_or_disable_gui_stop(self._var_player_white)
+                self._enable_or_disable_gui_continue(self._var_player_white)
 
     @staticmethod
     def _print_err_and_stop_engine(err: checkers_engine.CheckersEngineError | common.EngineWaitError | board.BoardError, engine: checkers_engine.CheckersEngine):
