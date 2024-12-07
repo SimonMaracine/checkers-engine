@@ -1,0 +1,2 @@
+simon@fedora:~/Desktop/current$ wc -c checkers-engine
+180976 checkers-engine
