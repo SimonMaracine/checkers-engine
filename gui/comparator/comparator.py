@@ -170,7 +170,11 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
     begin = time.time()
 
     while True:
-        move, game_over = engine_control.play_engine_move(max_think_time, current_player, next_player, local_board, current_color, next_color)
+        try:
+            move, game_over = engine_control.play_engine_move(max_think_time, current_player, next_player, local_board, current_color, next_color)
+        except error.ComparatorError:
+            print_status(f"\nPlayed these moves {played_moves} on this position {position}", 4)
+            raise
 
         if move is not None:
             played_moves.append((move.move, move.depth))
