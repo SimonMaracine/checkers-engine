@@ -28,7 +28,7 @@ namespace engine {
         void getname() const;
         void board() const;
     private:
-        std::optional<game::Move> search_move();
+        game::Move search_move();
         void reset_position(const std::string& fen_string);
         void initialize_parameters();
         void ignore_invalid_command_on_init(bool after_init = false) const;

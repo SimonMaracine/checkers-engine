@@ -61,13 +61,13 @@ namespace engine {
 
                 // Do the actual work now
                 // Search returns a valid result or nothing, if the game is over
-                const auto best_move {search_move()};
+                const game::Move best_move {search_move()};
 
-                if (!m_dont_play_move && best_move) {
+                if (!m_dont_play_move && best_move != game::NULL_MOVE) {
                     m_previous_positions.push_back(m_position);
-                    m_moves_played.push_back(*best_move);
+                    m_moves_played.push_back(best_move);
 
-                    game::play_move(m_position, *best_move);
+                    game::play_move(m_position, best_move);
                 }
 
                 // Reset the search flag as a signal for the cv; the lock is still being held
@@ -151,8 +151,12 @@ namespace engine {
         }
         m_cv.notify_one();
 
-        // Don't wait here
-        // If we send a STOP command, it will be processed and the search will stop at its will
+        // Wait only for m_should_stop pointer to become available
+        // If we send then a STOP command, it will be processed and the search will stop at its will
+        {
+            std::unique_lock<std::mutex> lock {m_mutex};
+            m_cv.wait(lock, [this]() { return m_should_stop != nullptr; });
+        }
     }
 
     void Engine::stop() {
@@ -186,7 +190,7 @@ namespace engine {
 
         auto iter {m_parameters.find(name)};
 
-        if (iter == m_parameters.cend()) {
+        if (iter == m_parameters.end()) {
             return;
         }
 
@@ -246,12 +250,16 @@ namespace engine {
         messages::board(m_position);
     }
 
-    std::optional<game::Move> Engine::search_move() {
+    game::Move Engine::search_move() {
         search::Search instance {m_transposition_table, m_parameters};
 
         m_should_stop = instance.get_should_stop();
 
-        const auto best_move {instance.search(
+        // Notify now that the stop flag pointer is available
+        m_mutex.unlock();
+        m_cv.notify_one();
+
+        const game::Move best_move {instance.search(
             m_position,
             m_previous_positions,
             m_moves_played,
@@ -266,8 +274,6 @@ namespace engine {
 
     void Engine::reset_position(const std::string& fen_string) {
         game::set_position(m_position, fen_string);
-
-        m_position.plies_without_advancement = 0;
 
         m_previous_positions.clear();
         m_moves_played.clear();

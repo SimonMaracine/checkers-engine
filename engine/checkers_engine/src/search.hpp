@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <optional>
 
 #include "game.hpp"
 #include "search_node.hpp"
@@ -16,7 +15,7 @@ namespace search {
     public:
         Search(transposition_table::TranspositionTable& transposition_table, const parameters::Parameters& parameters);
 
-        std::optional<game::Move> search(
+        game::Move search(
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played,

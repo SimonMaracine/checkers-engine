@@ -22,7 +22,7 @@ namespace search {
         setup_parameters(parameters);
     }
 
-    std::optional<game::Move> Search::search(
+    game::Move Search::search(
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played,
@@ -65,7 +65,7 @@ namespace search {
 
             // If we got no PV, then the game must be over
             if (line.size == 0) {
-                return std::nullopt;
+                return game::NULL_MOVE;
             }
 
             // After the first iteration, we have some legal move available
@@ -74,7 +74,7 @@ namespace search {
             reset_after_search_iteration();
         }
 
-        return std::make_optional(last_pv_line.moves[0]);
+        return last_pv_line.moves[0];
     }
 
     evaluation::Eval Search::alpha_beta(

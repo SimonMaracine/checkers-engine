@@ -62,13 +62,13 @@ namespace messages {
         std::cout << "READY" << std::endl;
     }
 
-    void bestmove(const std::optional<game::Move>& move) {
+    void bestmove(game::Move move) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         std::cout << "BESTMOVE ";
 
-        if (move) {
-            std::cout << move_to_string(*move);
+        if (move != game::NULL_MOVE) {
+            std::cout << move_to_string(move);
         } else {
             std::cout << "none";
         }

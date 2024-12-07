@@ -255,6 +255,7 @@ namespace game {
 
         position.board = board;
         position.player = turn;
+        position.plies_without_advancement = 0;
     }
 
     void play_move(Position& position, const std::string& move_string) {
