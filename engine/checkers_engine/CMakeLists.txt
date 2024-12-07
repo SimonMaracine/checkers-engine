@@ -40,6 +40,8 @@ endif()
 
 target_compile_definitions(checkers-engine-core PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
+set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
+
 # Executable
 
 add_executable(checkers-engine "src/main.cpp")
@@ -58,3 +60,5 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND UNIX AND USE_SANITIZERS)
 
     message(STATUS "Building engine with sanitizers")
 endif()
+
+set_target_properties(checkers-engine PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
