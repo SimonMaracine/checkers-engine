@@ -46,7 +46,7 @@ namespace search {
             const auto end {std::chrono::steady_clock::now()};
             const double time {std::chrono::duration<double>(end - begin).count()};
 
-            if (m_should_stop) {
+            if (m_should_stop & m_can_stop) {
                 // Exit immediately; discard the PV, as it's probably broken
                 break;
             }
@@ -73,6 +73,8 @@ namespace search {
 
             reset_after_search_iteration();
         }
+
+        assert(last_pv_line.size > 0);
 
         return last_pv_line.moves[0];
     }
@@ -163,7 +165,7 @@ namespace search {
 
             // We need to check for the stop flag here too, because we previously just returned 0,
             // which would have been evaluated and the move put into the TT
-            if (m_should_stop) {
+            if (m_should_stop & m_can_stop) {
                 return 0;
             }
 

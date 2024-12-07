@@ -93,12 +93,6 @@ namespace game {
 
     inline constexpr Move NULL_MOVE {};
 
-    Move parse_move_string(const std::string& move_string);
-    void set_position(Position& position, const std::string& fen_string);
-    void play_move(Position& position, const std::string& move_string);
-    void play_move(Position& position, Move move) noexcept;
-    void play_move(search::SearchNode& node, Move move) noexcept;
-
     constexpr bool is_move_capture(Move move) noexcept {
         return move.type() == MoveType::Capture;
     }
@@ -144,4 +138,10 @@ namespace game {
             return Player::Black;
         }
     }
+
+    Move parse_move_string(const std::string& move_string);
+    void set_position(Position& position, const std::string& fen_string);
+    void play_move(Position& position, const std::string& move_string);
+    void play_move(Position& position, Move move) noexcept;
+    void play_move(search::SearchNode& node, Move move) noexcept;
 }
