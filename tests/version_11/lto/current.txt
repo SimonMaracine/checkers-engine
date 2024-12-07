@@ -1,0 +1,63 @@
+simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+READY
+INIT
+GO
+INFO nodes 7 transpositions 0 depth 1 eval -2 time 2.0729e-05 pv 10x15
+INFO nodes 45 transpositions 0 depth 2 eval 5 time 0.000107802 pv 11x16 23x19 16x23 27x18
+INFO nodes 103 transpositions 2 depth 3 eval 5 time 0.000264696 pv 11x16 23x19 16x23 27x18
+INFO nodes 379 transpositions 20 depth 4 eval 5 time 0.00107267 pv 11x16 23x19 16x23 27x18
+INFO nodes 398 transpositions 20 depth 5 eval 0 time 0.00119304 pv 11x16 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 1452 transpositions 106 depth 6 eval 2 time 0.00316321 pv 11x16 23x18 7x11 24x19 16x23 26x19
+INFO nodes 2602 transpositions 272 depth 7 eval 0 time 0.00365017 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14
+INFO nodes 7915 transpositions 959 depth 8 eval 1 time 0.0115363 pv 12x16 21x17 8x12 17x13 4x8 23x19 16x23 27x18
+INFO nodes 13837 transpositions 1639 depth 9 eval 0 time 0.0202102 pv 12x16 22x17 8x12 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 46218 transpositions 4851 depth 10 eval 1 time 0.0636569 pv 11x16 22x18 7x11 25x22 2x7 29x25 16x20 18x15 10x19 24x15 11x18 22x15
+INFO nodes 87660 transpositions 11426 depth 11 eval 0 time 0.133855 pv 11x16 22x18 7x11 25x22 2x7 29x25 10x14 23x19 14x23 27x18 16x23 26x19
+INFO nodes 226823 transpositions 25213 depth 12 eval 1 time 0.393935 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14 2x7 24x19 16x23 27x18
+INFO nodes 416475 transpositions 57890 depth 13 eval -1 time 0.687797 pv 11x16 22x18 7x11 24x20 9x14 18x9 6x13 27x24 2x7 31x27 5x9 23x19 16x23 27x18
+INFO nodes 1340516 transpositions 170283 depth 14 eval 1 time 2.41654 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x19 16x23 27x18x9 6x13 31x27
+INFO nodes 2286568 transpositions 352573 depth 15 eval -1 time 4.19385 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x18 14x23 27x18 10x15 31x27 6x10
+BESTMOVE 11x16
+QUIT
+simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+READY
+INIT
+GO
+INFO nodes 7 transpositions 0 depth 1 eval -2 time 1.9707e-05 pv 10x15
+INFO nodes 45 transpositions 0 depth 2 eval 5 time 0.000125505 pv 11x16 23x19 16x23 27x18
+INFO nodes 103 transpositions 2 depth 3 eval 5 time 0.000253565 pv 11x16 23x19 16x23 27x18
+INFO nodes 379 transpositions 20 depth 4 eval 5 time 0.00105242 pv 11x16 23x19 16x23 27x18
+INFO nodes 398 transpositions 20 depth 5 eval 0 time 0.00118757 pv 11x16 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 1452 transpositions 106 depth 6 eval 2 time 0.00312308 pv 11x16 23x18 7x11 24x19 16x23 26x19
+INFO nodes 2602 transpositions 272 depth 7 eval 0 time 0.00362155 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14
+INFO nodes 7915 transpositions 959 depth 8 eval 1 time 0.0111507 pv 12x16 21x17 8x12 17x13 4x8 23x19 16x23 27x18
+INFO nodes 13837 transpositions 1639 depth 9 eval 0 time 0.0199589 pv 12x16 22x17 8x12 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 46218 transpositions 4851 depth 10 eval 1 time 0.0635056 pv 11x16 22x18 7x11 25x22 2x7 29x25 16x20 18x15 10x19 24x15 11x18 22x15
+INFO nodes 87660 transpositions 11426 depth 11 eval 0 time 0.133626 pv 11x16 22x18 7x11 25x22 2x7 29x25 10x14 23x19 14x23 27x18 16x23 26x19
+INFO nodes 226823 transpositions 25213 depth 12 eval 1 time 0.397488 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14 2x7 24x19 16x23 27x18
+INFO nodes 416475 transpositions 57890 depth 13 eval -1 time 0.685458 pv 11x16 22x18 7x11 24x20 9x14 18x9 6x13 27x24 2x7 31x27 5x9 23x19 16x23 27x18
+INFO nodes 1340516 transpositions 170283 depth 14 eval 1 time 2.39605 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x19 16x23 27x18x9 6x13 31x27
+INFO nodes 2286568 transpositions 352573 depth 15 eval -1 time 4.16848 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x18 14x23 27x18 10x15 31x27 6x10
+BESTMOVE 11x16
+QUIT
+simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+READY
+INIT
+GO
+INFO nodes 7 transpositions 0 depth 1 eval -2 time 1.8906e-05 pv 10x15
+INFO nodes 45 transpositions 0 depth 2 eval 5 time 0.000104606 pv 11x16 23x19 16x23 27x18
+INFO nodes 103 transpositions 2 depth 3 eval 5 time 0.000303769 pv 11x16 23x19 16x23 27x18
+INFO nodes 379 transpositions 20 depth 4 eval 5 time 0.00111053 pv 11x16 23x19 16x23 27x18
+INFO nodes 398 transpositions 20 depth 5 eval 0 time 0.00123888 pv 11x16 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 1452 transpositions 106 depth 6 eval 2 time 0.00235607 pv 11x16 23x18 7x11 24x19 16x23 26x19
+INFO nodes 2602 transpositions 272 depth 7 eval 0 time 0.00357939 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14
+INFO nodes 7915 transpositions 959 depth 8 eval 1 time 0.0111828 pv 12x16 21x17 8x12 17x13 4x8 23x19 16x23 27x18
+INFO nodes 13837 transpositions 1639 depth 9 eval 0 time 0.02013 pv 12x16 22x17 8x12 23x19 16x23 27x18 9x14 18x9 5x14
+INFO nodes 46218 transpositions 4851 depth 10 eval 1 time 0.0649472 pv 11x16 22x18 7x11 25x22 2x7 29x25 16x20 18x15 10x19 24x15 11x18 22x15
+INFO nodes 87660 transpositions 11426 depth 11 eval 0 time 0.133053 pv 11x16 22x18 7x11 25x22 2x7 29x25 10x14 23x19 14x23 27x18 16x23 26x19
+INFO nodes 226823 transpositions 25213 depth 12 eval 1 time 0.396431 pv 11x16 22x18 7x11 18x14 10x17 21x14 9x18 23x14 2x7 24x19 16x23 27x18
+INFO nodes 416475 transpositions 57890 depth 13 eval -1 time 0.685376 pv 11x16 22x18 7x11 24x20 9x14 18x9 6x13 27x24 2x7 31x27 5x9 23x19 16x23 27x18
+INFO nodes 1340516 transpositions 170283 depth 14 eval 1 time 2.42997 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x19 16x23 27x18x9 6x13 31x27
+INFO nodes 2286568 transpositions 352573 depth 15 eval -1 time 4.18448 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x18 14x23 27x18 10x15 31x27 6x10
+BESTMOVE 11x16
+QUIT
