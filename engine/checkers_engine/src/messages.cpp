@@ -5,6 +5,8 @@
 #include <mutex>
 #include <cassert>
 
+#include "utils.hpp"
+
 namespace messages {
     static std::mutex g_mutex;
 
@@ -29,7 +31,7 @@ namespace messages {
         return stream.str();
     }
 
-    static char get_square_char(game::Square square) {
+    static char get_square_char(game::Square square) noexcept {
         switch (square) {
             case game::Square::None:
                 return ' ';
@@ -43,7 +45,8 @@ namespace messages {
                 return 'W';
         }
 
-        return {};
+        assert(false);
+        utils::unreachable();
     }
 
     /*

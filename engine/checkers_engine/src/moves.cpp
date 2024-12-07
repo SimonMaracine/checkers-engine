@@ -19,7 +19,7 @@ namespace moves {
         SouthWest
     };
 
-    enum Diagonal {
+    enum Diagonal : int {
         Short = 1,
         Long = 2
     };
@@ -31,7 +31,7 @@ namespace moves {
     };
 
     template<Direction Dir, Diagonal Diag>
-    static int offset(int square_index) {
+    static int offset(int square_index) noexcept {
         int result_index {square_index};
 
         const bool even_row {(square_index / 4) % 2 == 0};
@@ -84,10 +84,10 @@ namespace moves {
         return result_index;
     }
 
-    static bool check_piece_jumps(JumpCtx& ctx, int square_index, game::Player player, bool king, Moves& moves);
+    static bool check_piece_jumps(JumpCtx& ctx, int square_index, game::Player player, bool king, Moves& moves) noexcept;
 
     template<Direction Dir, bool King>
-    static void check_square_capture_move(JumpCtx& ctx, int square_index, game::Player player, std::underlying_type_t<game::Square> piece_mask, bool& sequence_jumps_ended, Moves& moves) {
+    static void check_square_capture_move(JumpCtx& ctx, int square_index, game::Player player, std::underlying_type_t<game::Square> piece_mask, bool& sequence_jumps_ended, Moves& moves) noexcept {
         const int enemy_index {offset<Dir, Short>(square_index)};
         const int target_index {offset<Dir, Long>(square_index)};
 
@@ -132,13 +132,7 @@ namespace moves {
         ctx.destination_indices.pop_back();
     }
 
-    static bool check_piece_jumps(
-        JumpCtx& ctx,
-        int square_index,
-        game::Player player,
-        bool king,
-        Moves& moves
-    ) {
+    static bool check_piece_jumps(JumpCtx& ctx, int square_index, game::Player player, bool king, Moves& moves) noexcept {
         // We want an enemy piece
         const auto piece_mask {static_cast<std::underlying_type_t<game::Player>>(game::opponent(player))};
 
@@ -169,13 +163,7 @@ namespace moves {
         return sequence_jumps_ended;
     }
 
-    static void generate_piece_capture_moves(
-        const game::Board& board,
-        game::Player player,
-        int square_index,
-        bool king,
-        Moves& moves
-    ) {
+    static void generate_piece_capture_moves(const game::Board& board, game::Player player, int square_index, bool king, Moves& moves) noexcept {
         JumpCtx ctx;
         ctx.board = board;
         ctx.source_index = square_index;
@@ -184,7 +172,7 @@ namespace moves {
     }
 
     template<Direction Dir>
-    static void check_square_normal_move(const game::Board& board, int square_index, Moves& moves) {
+    static void check_square_normal_move(const game::Board& board, int square_index, Moves& moves) noexcept {
         const int target_index {offset<Dir, Short>(square_index)};
 
         if (target_index == game::NULL_INDEX) {
@@ -198,13 +186,7 @@ namespace moves {
         moves.emplace_back(square_index, target_index);
     }
 
-    static void generate_piece_normal_moves(
-        const game::Board& board,
-        game::Player player,
-        int square_index,
-        bool king,
-        Moves& moves
-    ) {
+    static void generate_piece_normal_moves(const game::Board& board, game::Player player, int square_index, bool king, Moves& moves) noexcept {
         // Check the squares above or below in diagonal
         switch (static_cast<std::underlying_type_t<game::Player>>(player) | static_cast<std::underlying_type_t<game::Player>>(king) << 2) {
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::None):
@@ -228,7 +210,7 @@ namespace moves {
         }
     }
 
-    Moves generate_moves(const game::Board& board, game::Player player) {
+    Moves generate_moves(const game::Board& board, game::Player player) noexcept {
         Moves moves;
 
         for (int i {0}; i < 32; i++) {

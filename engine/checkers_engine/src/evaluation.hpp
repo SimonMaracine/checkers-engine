@@ -23,5 +23,5 @@ namespace evaluation {
     // Invalid evaluation token used by TT
     inline constexpr Eval INVALID {std::numeric_limits<Eval>::max()};
 
-    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters);
+    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) noexcept;
 }

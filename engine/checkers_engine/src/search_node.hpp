@@ -21,11 +21,37 @@ namespace search {
         const SearchNode* previous {nullptr};
     };
 
-    void fill_node(SearchNode& current, const SearchNode& previous);
-    bool is_forty_move_rule(const SearchNode& node);
-    bool is_threefold_repetition_rule(const SearchNode& node);
+    constexpr void fill_node(SearchNode& current, const SearchNode& previous) noexcept {
+        current.board = previous.board;
+        current.player = previous.player;
+        current.plies_without_advancement = previous.plies_without_advancement;
 
-    constexpr evaluation::Eval perspective(const SearchNode& node) {
+        current.previous = &previous;
+    }
+
+    constexpr bool is_forty_move_rule(const SearchNode& node) noexcept {
+        return node.plies_without_advancement == 80;
+    }
+
+    constexpr bool is_threefold_repetition_rule(const SearchNode& node) noexcept {
+        const SearchNode* prev_node {node.previous};
+
+        int repetitions {1};
+
+        while (prev_node != nullptr) {
+            if (prev_node->board == node.board && prev_node->player == node.player) {
+                if (++repetitions == 3) {
+                    return true;
+                }
+            }
+
+            prev_node = prev_node->previous;
+        }
+
+        return false;
+    }
+
+    constexpr evaluation::Eval perspective(const SearchNode& node) noexcept {
         return node.player == game::Player::Black ? -1 : 1;
     }
 }

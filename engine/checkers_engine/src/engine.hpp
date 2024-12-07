@@ -28,7 +28,7 @@ namespace engine {
         void getname() const;
         void board() const;
     private:
-        std::optional<game::Move> search_move(std::unique_lock<std::mutex>& lock);
+        std::optional<game::Move> search_move();
         void reset_position(const std::string& fen_string);
         void initialize_parameters();
         void ignore_invalid_command_on_init(bool after_init = false) const;
@@ -52,9 +52,6 @@ namespace engine {
 
         // Thread flag; set to true when there is something to search or when the engine needs to stop
         bool m_search {false};
-
-        // Thread flag; set to true when the first best move is found
-        bool m_best_move_available {false};
 
         // Flag used after a search is complete; must be reset every time
         bool m_dont_play_move {};

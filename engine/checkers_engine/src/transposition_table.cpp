@@ -42,7 +42,7 @@ namespace transposition_table {
         return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
     }
 
-    void TranspositionTable::clear() {
+    void TranspositionTable::clear() noexcept {
         m_table.clear();
     }
 }

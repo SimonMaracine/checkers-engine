@@ -49,12 +49,24 @@ namespace array {
             return m_data[index];
         }
 
+        const T& back() const noexcept {
+            return m_data[m_size - 1];
+        }
+
+        T& back() noexcept {
+            return m_data[m_size - 1];
+        }
+
         int size() const noexcept {
             return m_size;
         }
 
         bool empty() const noexcept {
             return m_size == 0;
+        }
+
+        void clear() noexcept {
+            m_size = 0;
         }
 
         class const_iterator {
@@ -133,19 +145,19 @@ namespace array {
             pointer m_data;
         };
 
-        const_iterator begin() const {
+        const_iterator begin() const noexcept {
             return const_iterator(0, m_data);
         }
 
-        const_iterator end() const {
+        const_iterator end() const noexcept {
             return const_iterator(m_size, m_data);
         }
 
-        iterator begin() {
+        iterator begin() noexcept {
             return iterator(0, m_data);
         }
 
-        iterator end() {
+        iterator end() noexcept {
             return iterator(m_size, m_data);
         }
     private:

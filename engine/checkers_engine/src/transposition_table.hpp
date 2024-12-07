@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <cstdint>
+#include <cstddef>
 #include <utility>
 
 #include "game.hpp"
@@ -31,8 +32,8 @@ struct std::hash<transposition_table::Position> {
     }
 
     std::size_t operator()(const transposition_table::Position& position) const noexcept {
-        std::uint64_t value0 {};
-        std::uint64_t value1 {};
+        std::uint64_t value0 {0};
+        std::uint64_t value1 {0};
 
         for (int i {0}; i < 16; i++) {
             value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
@@ -66,7 +67,7 @@ namespace transposition_table {
         game::Move move {};
     };
 
-    class TranspositionTable {
+    class TranspositionTable {  // TODO noexcept
     public:
         void store(
             const Position& position,
@@ -83,7 +84,7 @@ namespace transposition_table {
             evaluation::Eval beta
         ) const;
 
-        void clear();
+        void clear() noexcept;
     private:
         std::unordered_map<Position, TableEntry> m_table;
     };

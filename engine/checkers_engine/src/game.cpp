@@ -121,21 +121,6 @@ namespace game {
         return std::make_pair(board, turn);
     }
 
-    static bool is_capture_move(int source, int destination) {
-        // Indices must be in the range [1, 32]
-
-        const int distance {std::abs(_1_32_to_0_31(source) - _1_32_to_0_31(destination))};
-
-        if (distance >= 3 && distance <= 5) {
-            return false;
-        } else if (distance == 7 || distance == 9) {
-            return true;
-        } else {
-            assert(false);
-            utils::unreachable();
-        }
-    }
-
     static std::vector<int> parse_squares(const std::string& string) {
         const auto tokens {split(string, "x-")};
 
@@ -158,7 +143,22 @@ namespace game {
         return squares;
     }
 
-    static int get_jumped_piece_index(int index1, int index2) {
+    static bool is_capture_move(int source, int destination) noexcept {
+        // Indices must be in the range [1, 32]
+
+        const int distance {std::abs(_1_32_to_0_31(source) - _1_32_to_0_31(destination))};
+
+        if (distance >= 3 && distance <= 5) {
+            return false;
+        } else if (distance == 7 || distance == 9) {
+            return true;
+        } else {
+            assert(false);
+            utils::unreachable();
+        }
+    }
+
+    static int get_jumped_piece_index(int index1, int index2) noexcept {
         // This works with indices in the range [1, 32]
 
         const int sum {index1 + index2};
@@ -172,7 +172,7 @@ namespace game {
         }
     }
 
-    static void remove_jumped_pieces(Board& board, Move move) {
+    static void remove_jumped_pieces(Board& board, Move move) noexcept {
         assert(move.type() == MoveType::Capture);
 
         {
@@ -208,7 +208,7 @@ namespace game {
         }
     }
 
-    static void check_piece_crowning(Board& board, int square_index, Player player) {
+    static void check_piece_crowning(Board& board, int square_index, Player player) noexcept {
         const int row {square_index / 4};
 
         switch (player) {
@@ -222,6 +222,27 @@ namespace game {
                     board[square_index] = Square::WhiteKing;
                 }
                 break;
+        }
+    }
+
+    Move parse_move_string(const std::string& move_string) {
+        // These are in the range [1, 32]
+        const auto squares {parse_squares(move_string)};
+
+        if (squares.size() < 2) {
+            throw error::InvalidCommand();
+        }
+
+        if (is_capture_move(squares.at(0), squares.at(1))) {
+            Move::DestinationIndices destination_indices {};
+
+            for (std::size_t i {0}; i < squares.size() - 1; i++) {
+                destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
+            }
+
+            return Move(_1_32_to_0_31(squares.at(0)), destination_indices, static_cast<int>(squares.size() - 1));
+        } else {
+            return Move(_1_32_to_0_31(squares.at(0)), _1_32_to_0_31(squares.at(1)));
         }
     }
 
@@ -246,7 +267,7 @@ namespace game {
         play_move(position, move);
     }
 
-    void play_move(Position& position, Move move) {
+    void play_move(Position& position, Move move) noexcept {
         switch (move.type()) {
             case MoveType::Normal:
                 assert(position.board[move.source_index()] != Square::None);
@@ -286,7 +307,7 @@ namespace game {
         position.player = opponent(position.player);
     }
 
-    void play_move(search::SearchNode& node, Move move) {
+    void play_move(search::SearchNode& node, Move move) noexcept {
         switch (move.type()) {
             case MoveType::Normal:
                 assert(node.board[move.source_index()] != Square::None);
@@ -326,26 +347,5 @@ namespace game {
         }
 
         node.player = opponent(node.player);
-    }
-
-    Move parse_move_string(const std::string& move_string) {
-        // These are in the range [1, 32]
-        const auto squares {parse_squares(move_string)};
-
-        if (squares.size() < 2) {
-            throw error::InvalidCommand();
-        }
-
-        if (is_capture_move(squares.at(0), squares.at(1))) {
-            Move::DestinationIndices destination_indices {};
-
-            for (std::size_t i {0}; i < squares.size() - 1; i++) {
-                destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
-            }
-
-            return Move(_1_32_to_0_31(squares.at(0)), destination_indices, static_cast<int>(squares.size() - 1));
-        } else {
-            return Move(_1_32_to_0_31(squares.at(0)), _1_32_to_0_31(squares.at(1)));
-        }
     }
 }

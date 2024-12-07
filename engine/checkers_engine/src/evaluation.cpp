@@ -7,7 +7,7 @@
 
 namespace evaluation {
     template<Eval M>
-    static constexpr auto positioning_king() {
+    static constexpr auto positioning_king() noexcept {
         return std::array<Eval, 32> {
             M, M, M, M,
             M, 0, 0, 0,
@@ -21,7 +21,7 @@ namespace evaluation {
     }
 
     template<game::Player Player, int Offset1, int Offset2>
-    static int neighbor(int index, const game::Board& board, bool even_row) {
+    static int neighbor(int index, const game::Board& board, bool even_row) noexcept {
         const int result_index {index - (even_row ? Offset1 : Offset2)};
 
         if (std::abs(index / 4 - result_index / 4) != 1) {
@@ -36,7 +36,7 @@ namespace evaluation {
     }
 
     template<game::Player Player>
-    static int neighbors(int index, const game::Board& board) {
+    static int neighbors(int index, const game::Board& board) noexcept {
         const bool even_row {(index / 4) % 2 == 0};
         int count {0};
 
@@ -56,7 +56,7 @@ namespace evaluation {
 
     // Bonus points are given for pieces that have neighbors of the same color
 
-    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) {
+    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) noexcept {
         static constexpr Eval POSITIONING_PAWN_BLACK[] {
             8, 0, 8, 0,
             0, 1, 2, 1,

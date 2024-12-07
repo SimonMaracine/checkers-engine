@@ -3,7 +3,6 @@
 #include <chrono>
 #include <algorithm>
 #include <utility>
-#include <cstddef>
 #include <cstring>
 #include <cassert>
 
@@ -18,14 +17,8 @@
 // https://web.archive.org/web/20071027170528/http://www.brucemo.com/compchess/programming/quiescent.htm
 
 namespace search {
-    Search::Search(
-        std::condition_variable& cv,
-        std::unique_lock<std::mutex>& lock,
-        bool& best_move_available,
-        transposition_table::TranspositionTable& transposition_table,
-        const parameters::Parameters& parameters
-    )
-        : m_cv(cv), m_lock(lock), m_best_move_available(best_move_available), m_transposition_table(transposition_table) {
+    Search::Search(transposition_table::TranspositionTable& transposition_table, const parameters::Parameters& parameters)
+        : m_transposition_table(transposition_table) {
         setup_parameters(parameters);
     }
 
@@ -35,6 +28,8 @@ namespace search {
         const std::vector<game::Move>& moves_played,
         int max_depth
     ) {
+        m_transposition_table.clear();
+
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         PvLine last_pv_line;
@@ -69,17 +64,14 @@ namespace search {
             );
 
             // If we got no PV, then the game must be over
-            // The engine actually waits for a result from the search algorithm, so invalid PV from too little time is impossible
-            // Notify the main thread that a "result" is available
             if (line.size == 0) {
-                notify_result_available();
                 return std::nullopt;
             }
 
-            reset_after_search_iteration();
-
             // After the first iteration, we have some legal move available
-            notify_result_available();
+            m_can_stop = true;
+
+            reset_after_search_iteration();
         }
 
         return std::make_optional(last_pv_line.moves[0]);
@@ -94,7 +86,7 @@ namespace search {
         PvLine& p_line,
         const PvLine& pv_in
     ) {
-        if (m_should_stop) {
+        if (m_should_stop & m_can_stop) {
             // Discard this search; this should only happen for iterations 2 onwards
             return 0;
         }
@@ -157,7 +149,7 @@ namespace search {
 
         PvLine line;
         auto node_type {transposition_table::NodeType::All};
-        game::Move best_move {};
+        game::Move best_move {game::NULL_MOVE};
 
         for (const game::Move move : moves) {
             SearchNode new_node;
@@ -235,8 +227,8 @@ namespace search {
         m_nodes.push_back({position.board, position.player, position.plies_without_advancement, nullptr});
 
         // Go backwards and link the nodes
-        for (std::size_t i {m_nodes.size() - 1}; i > 0; i--) {
-            m_nodes.at(i).previous = &m_nodes.at(i - 1);
+        for (int i {m_nodes.size() - 1}; i > 0; i--) {
+            m_nodes[i].previous = &m_nodes[i - 1];
         }
 
         assert(!m_nodes.empty());
@@ -252,13 +244,13 @@ namespace search {
         m_parameters.crowdness = std::get<0>(parameters.at("crowdness"));
     }
 
-    void Search::fill_pv(PvLine& p_line, const PvLine& line, game::Move move) {
+    void Search::fill_pv(PvLine& p_line, const PvLine& line, game::Move move) noexcept {
         p_line.moves[0] = move;
         std::memcpy(p_line.moves + 1, line.moves, line.size * sizeof(move));
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) {
+    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) noexcept {
         if (plies_root >= pv_in.size || m_reached_left_most_path) {
             return;
         }
@@ -270,19 +262,9 @@ namespace search {
         std::iter_swap(moves.begin(), iter);
     }
 
-    void Search::reset_after_search_iteration() {
+    void Search::reset_after_search_iteration() noexcept {
         m_reached_left_most_path = false;
         m_nodes_evaluated = 0;
         m_transpositions = 0;
-    }
-
-    void Search::notify_result_available() {
-        if (!m_notified_result_available) {
-            m_best_move_available = true;  // The lock is still being held
-            m_lock.unlock();
-            m_cv.notify_one();
-
-            m_notified_result_available = true;
-        }
     }
 }

@@ -61,7 +61,7 @@ namespace engine {
 
                 // Do the actual work now
                 // Search returns a valid result or nothing, if the game is over
-                const auto best_move {search_move(lock)};
+                const auto best_move {search_move()};
 
                 if (!m_dont_play_move && best_move) {
                     m_previous_positions.push_back(m_position);
@@ -151,15 +151,8 @@ namespace engine {
         }
         m_cv.notify_one();
 
-        // Wait for the first result to become available; thus the engine cannot process a stop command and thus
-        // the resulting move must be valid, or the game must be over
-        {
-            std::unique_lock<std::mutex> lock {m_mutex};
-            m_cv.wait(lock, [this]() { return m_best_move_available; });
-        }
-
-        // Best move flag must be reset after use
-        m_best_move_available = false;
+        // Don't wait here
+        // If we send a STOP command, it will be processed and the search will stop at its will
     }
 
     void Engine::stop() {
@@ -253,10 +246,8 @@ namespace engine {
         messages::board(m_position);
     }
 
-    std::optional<game::Move> Engine::search_move(std::unique_lock<std::mutex>& lock) {
-        m_transposition_table.clear();
-
-        search::Search instance {m_cv, lock, m_best_move_available, m_transposition_table, m_parameters};
+    std::optional<game::Move> Engine::search_move() {
+        search::Search instance {m_transposition_table, m_parameters};
 
         m_should_stop = instance.get_should_stop();
 

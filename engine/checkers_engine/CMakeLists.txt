@@ -22,7 +22,6 @@ add_library(checkers-engine-core STATIC
     "src/moves.cpp"
     "src/moves.hpp"
     "src/parameters.hpp"
-    "src/search_node.cpp"
     "src/search_node.hpp"
     "src/search.cpp"
     "src/search.hpp"
