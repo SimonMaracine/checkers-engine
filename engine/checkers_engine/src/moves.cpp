@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <type_traits>
 #include <cassert>
 
 #include "utils.hpp"
@@ -86,7 +87,7 @@ namespace moves {
     static bool check_piece_jumps(JumpCtx& ctx, int square_index, game::Player player, bool king, Moves& moves);
 
     template<Direction Dir, bool King>
-    static void check_square_capture_move(JumpCtx& ctx, int square_index, game::Player player, unsigned int piece_mask, bool& sequence_jumps_ended, Moves& moves) {
+    static void check_square_capture_move(JumpCtx& ctx, int square_index, game::Player player, std::underlying_type_t<game::Square> piece_mask, bool& sequence_jumps_ended, Moves& moves) {
         const int enemy_index {offset<Dir, Short>(square_index)};
         const int target_index {offset<Dir, Long>(square_index)};
 
@@ -94,7 +95,7 @@ namespace moves {
             return;
         }
 
-        const bool is_enemy_piece {static_cast<bool>(static_cast<unsigned int>(ctx.board[enemy_index]) & piece_mask)};
+        const bool is_enemy_piece {static_cast<bool>(static_cast<std::underlying_type_t<game::Square>>(ctx.board[enemy_index]) & piece_mask)};
 
         if (!is_enemy_piece || ctx.board[target_index] != game::Square::None) {
             return;
@@ -139,25 +140,25 @@ namespace moves {
         Moves& moves
     ) {
         // We want an enemy piece
-        const unsigned int piece_mask {static_cast<unsigned int>(game::opponent(player))};
+        const auto piece_mask {static_cast<std::underlying_type_t<game::Player>>(game::opponent(player))};
 
         bool sequence_jumps_ended {true};
 
         // Check the squares above or below in diagonal
-        switch (static_cast<unsigned int>(player) | static_cast<unsigned int>(king) << 2) {
-            case static_cast<unsigned int>(game::Square::None):
+        switch (static_cast<std::underlying_type_t<game::Player>>(player) | static_cast<std::underlying_type_t<game::Player>>(king) << 2) {
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::None):
                 assert(false);
                 utils::unreachable();
-            case static_cast<unsigned int>(game::Square::Black):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::Black):
                 check_square_capture_move<Direction::SouthEast, false>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 check_square_capture_move<Direction::SouthWest, false>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 break;
-            case static_cast<unsigned int>(game::Square::White):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::White):
                 check_square_capture_move<Direction::NorthEast, false>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 check_square_capture_move<Direction::NorthWest, false>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 break;
-            case static_cast<unsigned int>(game::Square::WhiteKing):
-            case static_cast<unsigned int>(game::Square::BlackKing):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::WhiteKing):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::BlackKing):
                 check_square_capture_move<Direction::NorthEast, true>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 check_square_capture_move<Direction::NorthWest, true>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
                 check_square_capture_move<Direction::SouthEast, true>(ctx, square_index, player, piece_mask, sequence_jumps_ended, moves);
@@ -205,20 +206,20 @@ namespace moves {
         Moves& moves
     ) {
         // Check the squares above or below in diagonal
-        switch (static_cast<unsigned int>(player) | static_cast<unsigned int>(king) << 2) {
-            case static_cast<unsigned int>(game::Square::None):
+        switch (static_cast<std::underlying_type_t<game::Player>>(player) | static_cast<std::underlying_type_t<game::Player>>(king) << 2) {
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::None):
                 assert(false);
                 utils::unreachable();
-            case static_cast<unsigned int>(game::Square::Black):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::Black):
                 check_square_normal_move<Direction::SouthEast>(board, square_index, moves);
                 check_square_normal_move<Direction::SouthWest>(board, square_index, moves);
                 break;
-            case static_cast<unsigned int>(game::Square::White):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::White):
                 check_square_normal_move<Direction::NorthEast>(board, square_index, moves);
                 check_square_normal_move<Direction::NorthWest>(board, square_index, moves);
                 break;
-            case static_cast<unsigned int>(game::Square::WhiteKing):
-            case static_cast<unsigned int>(game::Square::BlackKing):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::WhiteKing):
+            case static_cast<std::underlying_type_t<game::Square>>(game::Square::BlackKing):
                 check_square_normal_move<Direction::NorthEast>(board, square_index, moves);
                 check_square_normal_move<Direction::NorthWest>(board, square_index, moves);
                 check_square_normal_move<Direction::SouthEast>(board, square_index, moves);

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <type_traits>
 #include <cstdint>
 
 namespace search {
@@ -11,7 +12,7 @@ namespace search {
 namespace game {
     inline constexpr int NULL_INDEX {-1};  // Indices may be in the range [0, 31] or [1, 32]
 
-    enum class Square : unsigned int {
+    enum class Square : unsigned char {
         None      = 0b000u,
         Black     = 0b001u,
         BlackKing = 0b101u,
@@ -19,7 +20,7 @@ namespace game {
         WhiteKing = 0b110u
     };
 
-    enum class Player : unsigned int {
+    enum class Player : unsigned char {
         Black = 0b01u,
         White = 0b10u
     };
@@ -32,15 +33,14 @@ namespace game {
         int plies_without_advancement {0};
     };
 
-    enum class MoveType : unsigned int {
+    enum class MoveType : int {
         Normal = 0,
         Capture = 1
     };
 
     struct Move {
         // Indices are always in the range [0, 31]
-
-        // destination_indices must be a clean array
+        // Array destination_indices must be clean
 
         using DestinationIndices = std::array<int, 9>;
 
@@ -98,9 +98,18 @@ namespace game {
     void play_move(Position& position, Move move);
     void play_move(search::SearchNode& node, Move move);
     Move parse_move_string(const std::string& move_string);
-    Player opponent(Player player);
-    bool is_move_advancement(const Board& board, Move move);
-    bool is_move_capture(Move move);
+
+    constexpr Player opponent(Player player) {
+        if (player == Player::Black) {
+            return Player::White;
+        } else {
+            return Player::Black;
+        }
+    }
+
+    constexpr bool is_move_capture(Move move) {
+        return move.type() == MoveType::Capture;
+    }
 
     constexpr int _1_32_to_0_31(int index) {
         return index - 1;
@@ -111,18 +120,28 @@ namespace game {
     }
 
     constexpr bool is_black_piece(Square square) {
-        return static_cast<unsigned int>(square) & 1u << 0;
+        return static_cast<std::underlying_type_t<Square>>(square) & 1u << 0;
     }
 
     constexpr bool is_white_piece(Square square) {
-        return static_cast<unsigned int>(square) & 1u << 1;
+        return static_cast<std::underlying_type_t<Square>>(square) & 1u << 1;
     }
 
     constexpr bool is_king_piece(Square square) {
-        return static_cast<unsigned int>(square) & 1u << 2;
+        return static_cast<std::underlying_type_t<Square>>(square) & 1u << 2;
     }
 
     constexpr bool is_piece(Square square, Player player) {
-        return static_cast<unsigned int>(square) & static_cast<unsigned int>(player);
+        return static_cast<std::underlying_type_t<Square>>(square) & static_cast<std::underlying_type_t<Player>>(player);
+    }
+
+    constexpr bool is_move_advancement(const Board& board, Move move) {
+        // Must be called right before the move has been played on the board
+
+        if (move.type() == MoveType::Normal) {
+            return !is_king_piece(board[move.source_index()]);
+        } else {
+            return true;
+        }
     }
 }

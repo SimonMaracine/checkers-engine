@@ -343,35 +343,9 @@ namespace game {
                 destination_indices[i] = _1_32_to_0_31(squares.at(i + 1));
             }
 
-            return Move(
-                _1_32_to_0_31(squares.at(0)),
-                destination_indices,
-                static_cast<int>(squares.size() - 1)
-            );
+            return Move(_1_32_to_0_31(squares.at(0)), destination_indices, static_cast<int>(squares.size() - 1));
         } else {
             return Move(_1_32_to_0_31(squares.at(0)), _1_32_to_0_31(squares.at(1)));
         }
-    }
-
-    Player opponent(Player player) {
-        if (player == Player::Black) {
-            return Player::White;
-        } else {
-            return Player::Black;
-        }
-    }
-
-    bool is_move_advancement(const Board& board, Move move) {
-        // Must be called right before the move has been played on the board
-
-        if (move.type() == MoveType::Normal) {
-            return !is_king_piece(board[move.source_index()]);
-        } else {
-            return true;
-        }
-    }
-
-    bool is_move_capture(Move move) {
-        return move.type() == MoveType::Capture;
     }
 }
