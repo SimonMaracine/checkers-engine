@@ -66,3 +66,7 @@ effective.
 
 Engine 10.0 won, but not by much. It was very close to be a tie. The savings in space didn't have a large effect
 this time. The program binary size in this version is smaller in the newer version though.
+
+## 10.0 black vs 11.0 white | match--Dec-9--00-30-46--2024.json
+
+Engine 11.0 won the match. The many little optimizations paid off.

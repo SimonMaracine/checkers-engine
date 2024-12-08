@@ -1,0 +1,2 @@
+Optimize a few things: improve move generation, improve evaluation and reduce stack and heap memory usage.
+noexcept and LTO didn't seem to help.
