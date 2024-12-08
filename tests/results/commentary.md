@@ -69,4 +69,5 @@ this time. The program binary size in this version is smaller in the newer versi
 
 ## 10.0 black vs 11.0 white | match--Dec-9--00-30-46--2024.json
 
-Engine 11.0 won the match. The many little optimizations paid off.
+Engine 11.0 won the match. The many little optimizations paid off. Engine 11.0's average search depth is indeed a
+little higher.
