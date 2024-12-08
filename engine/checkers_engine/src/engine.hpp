@@ -53,6 +53,9 @@ namespace engine {
         // Thread flag; set to true when there is something to search or when the engine needs to stop
         bool m_search {false};
 
+        // Thread flag; set to true when m_should_stop is set
+        bool m_instance_ready {false};
+
         // Flag used after a search is complete; must be reset every time
         bool m_dont_play_move {};
 

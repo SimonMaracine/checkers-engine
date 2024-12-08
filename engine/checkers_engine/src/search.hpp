@@ -56,7 +56,7 @@ namespace search {
 
         // The current and previous positions (for threefold repetition)
         // node0, node1, node2, ..., nodeN (current)
-        array::Array<SearchNode, 80> m_nodes;
+        array::Array<SearchNode, 81> m_nodes;
 
         transposition_table::TranspositionTable& m_transposition_table;
     };

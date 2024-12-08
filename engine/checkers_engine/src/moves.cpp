@@ -19,7 +19,7 @@ namespace moves {
         SouthWest
     };
 
-    enum Diagonal : int {
+    enum class Diagonal : int {
         Short = 1,
         Long = 2
     };
@@ -72,7 +72,7 @@ namespace moves {
         }
 
         // Check edge cases (literally)
-        if (std::abs(square_index / 4 - result_index / 4) != Diag) {
+        if (std::abs(square_index / 4 - result_index / 4) != static_cast<std::underlying_type_t<Diagonal>>(Diag)) {
             return game::NULL_INDEX;
         }
 
@@ -88,8 +88,8 @@ namespace moves {
 
     template<Direction Dir, bool King>
     static void check_square_capture_move(JumpCtx& ctx, int square_index, game::Player player, std::underlying_type_t<game::Square> piece_mask, bool& sequence_jumps_ended, Moves& moves) noexcept {
-        const int enemy_index {offset<Dir, Short>(square_index)};
-        const int target_index {offset<Dir, Long>(square_index)};
+        const int enemy_index {offset<Dir, Diagonal::Short>(square_index)};
+        const int target_index {offset<Dir, Diagonal::Long>(square_index)};
 
         if (enemy_index == game::NULL_INDEX || target_index == game::NULL_INDEX) {
             return;
@@ -173,7 +173,7 @@ namespace moves {
 
     template<Direction Dir>
     static void check_square_normal_move(const game::Board& board, int square_index, Moves& moves) noexcept {
-        const int target_index {offset<Dir, Short>(square_index)};
+        const int target_index {offset<Dir, Diagonal::Short>(square_index)};
 
         if (target_index == game::NULL_INDEX) {
             return;

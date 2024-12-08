@@ -155,8 +155,11 @@ namespace engine {
         // If we send then a STOP command, it will be processed and the search will stop at its will
         {
             std::unique_lock<std::mutex> lock {m_mutex};
-            m_cv.wait(lock, [this]() { return m_should_stop != nullptr; });
+            m_cv.wait(lock, [this]() { return m_instance_ready; });
         }
+
+        // Flag must be reset after use
+        m_instance_ready = false;
     }
 
     void Engine::stop() {
@@ -254,8 +257,9 @@ namespace engine {
         search::Search instance {m_transposition_table, m_parameters};
 
         m_should_stop = instance.get_should_stop();
+        m_instance_ready = true;
 
-        // Notify now that the stop flag pointer is available
+        // Notify now that the search instance is ready
         m_mutex.unlock();
         m_cv.notify_one();
 
@@ -266,7 +270,7 @@ namespace engine {
             std::get<0>(m_parameters.at("max_depth"))
         )};
 
-        // Must reset this back to null here, after the search
+        // Must reset this back to null here after the search, because it will soon be invalidated
         m_should_stop = nullptr;
 
         return best_move;
@@ -274,7 +278,6 @@ namespace engine {
 
     void Engine::reset_position(const std::string& fen_string) {
         game::set_position(m_position, fen_string);
-
         m_previous_positions.clear();
         m_moves_played.clear();
     }
