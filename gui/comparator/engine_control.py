@@ -119,20 +119,20 @@ def setup_engine_board(engine: checkers_engine.CheckersEngine, position: str, co
         raise error.ComparatorError(f"Could not send NEWGAME to engine {color}: {err}")
 
 
-def play_engine_move(max_think_time: float, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard, color_current: Color, color_next: Color) -> tuple[Move | None, bool]:
+def play_engine_move(max_think_time: float, force_max_think_time: bool, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard, color_current: Color, color_next: Color) -> tuple[Move | None, bool]:
     # Return the played move and return true if the game is over
 
     try:
-        engine_current.send("GO")
+        engine_current.send(f"GO maxtime {max_think_time}")
     except checkers_engine.CheckersEngineError as err:
         engine_current.stop(True)
         raise error.ComparatorError(f"Could not send GO to engine {color_current}: {err}")
 
-    result = _wait_for_engine_move(engine_current, color_current, max_think_time)
+    result = _wait_for_engine_move(engine_current, color_current, max_think_time, force_max_think_time)
 
     if result is None:
         try:
-            engine_next.send("GO")
+            engine_next.send(f"GO maxtime {max_think_time}")
         except checkers_engine.CheckersEngineError as err:
             engine_next.stop(True)
             raise error.ComparatorError(f"Could not send GO to engine {color_next}: {err}")
@@ -215,7 +215,12 @@ def _wait_for_engine_parameter(engine: checkers_engine.CheckersEngine, color: Co
             return type, value
 
 
-def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, color: Color, max_seconds: float | None = None) -> Move | None:
+def _wait_for_engine_move(
+    engine: checkers_engine.CheckersEngine,
+    color: Color,
+    max_seconds: float | None = None,
+    force_max_think_time: bool = False
+) -> Move | None:
     # Wait indefinitely, if max_seconds is None
 
     # If the depth info is missing, it will just return 0 as depth
@@ -244,7 +249,7 @@ def _wait_for_engine_move(engine: checkers_engine.CheckersEngine, color: Color, 
 
         now = time.time()
 
-        if max_seconds is not None and now - begin > max_seconds:
+        if max_seconds is not None and force_max_think_time and now - begin > max_seconds:
             try:
                 message = engine.send("STOP")
             except checkers_engine.CheckersEngineError as err:

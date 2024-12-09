@@ -159,5 +159,6 @@
     ],
     "black_engine_parameters": ["depth=14"],
     "white_engine_parameters": [],
-    "max_think_time": 0.15
+    "max_think_time": 0.15,
+    "force_max_think_time": true
 }

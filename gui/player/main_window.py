@@ -57,7 +57,7 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _setup_widgets_center(self):
         frm_center = tk.Frame(self, relief="solid", borderwidth=1)
         frm_center.grid(row=0, column=1, sticky="ns", padx=10, pady=10)
-        frm_center.rowconfigure(3, weight=1)
+        frm_center.rowconfigure(4, weight=1)
 
         frm_status = tk.Frame(frm_center)
         frm_status.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
@@ -144,8 +144,28 @@ class MainWindow(base_main_window.BaseMainWindow):
         self._btn_continue = tk.Button(frm_buttons, text="Continue", command=self._continue)
         self._btn_continue.grid(row=0, column=1, sticky="ew")
 
+        frm_constraints = tk.Frame(frm_center)
+        frm_constraints.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
+        frm_constraints.columnconfigure(2, weight=1)
+
+        tk.Label(frm_constraints, text="Max depth").grid(row=0, column=0)
+
+        self._var_enable_max_depth = tk.BooleanVar(frm_constraints, False)
+        tk.Checkbutton(frm_constraints, variable=self._var_enable_max_depth).grid(row=0, column=1)
+
+        self._var_max_depth = tk.IntVar(frm_constraints, 15)
+        tk.Spinbox(frm_constraints, from_=0, to=1000, textvariable=self._var_max_depth).grid(row=0, column=2, sticky="ew")
+
+        tk.Label(frm_constraints, text="Max time").grid(row=1, column=0)
+
+        self._var_enable_max_time = tk.BooleanVar(frm_constraints, True)
+        tk.Checkbutton(frm_constraints, variable=self._var_enable_max_time).grid(row=1, column=1)
+
+        self._var_max_time = tk.StringVar(frm_constraints, "1.0")
+        tk.Entry(frm_constraints, textvariable=self._var_max_time).grid(row=1, column=2, sticky="ew")
+
         frm_parameters = tk.Frame(frm_center)
-        frm_parameters.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        frm_parameters.grid(row=4, column=0, sticky="nsew", padx=10, pady=(5, 10))
 
         bar_parameters = tk.Scrollbar(frm_parameters, orient="vertical")
         bar_parameters.pack(side="right", fill="y")
@@ -614,8 +634,8 @@ class MainWindow(base_main_window.BaseMainWindow):
         var_parameter = tk.StringVar(frm_parameter, value=value)
         tk.Spinbox(
             frm_parameter,
-            from_=-256,
-            to=256,
+            from_=-65535,
+            to=65534,
             textvariable=var_parameter,
             command=lambda: self._set_engine_parameter(name, var_parameter.get())
         ).grid(row=0, column=1, sticky="ew")
@@ -642,7 +662,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         frm_parameter = self._make_gui_parameter_frame_label(name)
 
         var_parameter = tk.StringVar(frm_parameter, value=value)
-        tk.Entry(frm_parameter, textvariable=var_parameter, ).grid(row=0, column=1, sticky="ew")
+        tk.Entry(frm_parameter, textvariable=var_parameter).grid(row=0, column=1, sticky="ew")
 
         var_parameter.trace_add("write", lambda *args: self._set_engine_parameter(name, var_parameter.get()))
 
@@ -651,7 +671,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         frm_parameter.pack(fill="x", expand=True, pady=(0, 8))
         frm_parameter.columnconfigure(1, weight=1)
 
-        tk.Label(frm_parameter, text=name).grid(row=0, column=0, sticky="w")
+        tk.Label(frm_parameter, text=name).grid(row=0, column=0)
 
         return frm_parameter
 
@@ -676,7 +696,7 @@ class MainWindow(base_main_window.BaseMainWindow):
         if var_next_player.get() == self.COMPUTER:
             if not self._stopped:
                 try:
-                    self._engine.send("GO")
+                    self._engine.send(self._string_go())
                 except checkers_engine.CheckersEngineError as err:
                     self._print_err_and_stop_engine(err, self._engine)
                 else:
@@ -725,6 +745,12 @@ class MainWindow(base_main_window.BaseMainWindow):
 
     def _is_game_over(self) -> bool:
         return self._board.get_game_over() != board.GameOver.None_
+
+    def _string_go(self) -> str:
+        max_depth = f"maxdepth {self._var_max_depth.get()}" if self._var_enable_max_depth.get() else ""
+        max_time = f"maxtime {self._var_max_time.get()}" if self._var_enable_max_time.get() else ""
+
+        return f"GO {max_depth} {max_time}"
 
     def _on_piece_move(self, move: board.Move):
         self._play_sound()

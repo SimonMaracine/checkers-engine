@@ -66,16 +66,12 @@ namespace commands {
         if (const auto iter {token_available(tokens, "maxdepth")}; iter != tokens.cend()) {
             if (const auto next_iter {next_token(iter)}; next_iter != tokens.cend()) {
                 max_depth = *next_iter;
-            } else {
-                throw error::InvalidCommand();
             }
         }
 
         if (const auto iter {token_available(tokens, "maxtime")}; iter != tokens.cend()) {
             if (const auto next_iter {next_token(iter)}; next_iter != tokens.cend()) {
                 max_time = *next_iter;
-            } else {
-                throw error::InvalidCommand();
             }
         }
 

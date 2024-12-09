@@ -20,6 +20,7 @@ class MatchFile:
     black_engine_parameters: list[str]
     white_engine_parameters: list[str]
     max_think_time: float
+    force_max_think_time: bool
 
 
 def parse_match_file(file_path: str) -> MatchFile:
@@ -38,9 +39,10 @@ def parse_match_file(file_path: str) -> MatchFile:
                 "type": "array",
                 "items": { "type": "string" }
             },
-            "max_think_time": { "type": "number" }
+            "max_think_time": { "type": "number" },
+            "force_max_think_time": { "type": "boolean" }
         },
-        "required": ["positions", "black_engine_parameters", "white_engine_parameters", "max_think_time"]
+        "required": ["positions", "black_engine_parameters", "white_engine_parameters", "max_think_time", "force_max_think_time"]
     }
 
     try:
@@ -54,7 +56,13 @@ def parse_match_file(file_path: str) -> MatchFile:
     except jsonschema.ValidationError as err:
         raise error.ComparatorError(f"Invalid JSON file: {err}")
 
-    return MatchFile(obj["positions"], obj["black_engine_parameters"], obj["white_engine_parameters"], obj["max_think_time"])
+    return MatchFile(
+        obj["positions"],
+        obj["black_engine_parameters"],
+        obj["white_engine_parameters"],
+        obj["max_think_time"],
+        obj["force_max_think_time"]
+    )
 
 
 def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
@@ -97,15 +105,31 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         white_engine_stats = _engine_stats(white_engine, engine_control.Color.White)
 
         print_status(f"Max thinking time: {match_file.max_think_time}", 1)
+        print_status(f"Force max thinking time: {match_file.force_max_think_time}", 1)
 
         match_results: list[data.RoundResult] = []
         rematch_results: list[data.RoundResult] = []
 
         for i, position in enumerate(match_file.positions):
-            match_results.append(_run_round(position, match_file.max_think_time, black_engine, white_engine, i))
+            match_results.append(_run_round(
+                position,
+                match_file.max_think_time,
+                match_file.force_max_think_time,
+                black_engine,
+                white_engine,
+                i
+            ))
 
         for i, position in enumerate(match_file.positions):
-            rematch_results.append(_run_round(position, match_file.max_think_time, white_engine, black_engine, i, True))
+            rematch_results.append(_run_round(
+                position,
+                match_file.max_think_time,
+                match_file.force_max_think_time,
+                white_engine,
+                black_engine,
+                i,
+                True
+            ))
 
         engine_control.finalize_engine(black_engine, engine_control.Color.Black)
         engine_control.finalize_engine(white_engine, engine_control.Color.White)
@@ -144,7 +168,15 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     )
 
 
-def _run_round(position: str, max_think_time: float, black_engine: checkers_engine.CheckersEngine, white_engine: checkers_engine.CheckersEngine, index: int, rematch: bool = False) -> data.RoundResult:
+def _run_round(
+    position: str,
+    max_think_time: float,
+    force_max_think_time: bool,
+    black_engine: checkers_engine.CheckersEngine,
+    white_engine: checkers_engine.CheckersEngine,
+    index: int,
+    rematch: bool = False
+) -> data.RoundResult:
     local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
 
@@ -171,7 +203,15 @@ def _run_round(position: str, max_think_time: float, black_engine: checkers_engi
 
     while True:
         try:
-            move, game_over = engine_control.play_engine_move(max_think_time, current_player, next_player, local_board, current_color, next_color)
+            move, game_over = engine_control.play_engine_move(
+                max_think_time,
+                force_max_think_time,
+                current_player,
+                next_player,
+                local_board,
+                current_color,
+                next_color
+            )
         except error.ComparatorError:
             print_status(f"\nPlayed these moves {played_moves} on this position {position}", 4)
             raise
