@@ -13,6 +13,46 @@
 // https://web.archive.org/web/20071031100051/http://www.brucemo.com/compchess/programming/hashing.htm
 // https://www.chessprogramming.org/Node_Types
 
+// namespace transposition_table {
+//     struct Position {
+//         game::Board board {};
+//         game::Player player {};
+
+//         bool operator==(const Position& other) const noexcept {
+//             return board == other.board && player == other.player;
+//         }
+//     };
+// }
+
+// template<>
+// struct std::hash<transposition_table::Position> {
+//     template<typename T>
+//     static void hash_combine(std::size_t& seed, const T& value) noexcept {
+//         seed ^= std::hash<T>()(value) + 0x9E3779B9u + (seed << 6) + (seed >> 2);
+//     }
+
+//     std::size_t operator()(const transposition_table::Position& position) const noexcept {
+//         std::uint64_t value0 {0};
+//         std::uint64_t value1 {0};
+
+//         for (int i {0}; i < 16; i++) {
+//             value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
+//         }
+
+//         for (int i {16}; i < 32; i++) {
+//             value1 |= static_cast<std::uint64_t>(position.board[i]) << ((i - 16) * 3);
+//         }
+
+//         value1 |= static_cast<std::uint64_t>(position.player) << 46;
+
+//         std::size_t result {0};
+//         hash_combine(result, value0);
+//         hash_combine(result, value1);
+
+//         return result;
+//     }
+// };
+
 namespace transposition_table {
     struct Position {
         game::Board board {};
@@ -22,38 +62,7 @@ namespace transposition_table {
             return board == other.board && player == other.player;
         }
     };
-}
 
-template<>
-struct std::hash<transposition_table::Position> {
-    template<typename T>
-    static void hash_combine(std::size_t& seed, const T& value) noexcept {
-        seed ^= std::hash<T>()(value) + 0x9E3779B9u + (seed << 6) + (seed >> 2);
-    }
-
-    std::size_t operator()(const transposition_table::Position& position) const noexcept {
-        std::uint64_t value0 {0};
-        std::uint64_t value1 {0};
-
-        for (int i {0}; i < 16; i++) {
-            value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
-        }
-
-        for (int i {16}; i < 32; i++) {
-            value1 |= static_cast<std::uint64_t>(position.board[i]) << ((i - 16) * 3);
-        }
-
-        value1 |= static_cast<std::uint64_t>(position.player) << 46;
-
-        std::size_t result {0};
-        hash_combine(result, value0);
-        hash_combine(result, value1);
-
-        return result;
-    }
-};
-
-namespace transposition_table {
     enum class NodeType {
         Pv,
         Cut,
