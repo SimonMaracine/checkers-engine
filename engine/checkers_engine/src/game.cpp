@@ -246,7 +246,7 @@ namespace game {
         }
     }
 
-    void set_position(Position& position, const std::string& fen_string) {
+    void set_position(GamePosition& position, const std::string& fen_string) {
         if (!valid_fen_string(fen_string)) {
             throw error::InvalidCommand();
         }
@@ -258,7 +258,7 @@ namespace game {
         position.plies_without_advancement = 0;
     }
 
-    void play_move(Position& position, const std::string& move_string) {
+    void play_move(GamePosition& position, const std::string& move_string) {
         if (!valid_move_string(move_string)) {
             throw error::InvalidCommand();
         }
@@ -268,7 +268,7 @@ namespace game {
         play_move(position, move);
     }
 
-    void play_move(Position& position, Move move) noexcept {
+    void play_move(GamePosition& position, Move move) noexcept {
         switch (move.type()) {
             case MoveType::Normal:
                 assert(position.board[move.source_index()] != Square::None);

@@ -30,6 +30,11 @@ namespace game {
     struct Position {
         Board board {};
         Player player {Player::Black};  // Next player to move
+    };
+
+    struct GamePosition {
+        Board board {};
+        Player player {Player::Black};  // Next player to move
         int plies_without_advancement {0};
     };
 
@@ -140,8 +145,8 @@ namespace game {
     }
 
     Move parse_move_string(const std::string& move_string);
-    void set_position(Position& position, const std::string& fen_string);
-    void play_move(Position& position, const std::string& move_string);
-    void play_move(Position& position, Move move) noexcept;
+    void set_position(GamePosition& position, const std::string& fen_string);
+    void play_move(GamePosition& position, const std::string& move_string);
+    void play_move(GamePosition& position, Move move) noexcept;
     void play_move(search::SearchNode& node, Move move) noexcept;
 }

@@ -28,6 +28,8 @@ add_library(checkers-engine-core STATIC
     "src/transposition_table.cpp"
     "src/transposition_table.hpp"
     "src/utils.hpp"
+    "src/zobrist.cpp"
+    "src/zobrist.hpp"
 )
 
 target_include_directories(checkers-engine-core PUBLIC "src")

@@ -146,7 +146,7 @@ namespace messages {
         std::cout << "NAME " << "checkers|12.0" << std::endl;
     }
 
-    void board(const game::Position& position) {
+    void board(const game::GamePosition& position) {
         std::lock_guard<std::mutex> lock {g_mutex};
 
         int pc {0};

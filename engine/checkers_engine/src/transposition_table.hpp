@@ -1,67 +1,22 @@
 #pragma once
 
-#include <unordered_map>
 #include <cstdint>
 #include <cstddef>
 #include <utility>
 
 #include "game.hpp"
 #include "evaluation.hpp"
+#include "zobrist.hpp"
 
-// https://www.boost.org/doc/libs/1_86_0/libs/container_hash/doc/html/hash.html
-// https://en.cppreference.com/w/cpp/container/unordered_map
-// https://web.archive.org/web/20071031100051/http://www.brucemo.com/compchess/programming/hashing.htm
 // https://www.chessprogramming.org/Node_Types
-
-// namespace transposition_table {
-//     struct Position {
-//         game::Board board {};
-//         game::Player player {};
-
-//         bool operator==(const Position& other) const noexcept {
-//             return board == other.board && player == other.player;
-//         }
-//     };
-// }
-
-// template<>
-// struct std::hash<transposition_table::Position> {
-//     template<typename T>
-//     static void hash_combine(std::size_t& seed, const T& value) noexcept {
-//         seed ^= std::hash<T>()(value) + 0x9E3779B9u + (seed << 6) + (seed >> 2);
-//     }
-
-//     std::size_t operator()(const transposition_table::Position& position) const noexcept {
-//         std::uint64_t value0 {0};
-//         std::uint64_t value1 {0};
-
-//         for (int i {0}; i < 16; i++) {
-//             value0 |= static_cast<std::uint64_t>(position.board[i]) << (i * 3);
-//         }
-
-//         for (int i {16}; i < 32; i++) {
-//             value1 |= static_cast<std::uint64_t>(position.board[i]) << ((i - 16) * 3);
-//         }
-
-//         value1 |= static_cast<std::uint64_t>(position.player) << 46;
-
-//         std::size_t result {0};
-//         hash_combine(result, value0);
-//         hash_combine(result, value1);
-
-//         return result;
-//     }
-// };
+// https://stackoverflow.com/questions/18439520/is-there-a-128-bit-integer-in-c
+// https://web.archive.org/web/20071031100138/http://www.brucemo.com/compchess/programming/zobrist.htm
+// https://www.chessprogramming.org/Zobrist_Hashing
+// https://www.chessprogramming.org/Transposition_Table#KeyCollisions
 
 namespace transposition_table {
-    struct Position {
-        game::Board board {};
-        game::Player player {};
-
-        bool operator==(const Position& other) const noexcept {
-            return board == other.board && player == other.player;
-        }
-    };
+    using Signature = __uint128_t;
+    using KeyType = std::uint64_t;
 
     enum class NodeType {
         Pv,
@@ -70,31 +25,50 @@ namespace transposition_table {
     };
 
     struct TableEntry {
-        int depth {};
+        // These two are important to be initialized to 0
+        Signature signature {0};
+        int depth {0};
+
         NodeType node_type {};
         evaluation::Eval eval {};
         game::Move move {};
     };
 
-    class TranspositionTable {  // TODO noexcept
+    using TableEntryResult = std::pair<evaluation::Eval, game::Move>;
+
+    class TranspositionTable {
     public:
-        void store(
-            const Position& position,
-            int depth,
-            NodeType node_type,
-            evaluation::Eval eval,
-            game::Move move
-        );
+        TranspositionTable() noexcept = default;
+        ~TranspositionTable() noexcept;
 
-        std::pair<evaluation::Eval, game::Move> retrieve(
-            const Position& position,
-            int depth,
-            evaluation::Eval alpha,
-            evaluation::Eval beta
-        ) const;
+        TranspositionTable(const TranspositionTable&) = delete;
+        TranspositionTable& operator=(const TranspositionTable&) = delete;
+        TranspositionTable(TranspositionTable&&) = delete;
+        TranspositionTable& operator=(TranspositionTable&&) = delete;
 
+        void allocate(std::size_t size_bytes);
+        void store(const game::Position& position, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept;
+        TableEntryResult retrieve(const game::Position& position, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
         void clear() noexcept;
     private:
-        std::unordered_map<Position, TableEntry> m_table;
+        static constexpr Signature signature(const game::Position& position) noexcept {
+            Signature result {0};
+
+            for (int i {0}; i < 32; i++) {
+                result |= static_cast<Signature>(position.board[i]) << (i * 3);
+            }
+
+            result |= static_cast<Signature>(position.player) << 96;
+
+            return result;
+        }
+
+        TableEntry* m_entries {nullptr};
+        std::size_t m_size {0};
+        zobrist::Zobrist m_zobrist;
     };
+
+    constexpr std::size_t mib_to_bytes(std::size_t mib) noexcept {
+        return mib * 1024 * 1024;
+    }
 }

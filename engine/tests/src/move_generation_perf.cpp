@@ -7,7 +7,7 @@
 #include <moves.hpp>
 #include <game.hpp>
 
-static void generate_moves(int depth, const game::Position& position) {
+static void generate_moves(int depth, const game::GamePosition& position) {
     if (depth == 0) {
         return;
     }
@@ -15,7 +15,7 @@ static void generate_moves(int depth, const game::Position& position) {
     const auto moves {moves::generate_moves(position.board, position.player)};
 
     for (const game::Move move : moves) {
-        game::Position new_position {position};
+        game::GamePosition new_position {position};
         game::play_move(new_position, move);
 
         generate_moves(depth - 1, new_position);
@@ -23,7 +23,7 @@ static void generate_moves(int depth, const game::Position& position) {
 }
 
 static double test_moves_from_position(int depth, const char* fen_string) {
-    game::Position position;
+    game::GamePosition position;
     game::set_position(position, fen_string);
 
     const auto begin {std::chrono::high_resolution_clock::now()};

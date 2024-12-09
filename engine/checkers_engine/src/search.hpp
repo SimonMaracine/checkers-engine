@@ -17,8 +17,8 @@ namespace search {
         Search(transposition_table::TranspositionTable& transposition_table, const parameters::Parameters& parameters);
 
         game::Move search(
-            const game::Position& position,
-            const std::vector<game::Position>& previous_positions,
+            const game::GamePosition& position,
+            const std::vector<game::GamePosition>& previous_positions,
             const std::vector<game::Move>& moves_played,
             int max_depth,
             double max_time
@@ -29,7 +29,7 @@ namespace search {
         using TimePoint = decltype(std::chrono::steady_clock::now());
 
         // Return positive if the side to move is doing better and negative if the opposite side is doing better
-        evaluation::Eval alpha_beta(  // TODO noexcept
+        evaluation::Eval alpha_beta(
             int depth,
             int plies_root,
             evaluation::Eval alpha,
@@ -37,11 +37,11 @@ namespace search {
             const SearchNode& current_node,
             PvLine& p_line,
             const PvLine& pv_in
-        );
+        ) noexcept;
 
         const SearchNode& setup_nodes(
-            const game::Position& position,
-            const std::vector<game::Position>& previous_positions,
+            const game::GamePosition& position,
+            const std::vector<game::GamePosition>& previous_positions,
             const std::vector<game::Move>& moves_played
         );
 

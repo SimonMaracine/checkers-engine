@@ -5,7 +5,7 @@
 #include <moves.hpp>
 #include <game.hpp>
 
-static std::uint64_t count_moves(int depth, const game::Position& position) {
+static std::uint64_t count_moves(int depth, const game::GamePosition& position) {
     std::uint64_t total_moves {0};
 
     if (depth == 0) {
@@ -15,7 +15,7 @@ static std::uint64_t count_moves(int depth, const game::Position& position) {
     const auto moves {moves::generate_moves(position.board, position.player)};
 
     for (const game::Move move : moves) {
-        game::Position new_position {position};
+        game::GamePosition new_position {position};
         game::play_move(new_position, move);
 
         total_moves += count_moves(depth - 1, new_position);
@@ -25,7 +25,7 @@ static std::uint64_t count_moves(int depth, const game::Position& position) {
 }
 
 static std::uint64_t test_moves_from_position(int depth, const char* fen_string) {
-    game::Position position;
+    game::GamePosition position;
     game::set_position(position, fen_string);
 
     return count_moves(depth, position);

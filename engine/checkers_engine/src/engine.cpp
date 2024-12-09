@@ -93,6 +93,9 @@ namespace engine {
 
         // Parameters must have default values at this stage
         initialize_parameters();
+
+        // TT is empty by default
+        m_transposition_table.allocate(transposition_table::mib_to_bytes(512));
     }
 
     void Engine::newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {

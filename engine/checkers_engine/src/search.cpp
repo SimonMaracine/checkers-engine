@@ -22,8 +22,8 @@ namespace search {
     }
 
     game::Move Search::search(
-        const game::Position& position,
-        const std::vector<game::Position>& previous_positions,
+        const game::GamePosition& position,
+        const std::vector<game::GamePosition>& previous_positions,
         const std::vector<game::Move>& moves_played,
         int max_depth,
         double max_time
@@ -91,7 +91,7 @@ namespace search {
         const SearchNode& current_node,
         PvLine& p_line,
         const PvLine& pv_in
-    ) {
+    ) noexcept {
         if (depth % 4 == 0) {
             // Check the time every now and then
             check_max_time(std::chrono::steady_clock::now());
@@ -212,14 +212,14 @@ namespace search {
     }
 
     const SearchNode& Search::setup_nodes(
-        const game::Position& position,
-        const std::vector<game::Position>& previous_positions,
+        const game::GamePosition& position,
+        const std::vector<game::GamePosition>& previous_positions,
         const std::vector<game::Move>& moves_played
     ) {
         assert(previous_positions.size() == moves_played.size());
 
         for (std::size_t i {0}; i < previous_positions.size(); i++) {
-            const game::Position& previous_position {previous_positions.at(i)};
+            const game::GamePosition& previous_position {previous_positions.at(i)};
             const game::Move move_played {moves_played.at(i)};
 
             if (game::is_move_advancement(previous_position.board, move_played)) {

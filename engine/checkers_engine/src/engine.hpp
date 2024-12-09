@@ -54,10 +54,10 @@ namespace engine {
         bool m_instance_ready {false};
 
         // Internal position (current)
-        game::Position m_position;
+        game::GamePosition m_position;
 
         // position0, position1, position2, ..., positionN (most recent)
-        std::vector<game::Position> m_previous_positions;
+        std::vector<game::GamePosition> m_previous_positions;
 
         // move0, move1, move2, ..., moveN (most recent)
         std::vector<game::Move> m_moves_played;
