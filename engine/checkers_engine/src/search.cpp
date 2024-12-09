@@ -92,7 +92,7 @@ namespace search {
         PvLine& p_line,
         const PvLine& pv_in
     ) noexcept {
-        if (depth % 4 == 0) {
+        if (depth % 5 == 0) {
             // Check the time every now and then
             check_max_time(std::chrono::steady_clock::now());
         }
