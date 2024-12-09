@@ -11,8 +11,8 @@ A message can contain arbitrary whitespace around tokens.
 If a received command is invalid in any way, it should be ignored completely by the engine. Exception:
 move and position strings may not be validated.
 
-Messages can consist of any number of tokens, but they are limited to at most 65536 characters. Both the GUI and the
-engine should account for messages of any size up to the previous limit.
+Messages can consist of any number of tokens, but they are limited to at most 65536 characters. Both the GUI
+and the engine should account for messages of any size up to the previous limit.
 
 Positions and moves are encoded as FEN strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
@@ -42,15 +42,20 @@ Tells the engine to play the move on the internal board.
 
 It is GUI's responsability to send valid moves. The engine is not obligated to do error checking.
 
-### GO [dontplaymove]
+### GO [maxdepth `depth`] [maxtime `time`] [dontplaymove]
 
-Tells the engine to think, play and return the best move of its current internal position. It should optionally not
-play the resulted move on its internal board, if the second token is equal to the string *dontplaymove*.
+Tells the engine to think, play and return the best move of its current internal position.
+
+It should optionally not play the resulted move on its internal board, if there is a token equal to the
+string *dontplaymove*. *maxdepth* and *maxtime* are optional constraints to the search. *maxtime* is
+a 32-bit floating point number representing seconds. By default, the search is unconstrained.
 
 The GUI is not permitted to send the **GO** command while the engine is still thinking. It can only send another
 **GO** command after it received a **BESTMOVE** message from engine.
 
 The engine must not return from processing the **GO** command until it has a valid best move result.
+
+**GO**'s arguments are named, not positional.
 
 ### STOP
 
@@ -119,7 +124,7 @@ The list may be empty, if the engine has no parameters.
 
 Responds with the name, type and value of the requested parameter after a **GETPARAMETER** command.
 
-### INFO [nodes `value`] [transpositions `value`] [depth `value`] eval `value` time `value` pv `move1` `move2` ...
+### INFO [nodes `value`] [transpositions `value`] [depth `value`] eval `value` time `value` (pv `move 1` `move 2` ...)
 
 Informs the GUI about its progress in calculating the best move. Can be sent at any time between the **GO**
 command and the **BESTMOVE** response.
@@ -134,7 +139,7 @@ It is optional.
 *eval* represents how much advantage does the current player have. It is an implementation defined signed integer.
 
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
-started.
+started or since the last **INFO** message.
 
 *pv* represents the principle variation of the search up until at that particular point.
 
