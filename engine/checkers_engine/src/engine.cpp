@@ -1,7 +1,7 @@
 #include "engine.hpp"
 
 #include <utility>
-#include <stdexcept>
+#include <limits>
 #include <cassert>
 
 #include "moves.hpp"
@@ -27,6 +27,16 @@ namespace engine {
     static float parse_float(const std::string& string) {
         try {
             return std::stof(string);
+        } catch (const std::invalid_argument&) {
+            throw error::InvalidCommand();
+        } catch (const std::out_of_range&) {
+            throw error::InvalidCommand();
+        }
+    }
+
+    static double parse_double(const std::string& string) {
+        try {
+            return std::stod(string);
         } catch (const std::invalid_argument&) {
             throw error::InvalidCommand();
         } catch (const std::out_of_range&) {
@@ -63,7 +73,7 @@ namespace engine {
                 // Search returns a valid result or nothing, if the game is over
                 const game::Move best_move {search_move()};
 
-                if (!m_dont_play_move && best_move != game::NULL_MOVE) {
+                if (!m_search_options.dont_play_move && best_move != game::NULL_MOVE) {
                     m_previous_positions.push_back(m_position);
                     m_moves_played.push_back(best_move);
 
@@ -134,15 +144,17 @@ namespace engine {
         }
     }
 
-    void Engine::go(bool dont_play_move) {
+    void Engine::go(const std::optional<std::string>& max_depth, const std::optional<std::string>& max_time, bool dont_play_move) {
         ignore_invalid_command_on_init();
 
         if (m_search) {
             throw error::InvalidCommand();
         }
 
-        // Set if the resulted move should be played or not
-        m_dont_play_move = dont_play_move;
+        // Set the options before every search
+        m_search_options.max_depth = max_depth ? parse_int(*max_depth) : search::MAX_DEPTH;
+        m_search_options.max_time = max_time ? parse_double(*max_time) : std::numeric_limits<double>::max();
+        m_search_options.dont_play_move = dont_play_move;
 
         // Set the search flag; it's a signal for the cv
         {
@@ -267,7 +279,8 @@ namespace engine {
             m_position,
             m_previous_positions,
             m_moves_played,
-            std::get<0>(m_parameters.at("max_depth"))
+            m_search_options.max_depth,
+            m_search_options.max_time
         )};
 
         // Must reset this back to null here after the search, because it will soon be invalidated
@@ -288,7 +301,6 @@ namespace engine {
         m_parameters["positioning_pawn"] = 1;
         m_parameters["positioning_king"] = 3;
         m_parameters["crowdness"] = 1;
-        m_parameters["max_depth"] = 15;
     }
 
     void Engine::ignore_invalid_command_on_init(bool after_init) const {

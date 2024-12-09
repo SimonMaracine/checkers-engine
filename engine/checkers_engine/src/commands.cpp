@@ -1,13 +1,23 @@
 #include "commands.hpp"
 
 #include <optional>
+#include <algorithm>
+#include <iterator>
 #include <cstddef>
 
 #include "error.hpp"
 
 namespace commands {
-    static bool token_available(const std::vector<std::string>& tokens, std::size_t index) {
+    static bool token_available(const std::vector<std::string>& tokens, std::size_t index) noexcept {
         return index < tokens.size();
+    }
+
+    static std::vector<std::string>::const_iterator token_available(const std::vector<std::string>& tokens, const std::string& token) noexcept {
+        return std::find(tokens.cbegin(), tokens.cend(), token);
+    }
+
+    static std::vector<std::string>::const_iterator next_token(std::vector<std::string>::const_iterator iter) noexcept {
+        return std::next(iter);
     }
 
     static std::optional<std::vector<std::string>> parse_setup_moves(const std::vector<std::string>& tokens) {
@@ -49,13 +59,31 @@ namespace commands {
     }
 
     void go(engine::Engine& engine, const std::vector<std::string>& tokens) {
-        if (token_available(tokens, 1)) {
-            if (tokens.at(1) == "dontplaymove") {
-                engine.go(true);
+        std::optional<std::string> max_depth;
+        std::optional<std::string> max_time;
+        bool dont_play_move {false};
+
+        if (const auto iter {token_available(tokens, "maxdepth")}; iter != tokens.cend()) {
+            if (const auto next_iter {next_token(iter)}; next_iter != tokens.cend()) {
+                max_depth = *next_iter;
+            } else {
+                throw error::InvalidCommand();
             }
-        } else {
-            engine.go(false);
         }
+
+        if (const auto iter {token_available(tokens, "maxtime")}; iter != tokens.cend()) {
+            if (const auto next_iter {next_token(iter)}; next_iter != tokens.cend()) {
+                max_time = *next_iter;
+            } else {
+                throw error::InvalidCommand();
+            }
+        }
+
+        if (const auto iter {token_available(tokens, "dontplaymove")}; iter != tokens.cend()) {
+            dont_play_move = true;
+        }
+
+        engine.go(max_depth, max_time, dont_play_move);
     }
 
     void stop(engine::Engine& engine, const std::vector<std::string>&) {

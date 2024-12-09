@@ -19,7 +19,7 @@ namespace engine {
         void init();
         void newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves);
         void move(const std::string& move);
-        void go(bool dont_play_move);
+        void go(const std::optional<std::string>& max_depth, const std::optional<std::string>& max_time, bool dont_play_move);
         void stop();
         void getparameters() const;
         void getparameter(const std::string& name) const;
@@ -44,9 +44,6 @@ namespace engine {
         parameters::Parameters m_parameters;
         transposition_table::TranspositionTable m_transposition_table;
 
-        // Setup at every instance invocation
-        bool* m_should_stop {nullptr};
-
         // Thread flag; set to true on initialization
         bool m_running {false};
 
@@ -56,9 +53,6 @@ namespace engine {
         // Thread flag; set to true when m_should_stop is set
         bool m_instance_ready {false};
 
-        // Flag used after a search is complete; must be reset every time
-        bool m_dont_play_move {};
-
         // Internal position (current)
         game::Position m_position;
 
@@ -67,5 +61,15 @@ namespace engine {
 
         // move0, move1, move2, ..., moveN (most recent)
         std::vector<game::Move> m_moves_played;
+
+        // Setup at every instance invocation
+        bool* m_should_stop {nullptr};
+
+        // Variables used by the search, must be reset every time before the search
+        struct SearchOptions {
+            bool dont_play_move {};
+            int max_depth {};
+            double max_time {};
+        } m_search_options;
     };
 }

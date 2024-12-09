@@ -1,6 +1,5 @@
 #include "search.hpp"
 
-#include <chrono>
 #include <algorithm>
 #include <utility>
 #include <cstring>
@@ -26,13 +25,17 @@ namespace search {
         const game::Position& position,
         const std::vector<game::Position>& previous_positions,
         const std::vector<game::Move>& moves_played,
-        int max_depth
+        int max_depth,
+        double max_time
     ) {
         m_transposition_table.clear();
 
         const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
         PvLine last_pv_line;
+
+        m_max_time = max_time;
+        m_begin_search = std::chrono::steady_clock::now();
 
         for (int i {1}; i <= std::min(max_depth, MAX_DEPTH); i++) {
             PvLine line;
@@ -44,7 +47,8 @@ namespace search {
             };
 
             const auto end {std::chrono::steady_clock::now()};
-            const double time {std::chrono::duration<double>(end - begin).count()};
+
+            check_max_time(end);
 
             if (m_should_stop & m_can_stop) {
                 // Exit immediately; discard the PV, as it's probably broken
@@ -58,7 +62,7 @@ namespace search {
                 m_transpositions,
                 i,
                 evaluation * perspective(current_node),
-                time,
+                std::chrono::duration<double>(end - begin).count(),
                 line.moves,
                 line.size
             );
@@ -88,6 +92,11 @@ namespace search {
         PvLine& p_line,
         const PvLine& pv_in
     ) {
+        if (depth % 4 == 0) {
+            // Check the time every now and then
+            check_max_time(std::chrono::steady_clock::now());
+        }
+
         if (m_should_stop & m_can_stop) {
             // Discard this search; this should only happen for iterations 2 onwards
             return 0;
@@ -252,7 +261,7 @@ namespace search {
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) noexcept {
+    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) const noexcept {
         if (plies_root >= pv_in.size || m_reached_left_most_path) {
             return;
         }
@@ -268,5 +277,11 @@ namespace search {
         m_reached_left_most_path = false;
         m_nodes_evaluated = 0;
         m_transpositions = 0;
+    }
+
+    void Search::check_max_time(TimePoint time_point) noexcept {
+        if (std::chrono::duration<double>(time_point - m_begin_search).count() > m_max_time) {
+            m_should_stop = true;
+        }
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <chrono>
 
 #include "game.hpp"
 #include "search_node.hpp"
@@ -19,11 +20,14 @@ namespace search {
             const game::Position& position,
             const std::vector<game::Position>& previous_positions,
             const std::vector<game::Move>& moves_played,
-            int max_depth
+            int max_depth,
+            double max_time
         );
 
         bool* get_should_stop() noexcept { return &m_should_stop; }
     private:
+        using TimePoint = decltype(std::chrono::steady_clock::now());
+
         // Return positive if the side to move is doing better and negative if the opposite side is doing better
         evaluation::Eval alpha_beta(  // TODO noexcept
             int depth,
@@ -42,9 +46,10 @@ namespace search {
         );
 
         void setup_parameters(const parameters::Parameters& parameters);
-        void fill_pv(PvLine& p_line, const PvLine& line, game::Move move) noexcept;
-        void reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) noexcept;
+        static void fill_pv(PvLine& p_line, const PvLine& line, game::Move move) noexcept;
+        void reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) const noexcept;
         void reset_after_search_iteration() noexcept;
+        void check_max_time(TimePoint time_point) noexcept;
 
         bool m_should_stop {false};
         bool m_can_stop {false};
@@ -59,5 +64,9 @@ namespace search {
         array::Array<SearchNode, 81> m_nodes;
 
         transposition_table::TranspositionTable& m_transposition_table;
+
+        // Used to check for max time
+        double m_max_time {};
+        TimePoint m_begin_search {};
     };
 }
