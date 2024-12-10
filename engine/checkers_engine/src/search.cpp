@@ -30,15 +30,15 @@ namespace search {
     ) {
         m_transposition_table.clear();
 
-        const SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
+        const game::SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
-        PvLine last_pv_line;
+        game::PvLine last_pv_line;
 
         m_max_time = max_time;
         m_begin_search = std::chrono::steady_clock::now();
 
-        for (int i {1}; i <= std::min(max_depth, MAX_DEPTH); i++) {
-            PvLine line;
+        for (int i {1}; i <= std::min(max_depth, game::MAX_DEPTH); i++) {
+            game::PvLine line;
 
             const auto begin {std::chrono::steady_clock::now()};
 
@@ -88,9 +88,9 @@ namespace search {
         int plies_root,
         evaluation::Eval alpha,
         evaluation::Eval beta,
-        const SearchNode& current_node,
-        PvLine& p_line,
-        const PvLine& pv_in
+        const game::SearchNode& current_node,
+        game::PvLine& p_line,
+        const game::PvLine& pv_in
     ) noexcept {
         if (depth % 5 == 0) {
             // Check the time every now and then
@@ -114,13 +114,13 @@ namespace search {
 
         // Then check for tie
 
-        if (is_forty_move_rule(current_node)) {  // Game over
+        if (game::is_forty_move_rule(current_node)) {  // Game over
             p_line.size = 0;
             m_nodes_evaluated++;
             return 0;
         }
 
-        if (is_threefold_repetition_rule(current_node)) {  // Game over
+        if (game::is_threefold_repetition_rule(current_node)) {  // Game over
             p_line.size = 0;
             m_nodes_evaluated++;
             return 0;
@@ -132,7 +132,7 @@ namespace search {
         if (depth <= 0 && !game::is_move_capture(moves[0])) {
             p_line.size = 0;
             m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters) * search::perspective(current_node);
+            return evaluation::static_evaluation(current_node, m_parameters) * game::perspective(current_node);
         }
 
         // We didn't insert game over evaluations into the TT, as it may cause problems
@@ -140,7 +140,7 @@ namespace search {
         // Don't check the TT at the root of the search
         if (plies_root > 0) {
             const auto [evaluation, move] {
-                m_transposition_table.retrieve({ current_node.board, current_node.player }, depth, alpha, beta)  // TODO use the move
+                m_transposition_table.load(current_node.key, current_node.signature, depth, alpha, beta)  // TODO use the move
             };
 
             if (evaluation != evaluation::INVALID) {
@@ -158,13 +158,13 @@ namespace search {
 
         // TODO use the hash move from TT, if available, to reorder the moves
 
-        PvLine line;
+        game::PvLine line;
         auto node_type {transposition_table::NodeType::All};
         game::Move best_move {game::NULL_MOVE};
 
         for (const game::Move move : moves) {
-            SearchNode new_node;
-            fill_node(new_node, current_node);
+            game::SearchNode new_node;
+            game::fill_node(new_node, current_node);
 
             game::play_move(new_node, move);
 
@@ -185,7 +185,8 @@ namespace search {
             // If so, don't evaluate the rest of the moves, because the opponent will not let us get here
             if (evaluation >= beta) {
                 m_transposition_table.store(
-                    { current_node.board, current_node.player },
+                    current_node.key,
+                    current_node.signature,
                     depth,
                     transposition_table::NodeType::Cut,
                     beta,
@@ -206,12 +207,12 @@ namespace search {
             }
         }
 
-        m_transposition_table.store({ current_node.board, current_node.player }, depth, node_type, alpha, best_move);  // TODO invalid moves are regularly being inserted
+        m_transposition_table.store(current_node.key, current_node.signature, depth, node_type, alpha, best_move);  // TODO invalid moves are regularly being inserted
 
         return alpha;
     }
 
-    const SearchNode& Search::setup_nodes(
+    const game::SearchNode& Search::setup_nodes(
         const game::GamePosition& position,
         const std::vector<game::GamePosition>& previous_positions,
         const std::vector<game::Move>& moves_played
@@ -230,12 +231,21 @@ namespace search {
                     previous_position.board,
                     previous_position.player,
                     previous_position.plies_without_advancement,
+                    previous_position.key,
+                    previous_position.signature,
                     nullptr
                 });
             }
         }
 
-        m_nodes.push_back({position.board, position.player, position.plies_without_advancement, nullptr});
+        m_nodes.push_back({
+            position.board,
+            position.player,
+            position.plies_without_advancement,
+            position.key,
+            position.signature,
+            nullptr
+        });
 
         // Go backwards and link the nodes
         for (int i {m_nodes.size() - 1}; i > 0; i--) {
@@ -255,13 +265,13 @@ namespace search {
         m_parameters.crowdness = std::get<0>(parameters.at("crowdness"));
     }
 
-    void Search::fill_pv(PvLine& p_line, const PvLine& line, game::Move move) noexcept {
+    void Search::fill_pv(game::PvLine& p_line, const game::PvLine& line, game::Move move) noexcept {
         p_line.moves[0] = move;
         std::memcpy(p_line.moves + 1, line.moves, line.size * sizeof(move));
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) const noexcept {
+    void Search::reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv_in, int plies_root) const noexcept {
         if (plies_root >= pv_in.size || m_reached_left_most_path) {
             return;
         }

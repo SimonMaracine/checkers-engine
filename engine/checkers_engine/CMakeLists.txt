@@ -22,7 +22,6 @@ add_library(checkers-engine-core STATIC
     "src/moves.cpp"
     "src/moves.hpp"
     "src/parameters.hpp"
-    "src/search_node.hpp"
     "src/search.cpp"
     "src/search.hpp"
     "src/transposition_table.cpp"
@@ -42,6 +41,13 @@ endif()
 
 target_compile_definitions(checkers-engine-core PRIVATE "_CRT_SECURE_NO_WARNINGS")
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND UNIX AND USE_SANITIZERS)
+    target_compile_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer")
+    target_link_options(checkers-engine-core PUBLIC "-fsanitize=address" "-fsanitize=undefined")
+
+    message(STATUS "Building engine with sanitizers")
+endif()
+
 set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
 
 # Executable
@@ -54,13 +60,6 @@ set_compile_options_features(checkers-engine)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" AND UNIX)
     target_link_options(checkers-engine PRIVATE "-s")
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND UNIX AND USE_SANITIZERS)
-    target_compile_options(checkers-engine PUBLIC "-fsanitize=address" "-fsanitize=undefined" "-g" "-fno-omit-frame-pointer")
-    target_link_options(checkers-engine PUBLIC "-fsanitize=address" "-fsanitize=undefined")
-
-    message(STATUS "Building engine with sanitizers")
 endif()
 
 set_target_properties(checkers-engine PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)

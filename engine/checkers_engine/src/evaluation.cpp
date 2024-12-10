@@ -2,9 +2,6 @@
 
 #include <algorithm>
 
-#include "game.hpp"
-#include "search_node.hpp"
-
 namespace evaluation {
     template<Eval M>
     static constexpr auto positioning_king() noexcept {
@@ -56,7 +53,7 @@ namespace evaluation {
 
     // Bonus points are given for pieces that have neighbors of the same color
 
-    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) noexcept {
+    Eval static_evaluation(const game::SearchNode& node, const parameters::SearchParameters& parameters) noexcept {
         static constexpr Eval POSITIONING_PAWN_BLACK[] {
             8, 0, 8, 0,
             0, 1, 2, 1,

@@ -8,6 +8,7 @@
 #include "messages.hpp"
 #include "search.hpp"
 #include "error.hpp"
+#include "zobrist.hpp"
 
 // https://en.cppreference.com/w/cpp/thread/condition_variable
 
@@ -89,13 +90,17 @@ namespace engine {
             }
         });
 
-        reset_position(START_POSITION);
-
         // Parameters must have default values at this stage
         initialize_parameters();
 
+        // Zobrist hash is static
+        zobrist::instance.initialize();
+
         // TT is empty by default
         m_transposition_table.allocate(transposition_table::mib_to_bytes(512));
+
+        // Reset position only after zobriisth hashing is initialized
+        reset_position(START_POSITION);
     }
 
     void Engine::newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {
@@ -155,7 +160,7 @@ namespace engine {
         }
 
         // Set the options before every search
-        m_search_options.max_depth = max_depth ? parse_int(*max_depth) : search::MAX_DEPTH;
+        m_search_options.max_depth = max_depth ? parse_int(*max_depth) : game::MAX_DEPTH;
         m_search_options.max_time = max_time ? parse_double(*max_time) : std::numeric_limits<double>::max();
         m_search_options.dont_play_move = dont_play_move;
 

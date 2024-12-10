@@ -1,5 +1,7 @@
 #include "transposition_table.hpp"
 
+#include "zobrist.hpp"
+
 namespace transposition_table {
     TranspositionTable::~TranspositionTable() noexcept {
         delete[] m_entries;
@@ -13,23 +15,31 @@ namespace transposition_table {
     }
 
     void TranspositionTable::store(const game::Position& position, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept {
-        TableEntry& entry {m_entries[m_zobrist.hash(position) % m_size]};
+        store(zobrist::instance.hash(position), game::signature(position), depth, node_type, eval, move);
+    }
+
+    void TranspositionTable::store(Key key, Signature signature, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept {
+        TableEntry& entry {m_entries[key % m_size]};
 
         // Scheme "replace if same depth or deeper"
 
         if (entry.depth <= depth) {
-            entry.signature = signature(position);
+            entry.signature = signature;
+            entry.move = move;
             entry.depth = depth;
             entry.node_type = node_type;
             entry.eval = eval;
-            entry.move = move;
         }
     }
 
-    TableEntryResult TranspositionTable::retrieve(const game::Position& position, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept {
-        const TableEntry& entry {m_entries[m_zobrist.hash(position) % m_size]};
+    TableEntryResult TranspositionTable::load(const game::Position& position, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept {
+        return load(zobrist::instance.hash(position), game::signature(position), depth, alpha, beta);
+    }
 
-        if (entry.signature != signature(position)) {
+    TableEntryResult TranspositionTable::load(Key key, Signature signature, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept {
+        const TableEntry& entry {m_entries[key % m_size]};
+
+        if (entry.signature != signature) {
             return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
         }
 

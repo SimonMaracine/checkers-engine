@@ -4,7 +4,6 @@
 #include <chrono>
 
 #include "game.hpp"
-#include "search_node.hpp"
 #include "evaluation.hpp"
 #include "parameters.hpp"
 #include "transposition_table.hpp"
@@ -34,20 +33,20 @@ namespace search {
             int plies_root,
             evaluation::Eval alpha,
             evaluation::Eval beta,
-            const SearchNode& current_node,
-            PvLine& p_line,
-            const PvLine& pv_in
+            const game::SearchNode& current_node,
+            game::PvLine& p_line,
+            const game::PvLine& pv_in
         ) noexcept;
 
-        const SearchNode& setup_nodes(
+        const game::SearchNode& setup_nodes(
             const game::GamePosition& position,
             const std::vector<game::GamePosition>& previous_positions,
             const std::vector<game::Move>& moves_played
         );
 
         void setup_parameters(const parameters::Parameters& parameters);
-        static void fill_pv(PvLine& p_line, const PvLine& line, game::Move move) noexcept;
-        void reorder_moves_pv(moves::Moves& moves, const PvLine& pv_in, int plies_root) const noexcept;
+        static void fill_pv(game::PvLine& p_line, const game::PvLine& line, game::Move move) noexcept;
+        void reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv_in, int plies_root) const noexcept;
         void reset_after_search_iteration() noexcept;
         void check_max_time(TimePoint time_point) noexcept;
 
@@ -61,7 +60,7 @@ namespace search {
 
         // The current and previous positions (for threefold repetition)
         // node0, node1, node2, ..., nodeN (current)
-        array::Array<SearchNode, 81> m_nodes;
+        array::Array<game::SearchNode, 81> m_nodes;
 
         transposition_table::TranspositionTable& m_transposition_table;
 

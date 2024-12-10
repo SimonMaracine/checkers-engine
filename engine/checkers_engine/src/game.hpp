@@ -5,10 +5,6 @@
 #include <type_traits>
 #include <cstdint>
 
-namespace search {
-    struct SearchNode;
-}
-
 namespace game {
     inline constexpr int NULL_INDEX {-1};  // Indices may be in the range [0, 31] or [1, 32]
 
@@ -32,10 +28,17 @@ namespace game {
         Player player {Player::Black};  // Next player to move
     };
 
-    struct GamePosition {
-        Board board {};
-        Player player {Player::Black};  // Next player to move
+    using PositionKey = std::uint64_t;  // Zobrist hash (not unique)
+    using PositionSignature = __uint128_t;  // Truly unique position number
+
+    struct GamePosition : Position {
         int plies_without_advancement {0};
+        PositionKey key {0};
+        PositionSignature signature {0};
+    };
+
+    struct SearchNode : GamePosition {
+        const SearchNode* previous {nullptr};
     };
 
     enum class MoveType : int {
@@ -93,10 +96,51 @@ namespace game {
             return value != other.value;
         }
 
-        std::uint64_t value {};
+        std::uint64_t value {0};
     };
 
     inline constexpr Move NULL_MOVE {};
+    inline constexpr int MAX_DEPTH {90};
+
+    struct PvLine {
+        Move moves[MAX_DEPTH];
+        int size {};
+    };
+
+    constexpr void fill_node(SearchNode& current, const SearchNode& previous) noexcept {
+        current.board = previous.board;
+        current.player = previous.player;
+        current.plies_without_advancement = previous.plies_without_advancement;
+        current.key = previous.key;
+        current.signature = previous.signature;
+        current.previous = &previous;
+    }
+
+    constexpr bool is_forty_move_rule(const SearchNode& node) noexcept {
+        return node.plies_without_advancement == 80;
+    }
+
+    constexpr bool is_threefold_repetition_rule(const SearchNode& node) noexcept {
+        const SearchNode* prev_node {node.previous};
+
+        int repetitions {1};
+
+        while (prev_node != nullptr) {
+            if (prev_node->signature == node.signature) {
+                if (++repetitions == 3) {
+                    return true;
+                }
+            }
+
+            prev_node = prev_node->previous;
+        }
+
+        return false;
+    }
+
+    constexpr int perspective(const SearchNode& node) noexcept {  // FIXME
+        return node.player == Player::Black ? -1 : 1;
+    }
 
     constexpr bool is_move_capture(Move move) noexcept {
         return move.type() == MoveType::Capture;
@@ -144,9 +188,33 @@ namespace game {
         }
     }
 
+    constexpr PositionSignature signature(const Position& position) noexcept {
+        PositionSignature result {0};
+
+        for (int i {0}; i < 32; i++) {
+            result |= static_cast<PositionSignature>(position.board[i]) << (i * 3);
+        }
+
+        result |= (static_cast<PositionSignature>(position.player) & static_cast<PositionSignature>(1u)) << 96;  // Use only the first bit
+
+        return result;
+    }
+
+    constexpr PositionSignature signature_mod(Square square, int index) noexcept {
+        return static_cast<PositionSignature>(square) << (index * 3);
+    }
+
+    constexpr PositionSignature signature_mod() noexcept {
+        return static_cast<PositionSignature>(1u) << 96;
+    }
+
+    constexpr PositionSignature signature_mod(int index) noexcept {
+        return ~(static_cast<PositionSignature>(0b111u) << (index * 3));
+    }
+
     Move parse_move_string(const std::string& move_string);
     void set_position(GamePosition& position, const std::string& fen_string);
     void play_move(GamePosition& position, const std::string& move_string);
     void play_move(GamePosition& position, Move move) noexcept;
-    void play_move(search::SearchNode& node, Move move) noexcept;
+    void play_move(SearchNode& node, Move move) noexcept;
 }

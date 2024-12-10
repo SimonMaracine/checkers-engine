@@ -8,8 +8,8 @@
 #include <cassert>
 
 #include "error.hpp"
-#include "search_node.hpp"
 #include "utils.hpp"
+#include "zobrist.hpp"
 
 namespace game {
     static std::vector<std::string> split(const std::string& string, const char* delimiter) {
@@ -172,12 +172,12 @@ namespace game {
         }
     }
 
-    static void remove_jumped_pieces(Board& board, Move move) noexcept {
+    static void remove_jumped_pieces(GamePosition& position, Move move) noexcept {
         assert(move.type() == MoveType::Capture);
 
         {
             assert(
-                board[move.destination_index()] == Square::None ||
+                position.board[move.destination_index()] == Square::None ||
                 move.source_index() == move.destination_index()
             );
 
@@ -186,14 +186,20 @@ namespace game {
                 _0_31_to_1_32(move.destination_index())
             )};
 
-            assert(board[_1_32_to_0_31(index)] != Square::None);
+            assert(position.board[_1_32_to_0_31(index)] != Square::None);
 
-            board[_1_32_to_0_31(index)] = Square::None;
+            const auto square {position.board[_1_32_to_0_31(index)]};
+
+            position.board[_1_32_to_0_31(index)] = Square::None;
+
+            position.key ^= zobrist::instance.hash_mod(square, _1_32_to_0_31(index));
+
+            position.signature &= signature_mod(_1_32_to_0_31(index));
         }
 
         for (int i {0}; i < move.destination_indices_size() - 1; i++) {
             assert(
-                board[move.destination_index(i + 1)] == Square::None ||
+                position.board[move.destination_index(i + 1)] == Square::None ||
                 move.source_index() == move.destination_index(i + 1)
             );
 
@@ -202,27 +208,77 @@ namespace game {
                 _0_31_to_1_32(move.destination_index(i + 1))
             )};
 
-            assert(board[_1_32_to_0_31(index)] != Square::None);
+            assert(position.board[_1_32_to_0_31(index)] != Square::None);
 
-            board[_1_32_to_0_31(index)] = Square::None;
+            const auto square {position.board[_1_32_to_0_31(index)]};
+
+            position.board[_1_32_to_0_31(index)] = Square::None;
+
+            position.key ^= zobrist::instance.hash_mod(square, _1_32_to_0_31(index));
+
+            position.signature &= signature_mod(_1_32_to_0_31(index));
         }
     }
 
-    static void check_piece_crowning(Board& board, int square_index, Player player) noexcept {
+    static void check_piece_crowning(GamePosition& position, int square_index) noexcept {
         const int row {square_index / 4};
 
-        switch (player) {
+        switch (position.player) {
             case Player::Black:
                 if (row == 7) {
-                    board[square_index] = Square::BlackKing;
+                    if (position.board[square_index] != Square::Black) {
+                        break;
+                    }
+
+                    position.board[square_index] = Square::BlackKing;
+
+                    position.key ^= zobrist::instance.hash_mod(Square::Black, square_index);
+                    position.key ^= zobrist::instance.hash_mod(Square::BlackKing, square_index);
+
+                    position.signature |= signature_mod(Square::BlackKing, square_index);
                 }
                 break;
             case Player::White:
                 if (row == 0) {
-                    board[square_index] = Square::WhiteKing;
+                    if (position.board[square_index] != Square::White) {
+                        break;
+                    }
+
+                    position.board[square_index] = Square::WhiteKing;
+
+                    position.key ^= zobrist::instance.hash_mod(Square::White, square_index);
+                    position.key ^= zobrist::instance.hash_mod(Square::WhiteKing, square_index);
+
+                    position.signature |= signature_mod(Square::WhiteKing, square_index);
                 }
                 break;
         }
+    }
+
+    static void play_normal_move(GamePosition& position, Move move) noexcept {
+        const auto square {position.board[move.source_index()]};
+
+        std::swap(position.board[move.source_index()], position.board[move.destination_index()]);
+
+        position.key ^= zobrist::instance.hash_mod(square, move.source_index());
+        position.key ^= zobrist::instance.hash_mod(square, move.destination_index());
+
+        position.signature &= signature_mod(move.source_index());
+        position.signature |= signature_mod(square, move.destination_index());
+    }
+
+    static void play_capture_move(GamePosition& position, Move move) noexcept {
+        remove_jumped_pieces(position, move);
+
+        const auto square {position.board[move.source_index()]};
+
+        std::swap(position.board[move.source_index()], position.board[move.destination_index(move.destination_indices_size() - 1)]);
+
+        position.key ^= zobrist::instance.hash_mod(square, move.source_index());
+        position.key ^= zobrist::instance.hash_mod(square, move.destination_index(move.destination_indices_size() - 1));
+
+        position.signature &= signature_mod(move.source_index());
+        position.signature |= signature_mod(square, move.destination_index(move.destination_indices_size() - 1));
     }
 
     Move parse_move_string(const std::string& move_string) {
@@ -256,6 +312,8 @@ namespace game {
         position.board = board;
         position.player = turn;
         position.plies_without_advancement = 0;
+        position.key = zobrist::instance.hash(position);
+        position.signature = signature(position);
     }
 
     void play_move(GamePosition& position, const std::string& move_string) {
@@ -274,7 +332,7 @@ namespace game {
                 assert(position.board[move.source_index()] != Square::None);
                 assert(position.board[move.destination_index()] == Square::None);
 
-                std::swap(position.board[move.source_index()], position.board[move.destination_index()]);
+                play_normal_move(position, move);
 
                 if (!is_king_piece(position.board[move.destination_index()])) {
                     position.plies_without_advancement = 0;
@@ -282,7 +340,7 @@ namespace game {
                     position.plies_without_advancement++;
                 }
 
-                check_piece_crowning(position.board, move.destination_index(), position.player);
+                check_piece_crowning(position, move.destination_index());
 
                 break;
             case MoveType::Capture:
@@ -292,29 +350,29 @@ namespace game {
                     move.source_index() == move.destination_index(move.destination_indices_size() - 1)
                 );
 
-                remove_jumped_pieces(position.board, move);
-                std::swap(
-                    position.board[move.source_index()],
-                    position.board[move.destination_index(move.destination_indices_size() - 1)]
-                );
+                play_capture_move(position, move);
 
                 position.plies_without_advancement = 0;
 
-                check_piece_crowning(position.board, move.destination_index(move.destination_indices_size() - 1), position.player);
+                check_piece_crowning(position, move.destination_index(move.destination_indices_size() - 1));
 
                 break;
         }
 
         position.player = opponent(position.player);
+
+        position.key ^= zobrist::instance.hash_mod();
+
+        position.signature ^= signature_mod();
     }
 
-    void play_move(search::SearchNode& node, Move move) noexcept {
+    void play_move(SearchNode& node, Move move) noexcept {
         switch (move.type()) {
             case MoveType::Normal:
                 assert(node.board[move.source_index()] != Square::None);
                 assert(node.board[move.destination_index()] == Square::None);
 
-                std::swap(node.board[move.source_index()], node.board[move.destination_index()]);
+                play_normal_move(node, move);
 
                 if (!is_king_piece(node.board[move.destination_index()])) {
                     node.plies_without_advancement = 0;
@@ -323,7 +381,7 @@ namespace game {
                     node.plies_without_advancement++;
                 }
 
-                check_piece_crowning(node.board, move.destination_index(), node.player);
+                check_piece_crowning(node, move.destination_index());
 
                 break;
             case MoveType::Capture:
@@ -333,20 +391,20 @@ namespace game {
                     move.source_index() == move.destination_index(move.destination_indices_size() - 1)
                 );
 
-                remove_jumped_pieces(node.board, move);
-                std::swap(
-                    node.board[move.source_index()],
-                    node.board[move.destination_index(move.destination_indices_size() - 1)]
-                );
+                play_capture_move(node, move);
 
                 node.plies_without_advancement = 0;
                 node.previous = nullptr;
 
-                check_piece_crowning(node.board, move.destination_index(move.destination_indices_size() - 1), node.player);
+                check_piece_crowning(node, move.destination_index(move.destination_indices_size() - 1));
 
                 break;
         }
 
         node.player = opponent(node.player);
+
+        node.key ^= zobrist::instance.hash_mod();
+
+        node.signature ^= signature_mod();
     }
 }

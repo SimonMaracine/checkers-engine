@@ -2,11 +2,8 @@
 
 #include <limits>
 
+#include "game.hpp"
 #include "parameters.hpp"
-
-namespace search {
-    struct SearchNode;
-}
 
 namespace evaluation {
     using Eval = int;
@@ -23,5 +20,5 @@ namespace evaluation {
     // Invalid evaluation token used by TT
     inline constexpr Eval INVALID {std::numeric_limits<Eval>::max()};
 
-    Eval static_evaluation(const search::SearchNode& node, const parameters::SearchParameters& parameters) noexcept;
+    Eval static_evaluation(const game::SearchNode& node, const parameters::SearchParameters& parameters) noexcept;
 }

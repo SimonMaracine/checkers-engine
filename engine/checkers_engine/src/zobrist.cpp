@@ -3,7 +3,9 @@
 #include <random>
 
 namespace zobrist {
-    Zobrist::Zobrist() {
+    Zobrist instance;
+
+    void Zobrist::initialize() {
         std::mt19937_64 rng;
         std::uniform_int_distribution<std::mt19937_64::result_type> distribution;
 
@@ -15,6 +17,6 @@ namespace zobrist {
             }
         }
 
-        m_white_random_number = distribution(rng);
+        m_random_number = distribution(rng);
     }
 }
