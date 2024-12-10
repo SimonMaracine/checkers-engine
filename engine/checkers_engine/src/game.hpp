@@ -8,6 +8,7 @@
 namespace game {
     inline constexpr int NULL_INDEX {-1};  // Indices may be in the range [0, 31] or [1, 32]
 
+    // These values are very specific
     enum class Square : unsigned char {
         None      = 0b000u,
         Black     = 0b001u,
