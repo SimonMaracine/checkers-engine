@@ -85,7 +85,7 @@ class _Board:
 @dataclasses.dataclass(slots=True, frozen=True)
 class _Position:
     board: _Board
-    turn: Player
+    player: Player
 
 
 class MoveType(enum.Enum):
@@ -169,7 +169,7 @@ class CheckersBoard:
     def __init__(self, on_piece_move: Callable[[Move], None] | None, canvas: tk.Canvas | None, redraw: bool = True):
         # Game data
         self._board = _Board()
-        self._turn = Player.Black
+        self._player = Player.Black
         self._plies_without_advancement = 0
         self._repetition_positions: list[_Position] = []
 
@@ -216,7 +216,7 @@ class CheckersBoard:
                 if CheckersBoard._playable_normal_move(move, self._selected_piece_square, square):
                     self._play_normal_move(move)
 
-                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._player)
                     self._selected_piece_square = NULL_INDEX
 
                     if self._redraw and self._canvas:
@@ -231,7 +231,7 @@ class CheckersBoard:
                 if CheckersBoard._playable_capture_move(move, self._selected_piece_square, self._jump_squares):
                     self._play_capture_move(move)
 
-                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+                    self._legal_moves = CheckersBoard._generate_moves(self._board, self._player)
                     self._selected_piece_square = NULL_INDEX
                     self._jump_squares.clear()
 
@@ -291,7 +291,7 @@ class CheckersBoard:
         return self._game_over
 
     def get_turn(self) -> Player:
-        return self._turn
+        return self._player
 
     def get_plies_without_advancement(self) -> int:
         return self._plies_without_advancement
@@ -317,9 +317,9 @@ class CheckersBoard:
                     white.append(f"K{i + 1}")
                     pass
 
-        turn = "B" if self._turn == Player.Black else "W"
+        player = "B" if self._player == Player.Black else "W"
 
-        return f"{turn}:B{",".join(black)}:W{",".join(white)}"
+        return f"{player}:B{",".join(black)}:W{",".join(white)}"
 
     def _setup(self, position_string: str | None = None):
         START_POSITION = "B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32"
@@ -333,9 +333,9 @@ class CheckersBoard:
         position = CheckersBoard._parse_position_string(string)
 
         self._board = position.board
-        self._turn = position.turn
+        self._player = position.player
 
-        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._player)
 
         # There might be already no legal moves
         self._check_legal_moves(self._legal_moves)
@@ -376,7 +376,7 @@ class CheckersBoard:
         if self._redraw and self._canvas:
             self._draw_pieces(self._canvas)
 
-        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._player)
 
     def _play_capture_move(self, move: Move):
         assert move.type() == MoveType.Capture
@@ -401,7 +401,7 @@ class CheckersBoard:
         if self._redraw and self._canvas:
             self._draw_pieces(self._canvas)
 
-        self._legal_moves = CheckersBoard._generate_moves(self._board, self._turn)
+        self._legal_moves = CheckersBoard._generate_moves(self._board, self._player)
 
     def _select_jump_square(self, square: int):
         # A piece may jump on a square twice at most
@@ -417,7 +417,7 @@ class CheckersBoard:
     def _check_piece_crowning(self, destination_index: int):
         row = destination_index // 4
 
-        match self._turn:
+        match self._player:
             case Player.Black:
                 if row == 7:
                     self._board[destination_index] = _Square.BlackKing
@@ -426,11 +426,11 @@ class CheckersBoard:
                     self._board[destination_index] = _Square.WhiteKing
 
     def _change_turn(self):
-        match self._turn:
+        match self._player:
             case Player.Black:
-                self._turn = Player.White
+                self._player = Player.White
             case Player.White:
-                self._turn = Player.Black
+                self._player = Player.Black
 
     def _check_forty_move_rule(self, advancement: bool):
         if advancement:
@@ -442,7 +442,7 @@ class CheckersBoard:
                 self._game_over = GameOver.TieBetweenBothPlayers
 
     def _check_repetition(self, advancement: bool):
-        current = _Position(copy.copy(self._board), self._turn)
+        current = _Position(copy.copy(self._board), self._player)
 
         if advancement:
             self._repetition_positions.clear()
@@ -458,15 +458,15 @@ class CheckersBoard:
         # Must be called after changing the turn
 
         if moves is None:
-            moves = CheckersBoard._generate_moves(self._board, self._turn)
+            moves = CheckersBoard._generate_moves(self._board, self._player)
 
         if not moves:
             # Either they have no pieces left or they are blocked
-            self._game_over = GameOver.WinnerWhite if self._turn == Player.Black else GameOver.WinnerBlack
+            self._game_over = GameOver.WinnerWhite if self._player == Player.Black else GameOver.WinnerBlack
 
     def _clear(self):
         self._board.clear()
-        self._turn = Player.Black
+        self._player = Player.Black
         self._plies_without_advancement = 0
         self._repetition_positions.clear()
 
@@ -798,7 +798,7 @@ class CheckersBoard:
 
     @staticmethod
     def _parse_position_string(string: str) -> _Position:
-        turn, player1, player2 = string.split(":")
+        player, player1, player2 = string.split(":")
 
         pieces1 = CheckersBoard._parse_player_pieces(player1)
         pieces2 = CheckersBoard._parse_player_pieces(player2)
@@ -818,7 +818,7 @@ class CheckersBoard:
         for index, square in pieces2:
             board[common._1_32_to_0_31(index)] = square
 
-        return _Position(board, CheckersBoard._parse_player_type(turn))
+        return _Position(board, CheckersBoard._parse_player_type(player))
 
     @staticmethod
     def _parse_player_type(string: str) -> Player:

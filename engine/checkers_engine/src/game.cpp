@@ -26,7 +26,7 @@ namespace game {
         return tokens;
     }
 
-    static bool valid_fen_string(const std::string& fen_string) {
+    static bool valid_position_string(const std::string& fen_string) {
         const std::regex pattern {"(W|B)(:(W|B)(K?[0-9]+(,K?[0-9]+){0,11})?){2}"};
 
         return std::regex_match(fen_string, pattern);
@@ -93,7 +93,7 @@ namespace game {
         return pieces;
     }
 
-    static std::pair<Board, Player> parse_fen_string(const std::string& fen_string) {
+    static std::pair<Board, Player> parse_position_string(const std::string& fen_string) {
         const auto tokens {split(fen_string, ":")};
 
         if (tokens.size() != 3) {
@@ -104,7 +104,7 @@ namespace game {
             throw error::InvalidCommand();
         }
 
-        const Player turn {parse_player_type(tokens.at(0))};
+        const Player player {parse_player_type(tokens.at(0))};
         const auto pieces1 {parse_player_pieces(tokens.at(1))};
         const auto pieces2 {parse_player_pieces(tokens.at(2))};
 
@@ -118,7 +118,7 @@ namespace game {
             board[_1_32_to_0_31(index)] = square;
         }
 
-        return std::make_pair(board, turn);
+        return std::make_pair(board, player);
     }
 
     static std::vector<int> parse_squares(const std::string& string) {
@@ -303,14 +303,14 @@ namespace game {
     }
 
     void set_position(GamePosition& position, const std::string& fen_string) {
-        if (!valid_fen_string(fen_string)) {
+        if (!valid_position_string(fen_string)) {
             throw error::InvalidCommand();
         }
 
-        const auto [board, turn] {parse_fen_string(fen_string)};
+        const auto [board, player] {parse_position_string(fen_string)};
 
         position.board = board;
-        position.player = turn;
+        position.player = player;
         position.plies_without_advancement = 0;
         position.key = zobrist::instance.hash(position);
         position.signature = signature(position);
