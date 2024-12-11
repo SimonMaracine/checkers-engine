@@ -72,10 +72,10 @@ namespace array {
         class const_iterator {
         public:
             using difference_type = std::ptrdiff_t;
-            using value_type = T;
+            using value_type = const T;
             using pointer = const T*;
             using reference = const T&;
-            using iterator_category = std::input_iterator_tag;
+            using iterator_category = std::forward_iterator_tag;
 
             explicit const_iterator(int index, pointer data) noexcept
                 : m_index(index), m_data(data) {}
@@ -113,7 +113,7 @@ namespace array {
             using value_type = T;
             using pointer = T*;
             using reference = T&;
-            using iterator_category = std::input_iterator_tag;
+            using iterator_category = std::forward_iterator_tag;
 
             explicit iterator(int index, pointer data) noexcept
                 : m_index(index), m_data(data) {}
