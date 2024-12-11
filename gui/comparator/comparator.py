@@ -153,6 +153,7 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
         black_engine_stats,
         white_engine_stats,
         match_file.max_think_time,
+        match_file.force_max_think_time,
         len(match_results) + len(rematch_results),
         sum(map(win_black, match_results)) + sum(map(win_white, rematch_results)),
         sum(map(win_white, match_results)) + sum(map(win_black, rematch_results)),

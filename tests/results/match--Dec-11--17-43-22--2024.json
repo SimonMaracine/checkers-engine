@@ -20,6 +20,7 @@
         ]
     },
     "max_think_time": 0.15,
+    "force_max_think_time": false,
     "total_rounds": 312,
     "total_black_engine_wins": 94,
     "total_white_engine_wins": 93,

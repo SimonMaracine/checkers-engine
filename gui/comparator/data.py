@@ -52,6 +52,7 @@ class MatchReport:
     black_engine: EngineStats
     white_engine: EngineStats
     max_think_time: float
+    force_max_think_time: bool
     total_rounds: int
     total_black_engine_wins: int
     total_white_engine_wins: int
@@ -81,6 +82,7 @@ def generate_report(report: MatchReport):
         },
 
         "max_think_time": report.max_think_time,
+        "force_max_think_time": report.force_max_think_time,
         "total_rounds": report.total_rounds,
         "total_black_engine_wins": report.total_black_engine_wins,
         "total_white_engine_wins": report.total_white_engine_wins,
@@ -148,6 +150,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
                 "required": ["name", "parameters"]
             },
             "max_think_time": { "type": "number" },
+            "force_max_think_time": { "type": "boolean" },
             "total_rounds": { "type": "integer" },
             "total_black_engine_wins": { "type": "integer" },
             "total_white_engine_wins": { "type": "integer" },
@@ -199,6 +202,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
             "black_engine",
             "white_engine",
             "max_think_time",
+            "force_max_think_time",
             "total_rounds",
             "total_black_engine_wins",
             "total_white_engine_wins",
