@@ -65,7 +65,7 @@ effective.
 ## 9.0 black vs 10.0 white | match--Dec-6--16-49-38--2024.json
 
 Engine 10.0 won, but not by much. It was very close to be a tie. The savings in space didn't have a large effect
-this time. The program binary size in this version is smaller in the newer version though.
+this time.
 
 ## 10.0 black vs 11.0 white | match--Dec-9--00-30-46--2024.json
 
@@ -76,3 +76,7 @@ little higher.
 
 The match results were dead equal. Engine 12.0, despite having a much better TT implementation, searched
 less deep on average, which is very contradictory.
+
+## 11.1 black vs 12.1 white | match--Dec-11--17-43-22--2024.json
+
+The match ended up still being equal. A smaller TT size didn't help.
