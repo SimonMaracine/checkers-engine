@@ -272,7 +272,7 @@ namespace search {
     }
 
     void Search::reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv_in, int plies_root) const noexcept {
-        if (plies_root >= pv_in.size | m_reached_left_most_path) {
+        if ((plies_root >= pv_in.size) | m_reached_left_most_path) {
             return;
         }
 

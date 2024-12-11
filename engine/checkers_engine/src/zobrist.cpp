@@ -7,7 +7,7 @@ namespace zobrist {
     Zobrist instance;
 
     void Zobrist::initialize() {
-        // Numbers must be defaulted to 0, because some of them will not get a random value
+        // Numbers must be initialized to 0, because some of them will not get a random value
         std::memset(m_random_numbers, 0, COLORS * PIECES * SQUARES * sizeof(std::uint64_t));
 
         std::mt19937_64 rng;

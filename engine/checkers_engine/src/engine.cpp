@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <limits>
+#include <cstdint>
 #include <cassert>
 
 #include "moves.hpp"
@@ -11,6 +12,11 @@
 #include "zobrist.hpp"
 
 // https://en.cppreference.com/w/cpp/thread/condition_variable
+
+// Check for 64-bit architecture
+#if SIZE_MAX != 0xFFFFFFFFFFFFFFFFul
+    #error "No support for 32-bit"
+#endif
 
 namespace engine {
     static const char* START_POSITION {"B:B1,2,3,4,5,6,7,8,9,10,11,12:W21,22,23,24,25,26,27,28,29,30,31,32"};
@@ -97,7 +103,7 @@ namespace engine {
         zobrist::instance.initialize();
 
         // TT is empty by default
-        m_transposition_table.allocate(transposition_table::mib_to_bytes(512));
+        m_transposition_table.allocate(transposition_table::mib_to_bytes(400));
 
         // Reset position only after zobriisth hashing is initialized
         reset_position(START_POSITION);
