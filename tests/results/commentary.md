@@ -71,3 +71,8 @@ this time. The program binary size in this version is smaller in the newer versi
 
 Engine 11.0 won the match. The many little optimizations paid off. Engine 11.0's average search depth is indeed a
 little higher.
+
+## 11.1 black vs 12.0 white | match--Dec-11--14-06-34--2024.json
+
+The match results were dead equal. Engine 12.0, despite having a much better TT implementation, searched
+less deep on average, which is very contradictory.
