@@ -35,7 +35,7 @@ namespace search {
             evaluation::Eval beta,
             const game::SearchNode& current_node,
             game::PvLine& p_line,
-            const game::PvLine& pv_in
+            const game::PvLine& pv
         ) noexcept;
 
         const game::SearchNode& setup_nodes(
@@ -46,7 +46,7 @@ namespace search {
 
         void setup_parameters(const parameters::Parameters& parameters);
         static void fill_pv(game::PvLine& p_line, const game::PvLine& line, game::Move move) noexcept;
-        void reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv_in, int plies_root) const noexcept;
+        void reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv, int plies_root) const noexcept;
         void reset_after_search_iteration() noexcept;
         void check_max_time(TimePoint time_point) noexcept;
 

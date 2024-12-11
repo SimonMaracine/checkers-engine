@@ -90,7 +90,7 @@ namespace search {
         evaluation::Eval beta,
         const game::SearchNode& current_node,
         game::PvLine& p_line,
-        const game::PvLine& pv_in
+        const game::PvLine& pv
     ) noexcept {
         if (depth % 5 == 0) {
             // Check the time every now and then
@@ -154,7 +154,7 @@ namespace search {
         }
 
         // It's very important to reorder the moves based on the previous PV
-        reorder_moves_pv(moves, pv_in, plies_root);
+        reorder_moves_pv(moves, pv, plies_root);
 
         // TODO use the hash move from TT, if available, to reorder the moves
 
@@ -169,7 +169,7 @@ namespace search {
             game::play_move(new_node, move);
 
             const evaluation::Eval evaluation {
-                -alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node, line, pv_in)
+                -alpha_beta(depth - 1, plies_root + 1, -beta, -alpha, new_node, line, pv)
             };
 
             // We need to check for the stop flag here too, because we previously just returned 0,
@@ -271,12 +271,12 @@ namespace search {
         p_line.size = line.size + 1;
     }
 
-    void Search::reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv_in, int plies_root) const noexcept {
-        if ((plies_root >= pv_in.size) | m_reached_left_most_path) {
+    void Search::reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv, int plies_root) const noexcept {
+        if ((plies_root >= pv.size) | m_reached_left_most_path) {
             return;
         }
 
-        const auto iter {std::find(moves.begin(), moves.end(), pv_in.moves[plies_root])};
+        const auto iter {std::find(moves.begin(), moves.end(), pv.moves[plies_root])};
 
         assert(iter != moves.end());
 

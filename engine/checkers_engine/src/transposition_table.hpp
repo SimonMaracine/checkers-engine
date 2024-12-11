@@ -8,8 +8,7 @@
 
 // https://www.chessprogramming.org/Node_Types
 // https://stackoverflow.com/questions/18439520/is-there-a-128-bit-integer-in-c
-// https://web.archive.org/web/20071031100138/http://www.brucemo.com/compchess/programming/zobrist.htm
-// https://www.chessprogramming.org/Zobrist_Hashing
+// https://web.archive.org/web/20071031100051/http://www.brucemo.com/compchess/programming/hashing.htm
 // https://www.chessprogramming.org/Transposition_Table#KeyCollisions
 
 namespace transposition_table {
@@ -51,6 +50,10 @@ namespace transposition_table {
         TableEntryResult load(Key key, Signature signature, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
 
         void clear() noexcept;
+
+        std::size_t size() const noexcept {
+            return m_size;
+        }
     private:
         TableEntry* m_entries {nullptr};
         std::size_t m_size {0};

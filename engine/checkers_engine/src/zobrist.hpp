@@ -5,6 +5,10 @@
 
 #include "game.hpp"
 
+// https://web.archive.org/web/20071031100138/http://www.brucemo.com/compchess/programming/zobrist.htm
+// https://www.chessprogramming.org/Zobrist_Hashing
+// https://www.chessprogramming.org/Transposition_Table#KeyCollisions
+
 namespace zobrist {
     class Zobrist {
     public:

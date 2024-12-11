@@ -103,9 +103,9 @@ namespace engine {
         zobrist::instance.initialize();
 
         // TT is empty by default
-        m_transposition_table.allocate(transposition_table::mib_to_bytes(400));
+        m_transposition_table.allocate(transposition_table::mib_to_bytes(700));
 
-        // Reset position only after zobriisth hashing is initialized
+        // Reset position only after Zobrist hashing is initialized
         reset_position(START_POSITION);
     }
 
