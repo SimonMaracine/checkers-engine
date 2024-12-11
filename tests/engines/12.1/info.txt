@@ -1,0 +1,1 @@
+Decrease the TT size down to 400MiB and fix some minor things in the array implementation.
