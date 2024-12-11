@@ -80,3 +80,8 @@ less deep on average, which is very contradictory.
 ## 11.1 black vs 12.1 white | match--Dec-11--17-43-22--2024.json
 
 The match ended up still being equal. A smaller TT size didn't help.
+
+## 11.1 black vs 12.2 white | match--Dec-12--00-43-24--2024.json
+
+Engine 12.2 won the match. It seems that a larger TT is actually better, but not by much. It is still a mistery
+to me that fact that engine 12.2 still searched on average a bit shallower.
