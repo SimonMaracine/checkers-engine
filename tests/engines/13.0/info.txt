@@ -1,0 +1,1 @@
+Make use of the hash move from the TT in move reordering.

@@ -85,3 +85,8 @@ The match ended up still being equal. A smaller TT size didn't help.
 
 Engine 12.2 won the match. It seems that a larger TT is actually better, but not by much. It is still a mistery
 to me that fact that engine 12.2 still searched on average a bit shallower.
+
+## 12.2 black vs 13.0 white | match--Dec-12--19-12-14--2024.json
+
+Engine 13.0 won the match by a decent margin. Taking into account the hash move from the TT in move reordering
+is a good idea.
