@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <iterator>
 #include <cstring>
 #include <cassert>
 
@@ -28,7 +29,7 @@ namespace search {
         int max_depth,
         double max_time
     ) {
-        m_transposition_table.clear();
+        m_transposition_table.clear();  // TODO should try not clearing?
 
         const game::SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
@@ -135,31 +136,37 @@ namespace search {
             return evaluation::static_evaluation(current_node, m_parameters) * game::perspective(current_node);
         }
 
-        // We didn't insert game over evaluations into the TT, as it may cause problems
+        // We don't insert game over evaluations into the TT, as it may cause problems
+
+        game::Move hash_move {game::NULL_MOVE};
 
         // Don't check the TT at the root of the search
         if (plies_root > 0) {
             const auto [evaluation, move] {
-                m_transposition_table.load(current_node.key, current_node.signature, depth, alpha, beta)  // TODO use the move
+                m_transposition_table.load(current_node.key, current_node.signature, depth, alpha, beta)
             };
 
-            if (evaluation != evaluation::INVALID) {
+            if (evaluation != evaluation::UNKNOWN) {
                 // TT may greatly disturb the PV, even making it sometimes non sensical
                 // Cut out the non-sense from the PV
                 p_line.size = 0;
 
                 m_transpositions++;
                 return evaluation;
+            } else {
+                // Retrieve the hash move which is either something or null; it works
+                hash_move = move;
             }
         }
 
-        // It's very important to reorder the moves based on the previous PV
+        // It's very important to reorder the moves based on the previous PV first
         reorder_moves_pv(moves, pv, plies_root);
 
-        // TODO use the hash move from TT, if available, to reorder the moves
+        // Reorder based on the hash move second, which may be null, which is fine
+        reorder_moves_hash_move(moves, hash_move);
 
         game::PvLine line;
-        auto node_type {transposition_table::NodeType::All};
+        auto flag {transposition_table::Flag::Alpha};
         game::Move best_move {game::NULL_MOVE};
 
         for (const game::Move move : moves) {
@@ -188,7 +195,7 @@ namespace search {
                     current_node.key,
                     current_node.signature,
                     depth,
-                    transposition_table::NodeType::Cut,
+                    transposition_table::Flag::Beta,
                     beta,
                     move
                 );
@@ -200,14 +207,15 @@ namespace search {
             if (evaluation > alpha) {
                 alpha = evaluation;
 
-                node_type = transposition_table::NodeType::Pv;
+                flag = transposition_table::Flag::Exact;
                 best_move = move;
 
                 fill_pv(p_line, line, move);
             }
         }
 
-        m_transposition_table.store(current_node.key, current_node.signature, depth, node_type, alpha, best_move);  // TODO invalid moves are regularly being inserted
+        // Null moves may be inserted into the TT; flags are alpha
+        m_transposition_table.store(current_node.key, current_node.signature, depth, flag, alpha, best_move);
 
         return alpha;
     }
@@ -280,7 +288,26 @@ namespace search {
 
         assert(iter != moves.end());
 
+        // Place the PV move first
         std::iter_swap(moves.begin(), iter);
+    }
+
+    void Search::reorder_moves_hash_move(moves::Moves& moves, game::Move hash_move) const noexcept {
+        if (hash_move == game::NULL_MOVE) {
+            return;
+        }
+
+        const auto iter {std::find(moves.begin(), moves.end(), hash_move)};
+
+        assert(iter != moves.end());
+
+        // If the hash move is already the PV move, don't touch it (or there is only one move in the array)
+        if (iter == moves.begin()) {
+            return;
+        }
+
+        // Place the hash move second (first is PV move)
+        std::iter_swap(std::next(moves.begin()), iter);
     }
 
     void Search::reset_after_search_iteration() noexcept {

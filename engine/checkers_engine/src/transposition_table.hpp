@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstddef>
-#include <utility>
 
 #include "game.hpp"
 #include "evaluation.hpp"
@@ -15,10 +14,10 @@ namespace transposition_table {
     using Key = game::PositionKey;
     using Signature = game::PositionSignature;
 
-    enum class NodeType : int {
-        Pv,
-        Cut,
-        All
+    enum class Flag : int {
+        Exact,
+        Beta,
+        Alpha
     };
 
     struct TableEntry {
@@ -26,7 +25,7 @@ namespace transposition_table {
         Signature signature {0};
         game::Move move {};
         int depth {0};
-        NodeType node_type {};
+        Flag flag {};
         evaluation::Eval eval {};
     };
 
@@ -44,8 +43,8 @@ namespace transposition_table {
 
         void allocate(std::size_t size_bytes);
 
-        void store(const game::Position& position, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept;
-        void store(Key key, Signature signature, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept;
+        void store(const game::Position& position, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
+        void store(Key key, Signature signature, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
         TableEntryResult load(const game::Position& position, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
         TableEntryResult load(Key key, Signature signature, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
 

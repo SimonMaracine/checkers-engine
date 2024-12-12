@@ -17,8 +17,8 @@ namespace evaluation {
     inline constexpr Eval MAX {WINDOW_MAX - 1};
     inline constexpr Eval MIN {WINDOW_MIN + 1};
 
-    // Invalid evaluation token used by TT
-    inline constexpr Eval INVALID {std::numeric_limits<Eval>::max()};
+    // Null evaluation token used by TT
+    inline constexpr Eval UNKNOWN {std::numeric_limits<Eval>::max()};
 
     Eval static_evaluation(const game::SearchNode& node, const parameters::SearchParameters& parameters) noexcept;
 }

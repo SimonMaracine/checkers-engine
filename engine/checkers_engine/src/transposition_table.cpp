@@ -1,5 +1,7 @@
 #include "transposition_table.hpp"
 
+#include <cassert>
+
 #include "zobrist.hpp"
 
 namespace transposition_table {
@@ -14,11 +16,13 @@ namespace transposition_table {
         m_entries = new TableEntry[m_size];
     }
 
-    void TranspositionTable::store(const game::Position& position, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept {
-        store(zobrist::instance.hash(position), game::signature(position), depth, node_type, eval, move);
+    void TranspositionTable::store(const game::Position& position, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
+        store(zobrist::instance.hash(position), game::signature(position), depth, flag, eval, move);
     }
 
-    void TranspositionTable::store(Key key, Signature signature, int depth, NodeType node_type, evaluation::Eval eval, game::Move move) noexcept {
+    void TranspositionTable::store(Key key, Signature signature, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
+        assert(m_size != 0);
+
         TableEntry& entry {m_entries[key % m_size]};
 
         // Scheme "replace if same depth or deeper"
@@ -27,7 +31,7 @@ namespace transposition_table {
             entry.signature = signature;
             entry.move = move;
             entry.depth = depth;
-            entry.node_type = node_type;
+            entry.flag = flag;
             entry.eval = eval;
         }
     }
@@ -37,27 +41,30 @@ namespace transposition_table {
     }
 
     TableEntryResult TranspositionTable::load(Key key, Signature signature, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept {
+        assert(m_size != 0);
+
         const TableEntry& entry {m_entries[key % m_size]};
 
         if (entry.signature != signature) {
-            return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
+            return std::make_pair(evaluation::UNKNOWN, game::NULL_MOVE);
         }
 
         if (entry.depth >= depth) {
-            if (entry.node_type == NodeType::Pv) {
-                return std::make_pair(entry.eval, entry.move);
+            if (entry.flag == Flag::Exact) {
+                return std::make_pair(entry.eval, game::NULL_MOVE);
             }
 
-            if (entry.node_type == NodeType::All && entry.eval <= alpha) {
-                return std::make_pair(alpha, entry.move);
+            if (entry.flag == Flag::Alpha && entry.eval <= alpha) {
+                return std::make_pair(alpha, game::NULL_MOVE);
             }
 
-            if (entry.node_type == NodeType::Cut && entry.eval >= beta) {
-                return std::make_pair(beta, entry.move);
+            if (entry.flag == Flag::Beta && entry.eval >= beta) {
+                return std::make_pair(beta, game::NULL_MOVE);
             }
         }
 
-        return std::make_pair(evaluation::INVALID, game::NULL_MOVE);
+        // Also return the hash move to be used in reordering
+        return std::make_pair(evaluation::UNKNOWN, entry.move);
     }
 
     void TranspositionTable::clear() noexcept {
