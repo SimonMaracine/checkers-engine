@@ -1,0 +1,1 @@
+Don't clear the TT before every move. Use a sequence field in the TT entry to replace old entries.

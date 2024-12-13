@@ -90,3 +90,8 @@ to me that fact that engine 12.2 still searched on average a bit shallower.
 
 Engine 13.0 won the match by a decent margin. Taking into account the hash move from the TT in move reordering
 is a good idea.
+
+## 13.0 black vs 14.0 white | match--Dec-13--17-35-24--2024.json
+
+Engine 14.0 won the match, but not by much at all. I expected not clearing the TT before every move to improve
+things more than this.
