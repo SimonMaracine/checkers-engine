@@ -92,9 +92,7 @@ namespace loop {
 
     int main_loop(engine::Engine& engine, std::string(*read_input)()) {
         while (true) {
-            auto input {read_input()};
-
-            const std::vector<std::string> tokens {tokenize_input(std::move(input))};
+            const std::vector<std::string> tokens {tokenize_input(read_input())};
 
             if (tokens.empty()) {
                 continue;
@@ -111,6 +109,8 @@ namespace loop {
                 execute_command(engine, tokens);
             } catch (error::InvalidCommand) {
                 continue;
+            } catch (error::Fatal) {
+                return 1;
             }
         }
     }

@@ -1,5 +1,6 @@
 #pragma once
 
 namespace error {
-    using InvalidCommand = int;
+    struct InvalidCommand {};
+    struct Fatal {};
 }

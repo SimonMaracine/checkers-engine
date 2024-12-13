@@ -64,6 +64,13 @@ namespace engine {
     void Engine::init() {
         ignore_invalid_command_on_init(true);
 
+        try {
+            // TT is empty by default
+            m_transposition_table.allocate(transposition_table::mib_to_bytes(750));
+        } catch (const std::bad_alloc&) {
+            throw error::Fatal();
+        }
+
         m_running = true;
 
         m_thread = std::thread([this]() {
@@ -101,9 +108,6 @@ namespace engine {
 
         // Zobrist hash is static
         zobrist::instance.initialize();
-
-        // TT is empty by default
-        m_transposition_table.allocate(transposition_table::mib_to_bytes(700));
 
         // Reset position only after Zobrist hashing is initialized
         reset_position(START_POSITION);
