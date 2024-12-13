@@ -17,8 +17,12 @@
 // https://web.archive.org/web/20071027170528/http://www.brucemo.com/compchess/programming/quiescent.htm
 
 namespace search {
-    Search::Search(transposition_table::TranspositionTable& transposition_table, const parameters::Parameters& parameters)
-        : m_transposition_table(transposition_table) {
+    Search::Search(
+        int search_sequence,
+        const parameters::Parameters& parameters,
+        transposition_table::TranspositionTable& transposition_table
+    )
+        : m_search_sequence(search_sequence), m_transposition_table(transposition_table) {
         setup_parameters(parameters);
     }
 
@@ -29,7 +33,8 @@ namespace search {
         int max_depth,
         double max_time
     ) {
-        m_transposition_table.clear();  // TODO should try not clearing?
+        // The TT is not cleared between moves, but only between games
+        // The ply of the moves is used to identify old TT entries
 
         const game::SearchNode& current_node {setup_nodes(position, previous_positions, moves_played)};
 
@@ -140,8 +145,8 @@ namespace search {
 
         game::Move hash_move {game::NULL_MOVE};
 
-        // Don't check the TT at the root of the search
-        if (plies_root > 0) {
+        // Don't check the TT one ply from the root of the search
+        if (plies_root > 1) {
             const auto [evaluation, move] {
                 m_transposition_table.load(current_node.key, current_node.signature, depth, alpha, beta)
             };
@@ -195,6 +200,7 @@ namespace search {
                     current_node.key,
                     current_node.signature,
                     depth,
+                    m_search_sequence,
                     transposition_table::Flag::Beta,
                     beta,
                     move
@@ -215,7 +221,7 @@ namespace search {
         }
 
         // Null moves may be inserted into the TT; flags are alpha
-        m_transposition_table.store(current_node.key, current_node.signature, depth, flag, alpha, best_move);
+        m_transposition_table.store(current_node.key, current_node.signature, depth, m_search_sequence, flag, alpha, best_move);
 
         return alpha;
     }

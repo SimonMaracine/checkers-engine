@@ -23,10 +23,11 @@ namespace transposition_table {
     struct TableEntry {
         // signature and depth must be initialized to 0
         Signature signature {0};
-        game::Move move {};
-        int depth {0};
-        Flag flag {};
+        game::Move move {};  // "Best move"
+        Flag flag {};  // Type of evaluation
         evaluation::Eval eval {};
+        int depth {0};
+        int sequence {};  // Search number
     };
 
     using TableEntryResult = std::pair<evaluation::Eval, game::Move>;
@@ -42,13 +43,12 @@ namespace transposition_table {
         TranspositionTable& operator=(TranspositionTable&&) = delete;
 
         void allocate(std::size_t size_bytes);
+        void clear() noexcept;
 
-        void store(const game::Position& position, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
-        void store(Key key, Signature signature, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
+        void store(const game::Position& position, int depth, int sequence, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
+        void store(Key key, Signature signature, int depth, int sequence, Flag flag, evaluation::Eval eval, game::Move move) noexcept;
         TableEntryResult load(const game::Position& position, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
         TableEntryResult load(Key key, Signature signature, int depth, evaluation::Eval alpha, evaluation::Eval beta) const noexcept;
-
-        void clear() noexcept;
 
         std::size_t size() const noexcept {
             return m_size;

@@ -16,23 +16,30 @@ namespace transposition_table {
         m_entries = new TableEntry[m_size];
     }
 
-    void TranspositionTable::store(const game::Position& position, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
-        store(zobrist::instance.hash(position), game::signature(position), depth, flag, eval, move);
+    void TranspositionTable::clear() noexcept {
+        for (std::size_t i {0}; i < m_size; i++) {
+            m_entries[i] = {};
+        }
     }
 
-    void TranspositionTable::store(Key key, Signature signature, int depth, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
+    void TranspositionTable::store(const game::Position& position, int depth, int sequence, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
+        store(zobrist::instance.hash(position), game::signature(position), depth, sequence, flag, eval, move);
+    }
+
+    void TranspositionTable::store(Key key, Signature signature, int depth, int sequence, Flag flag, evaluation::Eval eval, game::Move move) noexcept {
         assert(m_size != 0);
 
         TableEntry& entry {m_entries[key % m_size]};
 
-        // Scheme "replace if same depth or deeper"
+        // Scheme "replace if same depth or deeper, or entry is old"
 
-        if (entry.depth <= depth) {
+        if (entry.depth <= depth || sequence != entry.sequence) {
             entry.signature = signature;
             entry.move = move;
-            entry.depth = depth;
             entry.flag = flag;
             entry.eval = eval;
+            entry.depth = depth;
+            entry.sequence = sequence;
         }
     }
 
@@ -65,11 +72,5 @@ namespace transposition_table {
 
         // Also return the hash move to be used in reordering
         return std::make_pair(evaluation::UNKNOWN, entry.move);
-    }
-
-    void TranspositionTable::clear() noexcept {
-        for (std::size_t i {0}; i < m_size; i++) {
-            m_entries[i] = {};
-        }
     }
 }

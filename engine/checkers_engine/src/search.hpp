@@ -13,7 +13,11 @@
 namespace search {
     class Search {
     public:
-        Search(transposition_table::TranspositionTable& transposition_table, const parameters::Parameters& parameters);
+        Search(
+            int search_sequence,
+            const parameters::Parameters& parameters,
+            transposition_table::TranspositionTable& transposition_table
+        );
 
         game::Move search(
             const game::GamePosition& position,
@@ -57,16 +61,19 @@ namespace search {
         int m_nodes_evaluated {0};
         int m_transpositions {0};
 
+        // The number of this particular search
+        int m_search_sequence {};
+
         parameters::SearchParameters m_parameters;
 
         // The current and previous positions (for threefold repetition)
         // node0, node1, node2, ..., nodeN (current)
         array::Array<game::SearchNode, 81> m_nodes;
 
-        transposition_table::TranspositionTable& m_transposition_table;
-
         // Used to check for max time
         double m_max_time {};
         TimePoint m_begin_search {};
+
+        transposition_table::TranspositionTable& m_transposition_table;
     };
 }

@@ -8,7 +8,7 @@ namespace parameters {
     using Int = int;
     using Float = float;
     using Bool = bool;
-    using String = std::string;
+    using String = std::string;  // TODO use plain array
 
     using Parameter = std::variant<Int, Float, Bool, String>;
     using Parameters = std::unordered_map<std::string, Parameter>;

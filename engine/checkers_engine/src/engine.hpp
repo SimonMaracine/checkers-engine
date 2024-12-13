@@ -53,6 +53,9 @@ namespace engine {
         // Thread flag; set to true when m_should_stop is set
         bool m_instance_ready {false};
 
+        // Number representing a particular search
+        int m_search_sequence {0};
+
         // Internal position (current)
         game::GamePosition m_position;
 

@@ -191,9 +191,7 @@ namespace game {
             const auto square {position.board[_1_32_to_0_31(index)]};
 
             position.board[_1_32_to_0_31(index)] = Square::None;
-
             position.key ^= zobrist::instance.hash_mod(square, _1_32_to_0_31(index));
-
             position.signature &= signature_mod(_1_32_to_0_31(index));
         }
 
@@ -213,9 +211,7 @@ namespace game {
             const auto square {position.board[_1_32_to_0_31(index)]};
 
             position.board[_1_32_to_0_31(index)] = Square::None;
-
             position.key ^= zobrist::instance.hash_mod(square, _1_32_to_0_31(index));
-
             position.signature &= signature_mod(_1_32_to_0_31(index));
         }
     }
@@ -231,10 +227,8 @@ namespace game {
                     }
 
                     position.board[square_index] = Square::BlackKing;
-
                     position.key ^= zobrist::instance.hash_mod(Square::Black, square_index);
                     position.key ^= zobrist::instance.hash_mod(Square::BlackKing, square_index);
-
                     position.signature |= signature_mod(Square::BlackKing, square_index);
                 }
                 break;
@@ -245,10 +239,8 @@ namespace game {
                     }
 
                     position.board[square_index] = Square::WhiteKing;
-
                     position.key ^= zobrist::instance.hash_mod(Square::White, square_index);
                     position.key ^= zobrist::instance.hash_mod(Square::WhiteKing, square_index);
-
                     position.signature |= signature_mod(Square::WhiteKing, square_index);
                 }
                 break;
@@ -259,10 +251,8 @@ namespace game {
         const auto square {position.board[move.source_index()]};
 
         std::swap(position.board[move.source_index()], position.board[move.destination_index()]);
-
         position.key ^= zobrist::instance.hash_mod(square, move.source_index());
         position.key ^= zobrist::instance.hash_mod(square, move.destination_index());
-
         position.signature &= signature_mod(move.source_index());
         position.signature |= signature_mod(square, move.destination_index());
     }
@@ -273,10 +263,8 @@ namespace game {
         const auto square {position.board[move.source_index()]};
 
         std::swap(position.board[move.source_index()], position.board[move.destination_index(move.destination_indices_size() - 1)]);
-
         position.key ^= zobrist::instance.hash_mod(square, move.source_index());
         position.key ^= zobrist::instance.hash_mod(square, move.destination_index(move.destination_indices_size() - 1));
-
         position.signature &= signature_mod(move.source_index());
         position.signature |= signature_mod(square, move.destination_index(move.destination_indices_size() - 1));
     }
@@ -360,9 +348,7 @@ namespace game {
         }
 
         position.player = opponent(position.player);
-
         position.key ^= zobrist::instance.hash_mod();
-
         position.signature ^= signature_mod();
     }
 
@@ -402,9 +388,7 @@ namespace game {
         }
 
         node.player = opponent(node.player);
-
         node.key ^= zobrist::instance.hash_mod();
-
         node.signature ^= signature_mod();
     }
 }

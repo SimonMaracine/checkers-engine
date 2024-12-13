@@ -112,6 +112,12 @@ namespace engine {
     void Engine::newgame(const std::optional<std::string>& position, const std::optional<std::vector<std::string>>& moves) {
         ignore_invalid_command_on_init();
 
+        // Don't share data between games
+        m_transposition_table.clear();
+
+        // Resetting the sequence is not really important, but it's a good idea
+        m_search_sequence = 0;
+
         if (position) {
             reset_position(*position);
         } else {
@@ -280,7 +286,9 @@ namespace engine {
     }
 
     game::Move Engine::search_move() {
-        search::Search instance {m_transposition_table, m_parameters};
+        m_search_sequence++;
+
+        search::Search instance {m_search_sequence, m_parameters, m_transposition_table};
 
         m_should_stop = instance.get_should_stop();
         m_instance_ready = true;
