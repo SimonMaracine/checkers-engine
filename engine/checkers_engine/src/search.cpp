@@ -98,7 +98,7 @@ namespace search {
         game::PvLine& p_line,
         const game::PvLine& pv
     ) noexcept {
-        if (m_nodes_evaluated % 50'000 == 0) {
+        if (m_nodes_evaluated % 70'000 == 0) {
             // Check the time every now and then
             check_max_time(std::chrono::steady_clock::now());
         }
