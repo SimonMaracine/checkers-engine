@@ -1,0 +1,1 @@
+Change how often the timeout is checked. Reduce max search depth. Increase TT size slightly. Build with -O3 on GCC.
