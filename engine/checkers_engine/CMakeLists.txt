@@ -37,6 +37,12 @@ set_compile_options_features(checkers-engine-core)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(checkers-engine-core PRIVATE "NDEBUG")
+
+    if(UNIX)
+        target_compile_options(checkers-engine-core PRIVATE "-O3")
+    endif()
+
+    set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 
 target_compile_definitions(checkers-engine-core PRIVATE "_CRT_SECURE_NO_WARNINGS")
@@ -47,8 +53,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND UNIX AND USE_SANITIZERS)
 
     message(STATUS "Building engine with sanitizers")
 endif()
-
-set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
 
 # Executable
 
@@ -61,5 +65,3 @@ set_compile_options_features(checkers-engine)
 if(CMAKE_BUILD_TYPE STREQUAL "Release" AND UNIX)
     target_link_options(checkers-engine PRIVATE "-s")
 endif()
-
-set_target_properties(checkers-engine PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
