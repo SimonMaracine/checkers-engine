@@ -17,7 +17,7 @@ namespace search {
             int search_sequence,
             const parameters::Parameters& parameters,
             transposition_table::TranspositionTable& transposition_table
-        );
+        ) noexcept;
 
         game::Move search(
             const game::GamePosition& position,
@@ -25,7 +25,7 @@ namespace search {
             const std::vector<game::Move>& moves_played,
             int max_depth,
             double max_time
-        );
+        ) noexcept;
 
         bool* get_should_stop() noexcept { return &m_should_stop; }
     private:
@@ -46,9 +46,9 @@ namespace search {
             const game::GamePosition& position,
             const std::vector<game::GamePosition>& previous_positions,
             const std::vector<game::Move>& moves_played
-        );
+        ) noexcept;
 
-        void setup_parameters(const parameters::Parameters& parameters);
+        void setup_parameters(const parameters::Parameters& parameters) noexcept;
         static void fill_pv(game::PvLine& p_line, const game::PvLine& line, game::Move move) noexcept;
         void reorder_moves_pv(moves::Moves& moves, const game::PvLine& pv, int plies_root) const noexcept;
         void reorder_moves_hash_move(moves::Moves& moves, game::Move hash_move) const noexcept;

@@ -21,7 +21,7 @@ namespace search {
         int search_sequence,
         const parameters::Parameters& parameters,
         transposition_table::TranspositionTable& transposition_table
-    )
+    ) noexcept
         : m_search_sequence(search_sequence), m_transposition_table(transposition_table) {
         setup_parameters(parameters);
     }
@@ -32,7 +32,7 @@ namespace search {
         const std::vector<game::Move>& moves_played,
         int max_depth,
         double max_time
-    ) {
+    ) noexcept {
         // The TT is not cleared between moves, but only between games
         // The ply of the moves is used to identify old TT entries
 
@@ -63,6 +63,7 @@ namespace search {
 
             last_pv_line = line;
 
+            // This can throw, but if it does, it's game over anyway
             messages::info(
                 m_nodes_evaluated,
                 m_transpositions,
@@ -230,7 +231,9 @@ namespace search {
         const game::GamePosition& position,
         const std::vector<game::GamePosition>& previous_positions,
         const std::vector<game::Move>& moves_played
-    ) {
+    ) noexcept {
+        // Mark this noexcept, because it's a logic error for it to throw
+
         assert(previous_positions.size() == moves_played.size());
 
         for (std::size_t i {0}; i < previous_positions.size(); i++) {
@@ -271,7 +274,9 @@ namespace search {
         return m_nodes.back();
     }
 
-    void Search::setup_parameters(const parameters::Parameters& parameters) {
+    void Search::setup_parameters(const parameters::Parameters& parameters) noexcept {
+        // Mark this noexcept, because it's a logic error for it to throw
+
         m_parameters.material_pawn = std::get<0>(parameters.at("material_pawn"));
         m_parameters.material_king = std::get<0>(parameters.at("material_king"));
         m_parameters.positioning_pawn = std::get<0>(parameters.at("positioning_pawn"));

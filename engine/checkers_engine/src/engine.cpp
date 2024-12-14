@@ -289,7 +289,7 @@ namespace engine {
         messages::board(m_position);
     }
 
-    game::Move Engine::search_move() {
+    game::Move Engine::search_move() noexcept {
         m_search_sequence++;
 
         search::Search instance {m_search_sequence, m_parameters, m_transposition_table};
