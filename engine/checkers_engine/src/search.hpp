@@ -54,6 +54,7 @@ namespace search {
         void reorder_moves_hash_move(moves::Moves& moves, game::Move hash_move) const noexcept;
         void reset_after_search_iteration() noexcept;
         void check_max_time(TimePoint time_point) noexcept;
+        evaluation::Eval window_delta() const noexcept;
 
         bool m_should_stop {false};
         bool m_can_stop {false};

@@ -15,6 +15,8 @@
 // https://www.chessprogramming.org/Principal_Variation
 // https://www.chessprogramming.org/Leftmost_Node
 // https://web.archive.org/web/20071027170528/http://www.brucemo.com/compchess/programming/quiescent.htm
+// https://web.archive.org/web/20071031095918/http://www.brucemo.com/compchess/programming/aspiration.htm
+// https://www.chessprogramming.org/Aspiration_Windows
 
 namespace search {
     Search::Search(
@@ -40,16 +42,19 @@ namespace search {
 
         game::PvLine last_pv_line;
 
+        evaluation::Eval alpha {evaluation::WINDOW_MIN};
+        evaluation::Eval beta {evaluation::WINDOW_MAX};
+
         m_max_time = max_time;
         m_begin_search = std::chrono::steady_clock::now();
 
-        for (int i {1}; i <= std::min(max_depth, game::MAX_DEPTH); i++) {
+        for (int depth {1}; depth <= std::min(max_depth, game::MAX_DEPTH);) {
             game::PvLine line;
 
             const auto begin {std::chrono::steady_clock::now()};
 
             const evaluation::Eval evaluation {
-                alpha_beta(i, 0, evaluation::WINDOW_MIN, evaluation::WINDOW_MAX, current_node, line, last_pv_line)
+                alpha_beta(depth, 0, alpha, beta, current_node, line, last_pv_line)
             };
 
             const auto end {std::chrono::steady_clock::now()};
@@ -61,13 +66,24 @@ namespace search {
                 break;
             }
 
+            // If we fell out of the window, then retry the last search with a full window
+            if (evaluation <= alpha || evaluation >= beta) {
+                alpha = evaluation::WINDOW_MIN;
+                beta = evaluation::WINDOW_MAX;
+                continue;
+            }
+
+            // Setup an appropriate window for the next search
+            alpha = evaluation - window_delta();
+            beta = evaluation + window_delta();
+
             last_pv_line = line;
 
             // This can throw, but if it does, it's game over anyway
             messages::info(
                 m_nodes_evaluated,
                 m_transpositions,
-                i,
+                depth,
                 evaluation * perspective(current_node),
                 std::chrono::duration<double>(end - begin).count(),
                 line.moves,
@@ -83,6 +99,8 @@ namespace search {
             m_can_stop = true;
 
             reset_after_search_iteration();
+
+            depth++;
         }
 
         assert(last_pv_line.size > 0);
@@ -331,5 +349,9 @@ namespace search {
         if (std::chrono::duration<double>(time_point - m_begin_search).count() > m_max_time) {
             m_should_stop = true;
         }
+    }
+
+    evaluation::Eval Search::window_delta() const noexcept {
+        return (m_parameters.material_pawn * 80) / 100;
     }
 }
