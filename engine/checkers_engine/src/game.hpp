@@ -101,7 +101,7 @@ namespace game {
     };
 
     inline constexpr Move NULL_MOVE {};
-    inline constexpr int MAX_DEPTH {70};
+    inline constexpr int MAX_DEPTH {64};
 
     struct PvLine {
         Move moves[MAX_DEPTH];
