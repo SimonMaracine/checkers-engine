@@ -67,7 +67,7 @@ class MatchReport:
     end_time: str
 
 
-def generate_report(report: MatchReport):
+def generate_match_report(report: MatchReport):
     assert report.total_black_engine_wins + report.total_white_engine_wins + report.total_draws == report.total_rounds
 
     obj = {

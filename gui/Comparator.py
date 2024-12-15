@@ -27,6 +27,11 @@ def main(args: list[str]) -> int:
         replay_parser.add_argument("index", help="Expression describing the index of the round to be extracted", type=int)
         replay_parser.set_defaults(function=replay)
 
+        replay_parser = subparsers.add_parser("improve", help="Improve an engine by tweaking its parameters")
+        replay_parser.add_argument("match_file", help="Match file describing the positions used by each little test")
+        replay_parser.add_argument("path", help="File path to the engine")
+        replay_parser.set_defaults(function=improve)
+
         arguments = parser.parse_args(args[1:])
         return arguments.function(arguments)
     except KeyboardInterrupt:
@@ -54,6 +59,22 @@ def replay(arguments: argparse.Namespace) -> int:
         data.extract_replay_file(arguments.report_file, arguments.match, arguments.index)
     except data.DataError as err:
         print(f"Could not extract the replay file from report: {err}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
+def improve(arguments: argparse.Namespace) -> int:
+    try:
+        match_file = comparator.parse_match_file(arguments.match_file)
+    except error.ComparatorError as err:
+        print(f"Could not parse match file: {err}", file=sys.stderr)
+        return 1
+
+    try:
+        comparator.run_improve_session(match_file, arguments.path)
+    except error.ComparatorError as err:
+        print(f"An error occurred during the process: {err}", file=sys.stderr)
         return 1
 
     return 0

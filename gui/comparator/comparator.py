@@ -2,6 +2,7 @@ import dataclasses
 import json
 import time
 import statistics
+import copy
 
 import jsonschema
 
@@ -65,14 +66,121 @@ def parse_match_file(file_path: str) -> MatchFile:
     )
 
 
+def run_improve_session(match_file: MatchFile, path_engine: str):
+    if not match_file.positions:
+        raise error.ComparatorError("No positions provided")
+
+    for position in match_file.positions:
+        if not common.validate_position_string(position):
+            raise error.ComparatorError(f"Invalid position string `{position}`")
+
+    print_status(f"Starting improve session at {time.ctime()}")
+
+    black_engine = checkers_engine.CheckersEngine()
+    white_engine = checkers_engine.CheckersEngine()  # Parameters are changed first in this one
+
+    try:
+        engine_control.start_engine(black_engine, path_engine, engine_control.Color.Black)
+        engine_control.start_engine(white_engine, path_engine, engine_control.Color.White)
+
+        black_queried_params = engine_control.initialize_engine(black_engine, engine_control.Color.Black)
+        white_queried_params = engine_control.initialize_engine(white_engine, engine_control.Color.White)
+
+        engine_control.setup_engine_parameters(black_engine, match_file.black_engine_parameters, black_queried_params, engine_control.Color.Black)
+        engine_control.setup_engine_parameters(white_engine, match_file.white_engine_parameters, white_queried_params, engine_control.Color.White)
+
+        black_engine_stats = _engine_stats(black_engine, engine_control.Color.Black)
+        white_engine_stats = _engine_stats(white_engine, engine_control.Color.White)
+
+        if black_engine_stats != white_engine_stats:
+            raise error.ComparatorError("Engines start with different parameters")
+
+        print_status(f"Max thinking time: {match_file.max_think_time}", 1)
+        print_status(f"Force max thinking time: {match_file.force_max_think_time}", 1)
+
+        win_epsilon = 10 * (len(match_file.positions) * 2) // 100
+
+        print_status(f"Win epsilon: {win_epsilon}", 1)
+
+        current_parameters = dict(map(
+            lambda parameter: (parameter[0], int(parameter[2])),
+            filter(lambda parameter: parameter[1] == "int", white_engine_stats.parameters)
+        ))
+
+        for epoch in range(100):
+            print_status(f"Epoch {epoch + 1}", 2)
+
+            some_success = False
+
+            for parameter in current_parameters:
+                current_int_adjustment = 1
+                succeeded = False
+                first_no_success = False
+
+                while True:
+                    # Adjust white and compare it to black
+                    _adjust_parameter(white_engine, parameter, current_int_adjustment)
+                    current_parameters[parameter] += current_int_adjustment
+
+                    if not _run_test(match_file, black_engine, white_engine, win_epsilon):
+                        # Undo adjustment
+                        _adjust_parameter(white_engine, parameter, -current_int_adjustment)
+                        current_parameters[parameter] += -current_int_adjustment
+
+                        if succeeded:
+                            # Next parameter
+                            break
+
+                        if not first_no_success:
+                            # Try the other way around
+                            current_int_adjustment = -current_int_adjustment
+                            first_no_success = True
+                            continue
+
+                        # Next parameter
+                        break
+
+                    print_status(f"Adjustment {current_int_adjustment} for {parameter} was positive", 3)
+
+                    # TODO save to file
+
+                    # White won, adjust black too in the same way and try another adjustment
+                    _adjust_parameter(black_engine, parameter, current_int_adjustment)
+
+                    # This direction looks promising
+                    succeeded = True
+                    some_success = True
+
+            if not some_success:
+                # Nothing seems to improve anymore
+                break
+
+        engine_control.finalize_engine(black_engine, engine_control.Color.Black)
+        engine_control.finalize_engine(white_engine, engine_control.Color.White)
+    except KeyboardInterrupt:
+        engine_control.finalize_engine(black_engine, engine_control.Color.Black)
+        engine_control.finalize_engine(white_engine, engine_control.Color.White)
+        raise
+    except error.ComparatorError:  # If one engine fails, the other one might still be up and running
+        black_engine.stop(True)
+        white_engine.stop(True)
+        raise
+
+    print_status(f"Stopped improve session at {time.ctime()}")
+
+
 def run_match(match_file: MatchFile, path_engine_black: str, path_engine_white: str):
     if not match_file.positions:
         raise error.ComparatorError("No positions provided")
 
+    for position in match_file.positions:
+        if not common.validate_position_string(position):
+            raise error.ComparatorError(f"Invalid position string `{position}`")
+
     report = _run_multiple_rounds_match(match_file, path_engine_black, path_engine_white)
 
     try:
-        data.generate_report(report)
+        data.generate_match_report(report)
     except data.DataError as err:
         raise error.ComparatorError(f"Could not generate report: {err}")
 
@@ -83,10 +191,6 @@ def _run_multiple_rounds_match(match_file: MatchFile, path_engine_black: str, pa
     start_time = time.ctime()
 
     print_status(f"Starting match at {start_time}")
-
-    for position in match_file.positions:
-        if not common.validate_position_string(position):
-            raise error.ComparatorError(f"Invalid position string `{position}`")
 
     black_engine = checkers_engine.CheckersEngine()
     white_engine = checkers_engine.CheckersEngine()
@@ -253,3 +357,46 @@ def _engine_stats(engine: checkers_engine.CheckersEngine, color: engine_control.
     print_status(f"Engine {color} name: {name}", 1)
 
     return data.EngineStats(name, queried_params)
+
+
+def _adjust_parameter(engine: checkers_engine.CheckersEngine, parameter_name: str, int_adjustment: int):
+    pass
+
+
+def _run_test(
+    match_file: MatchFile,
+    black_engine: checkers_engine.CheckersEngine,
+    white_engine: checkers_engine.CheckersEngine,
+    win_epsilon: int
+) -> bool:
+    match_results: list[data.RoundResult] = []
+    rematch_results: list[data.RoundResult] = []
+
+    for i, position in enumerate(match_file.positions):
+        match_results.append(_run_round(
+            position,
+            match_file.max_think_time,
+            match_file.force_max_think_time,
+            black_engine,
+            white_engine,
+            i
+        ))
+
+    for i, position in enumerate(match_file.positions):
+        rematch_results.append(_run_round(
+            position,
+            match_file.max_think_time,
+            match_file.force_max_think_time,
+            white_engine,
+            black_engine,
+            i,
+            True
+        ))
+
+    win_black = lambda round: round.ending == data.RoundEnding.WinnerBlack
+    win_white = lambda round: round.ending == data.RoundEnding.WinnerWhite
+
+    black_engine_wins = sum(map(win_black, match_results)) + sum(map(win_white, rematch_results))
+    white_engine_wins = sum(map(win_white, match_results)) + sum(map(win_black, rematch_results))
+
+    return white_engine_wins - black_engine_wins >= win_epsilon
