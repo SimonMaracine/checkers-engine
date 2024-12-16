@@ -74,7 +74,9 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
         if not common.validate_position_string(position):
             raise error.ComparatorError(f"Invalid position string `{position}`")
 
-    print_status(f"Starting improve session at {time.ctime()}")
+    start_time = time.ctime()
+
+    print_status(f"Starting improve session at {start_time}")
 
     black_engine = checkers_engine.CheckersEngine()
     white_engine = checkers_engine.CheckersEngine()  # Parameters are changed first in this one
@@ -117,15 +119,17 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                 succeeded = False
                 first_no_success = False
 
+                print_status(f"Checking parameter {parameter}", 3)
+
                 while True:
                     # Adjust white and compare it to black
-                    _adjust_parameter(white_engine, parameter, current_int_adjustment)
                     current_parameters[parameter] += current_int_adjustment
+                    _set_parameter(white_engine, parameter, current_parameters[parameter], engine_control.Color.White)
 
                     if not _run_test(match_file, black_engine, white_engine, win_epsilon):
                         # Undo adjustment
-                        _adjust_parameter(white_engine, parameter, -current_int_adjustment)
                         current_parameters[parameter] += -current_int_adjustment
+                        _set_parameter(white_engine, parameter, current_parameters[parameter], engine_control.Color.White)
 
                         if succeeded:
                             # Next parameter
@@ -140,12 +144,12 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                         # Next parameter
                         break
 
-                    print_status(f"Adjustment {current_int_adjustment} for {parameter} was positive", 3)
+                    print_status(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
 
-                    # TODO save to file
+                    data.save_parameters(current_parameters, start_time)
 
                     # White won, adjust black too in the same way and try another adjustment
-                    _adjust_parameter(black_engine, parameter, current_int_adjustment)
+                    _set_parameter(black_engine, parameter, current_parameters[parameter], engine_control.Color.Black)
 
                     # This direction looks promising
                     succeeded = True
@@ -359,8 +363,8 @@ def _engine_stats(engine: checkers_engine.CheckersEngine, color: engine_control.
     return data.EngineStats(name, queried_params)
 
 
-def _adjust_parameter(engine: checkers_engine.CheckersEngine, parameter_name: str, int_adjustment: int):
-    pass
+def _set_parameter(engine: checkers_engine.CheckersEngine, parameter: str, value: int, color: engine_control.Color):
+    engine_control.set_engine_int_parameter(engine, parameter, value, color)
 
 
 def _run_test(

@@ -242,6 +242,14 @@ def extract_replay_file(file_path: str, match: str, index: int):
         raise DataError(f"Could not write file: {err}")
 
 
+def save_parameters(parameters: dict[str, int], datetime: str):
+    try:
+        with open(f"parameters--{_format_datetime(datetime)}.txt") as file:
+            file.write(str(parameters))
+    except Exception as err:
+        raise DataError(f"Could not write parameters: {err}")
+
+
 def _write_report(name: str, obj: Any):
     try:
         with open(name, "w") as file:

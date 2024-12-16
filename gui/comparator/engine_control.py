@@ -166,6 +166,14 @@ def get_engine_name(engine: checkers_engine.CheckersEngine, color: Color) -> str
     return _wait_for_engine_name(engine, color)
 
 
+def set_engine_int_parameter(engine: checkers_engine.CheckersEngine, parameter: str, value: int, color: Color):
+    try:
+        engine.send(f"SETPARAMETER {parameter} {value}")
+    except checkers_engine.CheckersEngineError as err:
+        engine.stop(True)
+        raise error.ComparatorError(f"Could not send GETNAME to engine {color}: {err}")
+
+
 def _wait_for_engine_parameters(engine: checkers_engine.CheckersEngine, color: Color) -> QueriedParams:
     parameters = []
 
