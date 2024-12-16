@@ -119,7 +119,7 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                 first_no_success = False
                 current_int_adjustment = 1
 
-                print_status(f"Checking parameter {parameter}", 3)
+                print_status(f"Checking parameter `{parameter}`, adjustment = {current_int_adjustment}", 3)
 
                 while True:
                     # Adjust white and compare it to black
@@ -127,6 +127,8 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                     _set_parameter(white_engine, parameter, current_parameters[parameter], engine_control.Color.White)
 
                     if not _run_test(match_file, black_engine, white_engine, win_epsilon):
+                        print_status_red(f"Adjustment {current_int_adjustment} for {parameter} was negative", 4)
+
                         # Undo adjustment
                         current_parameters[parameter] += -current_int_adjustment
                         _set_parameter(white_engine, parameter, current_parameters[parameter], engine_control.Color.White)
@@ -144,9 +146,12 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                         # Next parameter
                         break
 
-                    print_status_cyan(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
+                    print_status_white(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
 
-                    data.save_parameters(current_parameters, start_time)
+                    try:
+                        data.save_parameters(current_parameters, start_time)
+                    except data.DataError as err:
+                        raise error.ComparatorError(f"Could not save parameters: {err}")
 
                     # White won, adjust black too in the same way and try another adjustment
                     _set_parameter(black_engine, parameter, current_parameters[parameter], engine_control.Color.Black)
@@ -284,7 +289,8 @@ def _run_round(
     black_engine: checkers_engine.CheckersEngine,
     white_engine: checkers_engine.CheckersEngine,
     index: int,
-    rematch: bool = False
+    rematch: bool = False,
+    output: bool = True
 ) -> data.RoundResult:
     local_board = board.CheckersBoard(None, None)  # Used to follow the game of the two engines
     local_board.reset(position)
@@ -306,7 +312,8 @@ def _run_round(
             current_color = engine_control.Color.White
             next_color = engine_control.Color.Black
 
-    print_status(f"Begin {"rematch" if rematch else "match"} round {index + 1}...", 1, " ")
+    if output:
+        print_status(f"Begin {"rematch" if rematch else "match"} round {index + 1}...", 1, " ")
 
     begin = time.time()
 
@@ -336,19 +343,23 @@ def _run_round(
 
     end = time.time()
 
-    print_status("done")
+    if output:
+        print_status("done")
 
     match local_board.get_game_over():
         case board.GameOver.None_:
             assert False
         case board.GameOver.WinnerBlack:
-            print_status_red(f"Winner engine {"white" if rematch else "black"} (color black)", 2)
+            if output:
+                print_status_red(f"Winner engine {"white" if rematch else "black"} (color black)", 2)
             ending = data.RoundEnding.WinnerBlack
         case board.GameOver.WinnerWhite:
-            print_status_white(f"Winner engine {"black" if rematch else "white"} (color white)", 2)
+            if output:
+                print_status_white(f"Winner engine {"black" if rematch else "white"} (color white)", 2)
             ending = data.RoundEnding.WinnerWhite
         case board.GameOver.TieBetweenBothPlayers:
-            print_status_cyan("Tie between both players", 2)
+            if output:
+                print_status_cyan("Tie between both players", 2)
             ending = data.RoundEnding.TieBetweenBothPlayers
 
     return data.RoundResult(index, position, ending, len(played_moves), played_moves, end - begin)
@@ -383,7 +394,9 @@ def _run_test(
             match_file.force_max_think_time,
             black_engine,
             white_engine,
-            i
+            i,
+            False,
+            False
         ))
 
     for i, position in enumerate(match_file.positions):
@@ -394,7 +407,8 @@ def _run_test(
             white_engine,
             black_engine,
             i,
-            True
+            True,
+            False
         ))
 
     win_black = lambda round: round.ending == data.RoundEnding.WinnerBlack

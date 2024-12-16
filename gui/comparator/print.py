@@ -20,6 +20,10 @@ def print_status(value: str, indent: int = 0, end: str = "\n"):
             indentation = "    "
         case 3:
             indentation = "      "
+        case 4:
+            indentation = "        "
+        case 5:
+            indentation = "          "
         case _:
             indentation = ""
 
