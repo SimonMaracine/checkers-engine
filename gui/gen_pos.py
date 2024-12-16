@@ -22,11 +22,9 @@ def main(args: list[str]) -> int:
         print("No input", file=sys.stderr)
         return 1
 
-    file_path = args[1]
-
     try:
-        with open(file_path, "r") as file:
-            openings = file.readlines()
+        with open(args[1], "r") as file:
+            openings = list(filter(lambda line: line.strip(), file.readlines()))
     except Exception as err:
         print(f"Could not read file: {err}", file=sys.stderr)
         return 1

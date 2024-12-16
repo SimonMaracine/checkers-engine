@@ -115,9 +115,9 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
             some_success = False
 
             for parameter in current_parameters:
-                current_int_adjustment = 1
                 succeeded = False
                 first_no_success = False
+                current_int_adjustment = 1
 
                 print_status(f"Checking parameter {parameter}", 3)
 
@@ -144,7 +144,7 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                         # Next parameter
                         break
 
-                    print_status(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
+                    print_status_cyan(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
 
                     data.save_parameters(current_parameters, start_time)
 
