@@ -6,8 +6,8 @@
 #include <optional>
 #include <random>
 
-namespace opening {
-    class OpeningBook {
+namespace book {
+    class Book {
     public:
         void initialize(std::unordered_map<std::string, std::vector<std::string>>&& data);
         std::optional<std::string> lookup(const std::string& position);

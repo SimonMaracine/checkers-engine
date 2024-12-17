@@ -10,7 +10,7 @@
 #include "game.hpp"
 #include "parameters.hpp"
 #include "transposition_table.hpp"
-#include "opening.hpp"
+#include "book.hpp"
 
 namespace engine {
     class Engine {
@@ -40,7 +40,7 @@ namespace engine {
         std::mutex m_mutex;
         parameters::Parameters m_parameters;
         transposition_table::TranspositionTable m_transposition_table;
-        opening::OpeningBook m_opening_book;
+        book::Book m_opening_book;
 
         // Thread flag; set to true on initialization
         bool m_running {false};

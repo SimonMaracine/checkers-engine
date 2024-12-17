@@ -1,14 +1,14 @@
-#include "opening.hpp"
+#include "book.hpp"
 
 #include <utility>
 
-namespace opening {
-    void OpeningBook::initialize(std::unordered_map<std::string, std::vector<std::string>>&& data) {
+namespace book {
+    void Book::initialize(std::unordered_map<std::string, std::vector<std::string>>&& data) {
         m_data = std::move(data);
         m_random = std::mt19937_64(std::random_device()());
     }
 
-    std::optional<std::string> OpeningBook::lookup(const std::string& position) {
+    std::optional<std::string> Book::lookup(const std::string& position) {
         if (const auto iter {m_data.find(position)}; iter != m_data.cend()) {
             const auto& moves {iter->second};
 
