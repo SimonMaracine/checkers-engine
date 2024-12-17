@@ -12,9 +12,9 @@ If a received command is invalid in any way, it should be ignored completely by 
 move and position strings may not be validated.
 
 Messages can consist of any number of tokens, but they are limited to at most 65536 characters. Both the GUI
-and the engine should account for messages of any size up to the previous limit.
+and the engine should account for messages of any size up to that limit.
 
-Positions and moves are encoded as FEN strings using the standard
+Positions and moves are encoded as strings using the standard
 [Portable Draughts Notation format](https://en.wikipedia.org/wiki/Portable_Draughts_Notation).
 
 The engine must be able to process commands at any time. They should be processed synchronously, in the order
@@ -133,7 +133,7 @@ command and the **BESTMOVE** response.
 
 *transpositions* represents the number of times the transposition table has been hit. It is optional.
 
-*depth* represents the depth of the search the thinking algorithm got to until at that particular point.
+*depth* represents the depth of the search the thinking algorithm got to until that particular point.
 It is optional.
 
 *eval* represents how much advantage does the current player have. It is an implementation defined signed integer.
