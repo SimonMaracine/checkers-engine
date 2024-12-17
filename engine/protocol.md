@@ -141,7 +141,7 @@ It is optional.
 *time* represents the total elapsed time in seconds as a floating point number since the thinking algorithm
 started or since the last **INFO** message.
 
-*pv* represents the principle variation of the search up until at that particular point.
+*pv* represents the principle variation of the search up until that particular point.
 
 ### NAME `name`
 
