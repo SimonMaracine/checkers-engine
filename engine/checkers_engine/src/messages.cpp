@@ -1,7 +1,6 @@
 #include "messages.hpp"
 
 #include <iostream>
-#include <sstream>
 #include <mutex>
 #include <cassert>
 
@@ -9,27 +8,6 @@
 
 namespace messages {
     static std::mutex g_mutex;
-
-    static std::string move_to_string(game::Move move) {
-        std::ostringstream stream;
-
-        switch (move.type()) {
-            case game::MoveType::Normal:
-                stream << game::_0_31_to_1_32(move.source_index()) << 'x' << game::_0_31_to_1_32(move.destination_index());
-
-                break;
-            case game::MoveType::Capture:
-                stream << game::_0_31_to_1_32(move.source_index());
-
-                for (int i {0}; i < move.destination_indices_size(); i++) {
-                    stream << 'x' << game::_0_31_to_1_32(move.destination_index(i));
-                }
-
-                break;
-        }
-
-        return stream.str();
-    }
 
     static char get_square_char(game::Square square) noexcept {
         switch (square) {
@@ -68,7 +46,7 @@ namespace messages {
         std::cout << "BESTMOVE ";
 
         if (move != game::NULL_MOVE) {
-            std::cout << move_to_string(move);
+            std::cout << game::move_to_string(move);
         } else {
             std::cout << "none";
         }
@@ -134,7 +112,7 @@ namespace messages {
         std::cout << "pv";
 
         for (int i {0}; i < pv_size; i++) {
-            std::cout << ' ' << move_to_string(pv_moves[i]);
+            std::cout << ' ' << game::move_to_string(pv_moves[i]);
         }
 
         std::cout << std::endl;
@@ -143,7 +121,7 @@ namespace messages {
     void name() {
         std::lock_guard<std::mutex> lock {g_mutex};
 
-        std::cout << "NAME " << "checkers|17.0" << std::endl;
+        std::cout << "NAME " << "chuck|18.0" << std::endl;
     }
 
     void board(const game::GamePosition& position) {

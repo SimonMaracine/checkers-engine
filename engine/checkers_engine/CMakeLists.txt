@@ -21,6 +21,8 @@ add_library(checkers-engine-core STATIC
     "src/messages.hpp"
     "src/moves.cpp"
     "src/moves.hpp"
+    "src/opening.cpp"
+    "src/opening.hpp"
     "src/parameters.hpp"
     "src/search.cpp"
     "src/search.hpp"

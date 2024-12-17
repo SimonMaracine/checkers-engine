@@ -10,6 +10,7 @@
 #include "game.hpp"
 #include "parameters.hpp"
 #include "transposition_table.hpp"
+#include "opening.hpp"
 
 namespace engine {
     class Engine {
@@ -29,20 +30,17 @@ namespace engine {
         void board() const;
     private:
         game::Move search_move() noexcept;
+        bool lookup_book();
         void reset_position(const std::string& fen_string);
         void initialize_parameters();
         void ignore_invalid_command_on_init(bool after_init = false) const;
-
-        /* TODO
-            opening book
-            other
-        */
 
         std::thread m_thread;
         std::condition_variable m_cv;
         std::mutex m_mutex;
         parameters::Parameters m_parameters;
         transposition_table::TranspositionTable m_transposition_table;
+        opening::OpeningBook m_opening_book;
 
         // Thread flag; set to true on initialization
         bool m_running {false};

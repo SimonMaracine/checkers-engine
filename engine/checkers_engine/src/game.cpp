@@ -3,6 +3,7 @@
 #include <regex>
 #include <utility>
 #include <vector>
+#include <sstream>
 #include <cstddef>
 #include <cstring>
 #include <cassert>
@@ -26,10 +27,10 @@ namespace game {
         return tokens;
     }
 
-    static bool valid_position_string(const std::string& fen_string) {
+    static bool valid_position_string(const std::string& position_string) {
         const std::regex pattern {"(W|B)(:(W|B)(K?[0-9]+(,K?[0-9]+){0,11})?){2}"};
 
-        return std::regex_match(fen_string, pattern);
+        return std::regex_match(position_string, pattern);
     }
 
     static bool valid_move_string(const std::string& move_string) {
@@ -93,8 +94,8 @@ namespace game {
         return pieces;
     }
 
-    static std::pair<Board, Player> parse_position_string(const std::string& fen_string) {
-        const auto tokens {split(fen_string, ":")};
+    static std::pair<Board, Player> parse_position_string(const std::string& position_string) {
+        const auto tokens {split(position_string, ":")};
 
         if (tokens.size() != 3) {
             throw error::InvalidCommand();
@@ -269,7 +270,28 @@ namespace game {
         position.signature |= signature_mod(square, move.destination_index(move.destination_indices_size() - 1));
     }
 
-    Move parse_move_string(const std::string& move_string) {
+    std::string move_to_string(Move move) {
+        std::ostringstream stream;
+
+        switch (move.type()) {
+            case MoveType::Normal:
+                stream << _0_31_to_1_32(move.source_index()) << 'x' << _0_31_to_1_32(move.destination_index());
+
+                break;
+            case MoveType::Capture:
+                stream << _0_31_to_1_32(move.source_index());
+
+                for (int i {0}; i < move.destination_indices_size(); i++) {
+                    stream << 'x' << _0_31_to_1_32(move.destination_index(i));
+                }
+
+                break;
+        }
+
+        return stream.str();
+    }
+
+    Move move_from_string(const std::string& move_string) {
         // These are in the range [1, 32]
         const auto squares {parse_squares(move_string)};
 
@@ -290,12 +312,77 @@ namespace game {
         }
     }
 
-    void set_position(GamePosition& position, const std::string& fen_string) {
-        if (!valid_position_string(fen_string)) {
+    std::string position_to_string(const Position& position) {
+        std::string result;
+
+        std::vector<std::pair<int, bool>> black_pieces;
+        std::vector<std::pair<int, bool>> white_pieces;
+
+        for (int i {0}; i < 32; i++) {
+            switch (position.board[i]) {
+                case Square::None:
+                    break;
+                case Square::Black:
+                    black_pieces.emplace_back(i + 1, false);
+                    break;
+                case Square::BlackKing:
+                    black_pieces.emplace_back(i + 1, true);
+                    break;
+                case Square::White:
+                    white_pieces.emplace_back(i + 1, false);
+                    break;
+                case Square::WhiteKing:
+                    white_pieces.emplace_back(i + 1, true);
+                    break;
+            }
+        }
+
+        switch (position.player) {
+            case Player::Black:
+                result += 'B';
+                break;
+            case Player::White:
+                result += 'W';
+                break;
+        }
+
+        result += ":B";
+
+        for (const auto& [piece, king] : black_pieces) {
+            if (king) {
+                result += 'K';
+            }
+            result += std::to_string(piece);
+            result += ',';
+        }
+
+        if (!black_pieces.empty()) {
+            result.pop_back();
+        }
+
+        result += ":W";
+
+        for (const auto& [piece, king] : white_pieces) {
+            if (king) {
+                result += 'K';
+            }
+            result += std::to_string(piece);
+            result += ',';
+        }
+
+        if (!white_pieces.empty()) {
+            result.pop_back();
+        }
+
+        return result;
+    }
+
+    void set_position(GamePosition& position, const std::string& position_string) {
+        if (!valid_position_string(position_string)) {
             throw error::InvalidCommand();
         }
 
-        const auto [board, player] {parse_position_string(fen_string)};
+        const auto [board, player] {parse_position_string(position_string)};
 
         position.board = board;
         position.player = player;
@@ -309,7 +396,7 @@ namespace game {
             throw error::InvalidCommand();
         }
 
-        const Move move {parse_move_string(move_string)};
+        const Move move {move_from_string(move_string)};
 
         play_move(position, move);
     }

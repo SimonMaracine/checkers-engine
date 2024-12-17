@@ -270,7 +270,7 @@ class CheckersBoard:
         if not CheckersBoard._valid_move_string(move_string):
             raise BoardError(f"Invalid move string: {move_string}")
 
-        move = CheckersBoard._parse_move_string(move_string)
+        move = CheckersBoard._move_from_string(move_string)
 
         if not move in self._legal_moves:
             raise BoardError(f"Invalid move {move}")
@@ -330,7 +330,7 @@ class CheckersBoard:
         if not CheckersBoard._valid_position_string(string):
             raise BoardError(f"Invalid position string: {string}")
 
-        position = CheckersBoard._parse_position_string(string)
+        position = CheckersBoard._position_from_string(string)
 
         self._board = position.board
         self._player = position.player
@@ -797,7 +797,7 @@ class CheckersBoard:
         return common.validate_position_string(string)
 
     @staticmethod
-    def _parse_position_string(string: str) -> _Position:
+    def _position_from_string(string: str) -> _Position:
         player, player1, player2 = string.split(":")
 
         pieces1 = CheckersBoard._parse_player_pieces(player1)
@@ -865,7 +865,7 @@ class CheckersBoard:
         return re.match("([0-9]+(x|-))+[0-9]+", string) is not None
 
     @staticmethod
-    def _parse_move_string(string: str) -> Move:
+    def _move_from_string(string: str) -> Move:
         source_index, *destination_indices = CheckersBoard._parse_squares(string)
 
         if CheckersBoard._is_capture_move(source_index, destination_indices[0]):

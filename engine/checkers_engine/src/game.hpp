@@ -213,8 +213,10 @@ namespace game {
         return ~(static_cast<PositionSignature>(0b111u) << (index * 3));
     }
 
-    Move parse_move_string(const std::string& move_string);
-    void set_position(GamePosition& position, const std::string& fen_string);
+    std::string move_to_string(Move move);
+    Move move_from_string(const std::string& move_string);
+    std::string position_to_string(const Position& position);
+    void set_position(GamePosition& position, const std::string& position_string);
     void play_move(GamePosition& position, const std::string& move_string);
     void play_move(GamePosition& position, Move move) noexcept;
     void play_move(SearchNode& node, Move move) noexcept;
