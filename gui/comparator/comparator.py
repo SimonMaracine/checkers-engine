@@ -119,15 +119,15 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                 first_no_success = False
                 current_int_adjustment = 1
 
-                print_status(f"Checking parameter `{parameter}`, adjustment = {current_int_adjustment}", 3)
-
                 while True:
+                    print_status(f"Checking parameter `{parameter}`, adjustment = {current_int_adjustment}", 3)
+
                     # Adjust white and compare it to black
                     current_parameters[parameter] += current_int_adjustment
                     _set_parameter(white_engine, parameter, current_parameters[parameter], engine_control.Color.White)
 
                     if not _run_test(match_file, black_engine, white_engine, win_epsilon):
-                        print_status_red(f"Adjustment {current_int_adjustment} for {parameter} was negative", 4)
+                        print_status_red(f"Adjustment = {current_int_adjustment} for `{parameter}` was negative", 4)
 
                         # Undo adjustment
                         current_parameters[parameter] += -current_int_adjustment
@@ -146,7 +146,7 @@ def run_improve_session(match_file: MatchFile, path_engine: str):
                         # Next parameter
                         break
 
-                    print_status_white(f"Adjustment {current_int_adjustment} for {parameter} was positive", 4)
+                    print_status_white(f"Adjustment = {current_int_adjustment} for `{parameter}` was positive", 4)
 
                     try:
                         data.save_parameters(current_parameters, start_time)

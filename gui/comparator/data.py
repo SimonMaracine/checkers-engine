@@ -245,7 +245,7 @@ def extract_replay_file(file_path: str, match: str, index: int):
 def save_parameters(parameters: dict[str, int], datetime: str):
     try:
         with open(f"parameters--{_format_datetime(datetime)}.txt", "w") as file:
-            file.write(str(parameters))
+            json.dump(parameters, file, indent=4)
     except Exception as err:
         raise DataError(f"Could not write parameters: {err}")
 
