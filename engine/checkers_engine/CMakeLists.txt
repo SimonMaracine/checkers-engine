@@ -28,6 +28,7 @@ add_library(checkers-engine-core STATIC
     "src/search.hpp"
     "src/transposition_table.cpp"
     "src/transposition_table.hpp"
+    "src/uint128t.hpp"
     "src/utils.hpp"
     "src/zobrist.cpp"
     "src/zobrist.hpp"
@@ -42,9 +43,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 
     if(UNIX)
         target_compile_options(checkers-engine-core PRIVATE "-O3")
+        set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)  # LTO seems to have some issues on MSVC
     endif()
-
-    set_target_properties(checkers-engine-core PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 
 target_compile_definitions(checkers-engine-core PRIVATE "_CRT_SECURE_NO_WARNINGS")

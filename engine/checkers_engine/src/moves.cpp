@@ -40,7 +40,7 @@ namespace moves {
             case Direction::NorthEast:
                 result_index -= even_row ? 3 : 4;
 
-                if (Diag == Diagonal::Long) {
+                if constexpr (Diag == Diagonal::Long) {
                     result_index -= even_row ? 4 : 3;
                 }
 
@@ -48,7 +48,7 @@ namespace moves {
             case Direction::NorthWest:
                 result_index -= even_row ? 4 : 5;
 
-                if (Diag == Diagonal::Long) {
+                if constexpr (Diag == Diagonal::Long) {
                     result_index -= even_row ? 5 : 4;
                 }
 
@@ -56,7 +56,7 @@ namespace moves {
             case Direction::SouthEast:
                 result_index += even_row ? 5 : 4;
 
-                if (Diag == Diagonal::Long) {
+                if constexpr (Diag == Diagonal::Long) {
                     result_index += even_row ? 4 : 5;
                 }
 
@@ -64,7 +64,7 @@ namespace moves {
             case Direction::SouthWest:
                 result_index += even_row ? 4 : 3;
 
-                if (Diag == Diagonal::Long) {
+                if constexpr (Diag == Diagonal::Long) {
                     result_index += even_row ? 3 : 4;
                 }
 

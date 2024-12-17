@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <cstdint>
 
+#include "uint128t.hpp"
+
 namespace game {
     inline constexpr int NULL_INDEX {-1};  // Indices may be in the range [0, 31] or [1, 32]
 
@@ -30,8 +32,13 @@ namespace game {
     };
 
     using PositionKey = std::uint64_t;  // Zobrist hash (not unique)
-    using PositionSignature = __uint128_t;  // Truly unique position number
 
+#ifdef _MSC_VER
+    using PositionSignature = Uint128t;
+#else
+    using PositionSignature = __uint128_t;  // Truly unique position number
+#endif
+    
     struct GamePosition : Position {
         int plies_without_advancement {0};
         PositionKey key {0};
