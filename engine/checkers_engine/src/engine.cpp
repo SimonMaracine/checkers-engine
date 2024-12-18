@@ -272,9 +272,11 @@ namespace engine {
         m_search_options.max_time = max_time ? parse_double(*max_time) : std::numeric_limits<double>::max();
         m_search_options.dont_play_move = dont_play_move;
 
-        // First consult the opening book
-        if (lookup_book()) {
-            return;
+        if (std::get<2>(m_parameters.at("use_book"))) {
+            // First consult the opening book
+            if (lookup_book()) {
+                return;
+            }
         }
 
         // Set the search flag; it's a signal for the cv
@@ -446,6 +448,7 @@ namespace engine {
         m_parameters["positioning_pawn"] = 2;
         m_parameters["positioning_king"] = 4;
         m_parameters["crowdness"] = 1;
+        m_parameters["use_book"] = true;
     }
 
     void Engine::ignore_invalid_command_on_init(bool after_init) const {

@@ -34,11 +34,11 @@ namespace game {
     using PositionKey = std::uint64_t;  // Zobrist hash (not unique)
 
 #ifdef _MSC_VER
-    using PositionSignature = Uint128t;
+    using PositionSignature = Uint128t;  // Truly unique position number
 #else
     using PositionSignature = __uint128_t;  // Truly unique position number
 #endif
-    
+
     struct GamePosition : Position {
         int plies_without_advancement {0};
         PositionKey key {0};

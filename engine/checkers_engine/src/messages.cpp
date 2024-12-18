@@ -79,7 +79,7 @@ namespace messages {
                 std::cout << " float " << std::get<1>(value);
                 break;
             case 2:
-                std::cout << " bool " << std::get<2>(value);
+                std::cout << " bool " << std::boolalpha << std::get<2>(value);
                 break;
             case 3:
                 std::cout << " string " << std::get<3>(value);

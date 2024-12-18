@@ -31,18 +31,26 @@ public:
 	}
 
 	constexpr Uint128t operator<<(int n) const noexcept {
-		const std::uint64_t mask_lower {pow(2, n) << (64 - n)};
-		const std::uint64_t migration_bits {(m_lower & mask_lower) >> (64 - n)};
+		if (n < 64) {
+			const std::uint64_t mask {(pow(2, n) - 1) << (64 - n)};
+			const std::uint64_t migration_bits {(m_lower & mask) >> (64 - n)};
 
-		Uint128t result;
-		result.m_lower = m_lower << n;
-		result.m_upper = m_upper << n;
-		result.m_upper |= migration_bits;
+			Uint128t result;
+			result.m_lower = m_lower << n;
+			result.m_upper = m_upper << n;
+			result.m_upper |= migration_bits;
 
-		return result;
+			return result;
+		} else {
+			Uint128t result;
+			result.m_lower = 0;
+			result.m_upper = m_lower << (n - 64);
+
+			return result;
+		}
 	}
 
-	constexpr Uint128t operator~() noexcept {
+	constexpr Uint128t operator~() const noexcept {
 		Uint128t result;
 		result.m_lower = ~m_lower;
 		result.m_upper = ~m_upper;
@@ -80,13 +88,15 @@ public:
 	}
 private:
 	static constexpr std::uint64_t pow(std::uint64_t n, int m) noexcept {
+		std::uint64_t result {1};
+
 		for (int i {0}; i < m; i++) {
-			n *= n;
+			result *= n;
 		}
 
-		return n;
+		return result;
 	}
 
-	std::uint64_t m_lower {0};
 	std::uint64_t m_upper {0};
+	std::uint64_t m_lower {0};
 };
