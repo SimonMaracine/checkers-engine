@@ -1,4 +1,4 @@
-simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+simon@fedora:~/PROJECTS/checkers-engine/build/engine/checkers_engine$ ./checkers-engine
 READY
 INIT
 GO
@@ -19,7 +19,7 @@ INFO nodes 1340516 transpositions 170283 depth 14 eval 1 time 2.41654 pv 11x16 2
 INFO nodes 2286568 transpositions 352573 depth 15 eval -1 time 4.19385 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x18 14x23 27x18 10x15 31x27 6x10
 BESTMOVE 11x16
 QUIT
-simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+simon@fedora:~/PROJECTS/checkers-engine/build/engine/checkers_engine$ ./checkers-engine
 READY
 INIT
 GO
@@ -40,7 +40,7 @@ INFO nodes 1340516 transpositions 170283 depth 14 eval 1 time 2.39605 pv 11x16 2
 INFO nodes 2286568 transpositions 352573 depth 15 eval -1 time 4.16848 pv 11x16 22x18 8x11 25x22 4x8 29x25 9x14 18x9 5x14 23x18 14x23 27x18 10x15 31x27 6x10
 BESTMOVE 11x16
 QUIT
-simon@fedora:~/PROJECTS/checkers-artificial-intelligence/build/engine/checkers_engine$ ./checkers-engine
+simon@fedora:~/PROJECTS/checkers-engine/build/engine/checkers_engine$ ./checkers-engine
 READY
 INIT
 GO

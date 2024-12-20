@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project("checkers-artificial-intelligence" LANGUAGES CXX)
+project("checkers-engine" LANGUAGES CXX)
 
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Variable used to control the build type")
 
