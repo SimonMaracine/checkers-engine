@@ -651,11 +651,11 @@ class MainWindow(base_main_window.BaseMainWindow):
     def _add_gui_parameter_bool(self, name: str, value: str):
         frm_parameter = self._make_gui_parameter_frame_label(name)
 
-        var_parameter = tk.IntVar(frm_parameter, value=int(value))
+        var_parameter = tk.IntVar(frm_parameter, value=int(bool(value)))
         tk.Checkbutton(
             frm_parameter,
             variable=var_parameter,
-            command=lambda: self._set_engine_parameter(name, str(var_parameter.get()))
+            command=lambda: self._set_engine_parameter(name, str(bool(var_parameter.get())).lower())
         ).grid(row=0, column=1, sticky="ew")
 
     def _add_gui_parameter_string(self, name: str, value: str):
