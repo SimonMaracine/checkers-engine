@@ -321,7 +321,7 @@ namespace search {
         std::iter_swap(moves.begin(), iter);
     }
 
-    void Search::reorder_moves_hash_move(moves::Moves& moves, game::Move hash_move) const noexcept {
+    void Search::reorder_moves_hash_move(moves::Moves& moves, game::Move hash_move) noexcept {
         if (hash_move == game::NULL_MOVE) {
             return;
         }
