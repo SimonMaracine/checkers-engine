@@ -436,8 +436,8 @@ namespace engine {
         return true;
     }
 
-    void Engine::reset_position(const std::string& fen_string) {
-        game::set_position(m_position, fen_string);
+    void Engine::reset_position(const std::string& position_string) {
+        game::set_position(m_position, position_string);
         m_previous_positions.clear();
         m_moves_played.clear();
     }

@@ -6,7 +6,7 @@ Engine 2.0 against itself is not very interesting, but it proves that the match 
 
 ## 2.0 black vs 3.0 white | match--Nov-29--12-17-36--2024.json
 
-Engine 3.0 won the match rigth at the edge. Iteratve deepening + transposition tables seem to be superior to plain
+Engine 3.0 won the match right on the edge. Iteratve deepening + transposition tables seem to be superior to plain
 fixed depth frameworks.
 
 ## 3.0 black vs 4.0 white | match--Nov-30--22-55-20--2024.json

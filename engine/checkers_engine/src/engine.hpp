@@ -31,7 +31,7 @@ namespace engine {
     private:
         game::Move search_move() noexcept;
         bool lookup_book();
-        void reset_position(const std::string& fen_string);
+        void reset_position(const std::string& position_string);
         void initialize_parameters();
         void ignore_invalid_command_on_init(bool after_init = false) const;
 
