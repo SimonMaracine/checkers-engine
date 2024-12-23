@@ -12,7 +12,7 @@ static void generate_moves(int depth, const game::GamePosition& position) {
         return;
     }
 
-    const auto moves {moves::generate_moves(position.board, position.player)};
+    const auto moves {moves::generate_moves(position)};
 
     for (const game::Move move : moves) {
         game::GamePosition new_position {position};

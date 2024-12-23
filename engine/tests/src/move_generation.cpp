@@ -12,7 +12,7 @@ static std::uint64_t count_moves(int depth, const game::GamePosition& position) 
         return 1;
     }
 
-    const auto moves {moves::generate_moves(position.board, position.player)};
+    const auto moves {moves::generate_moves(position)};
 
     for (const game::Move move : moves) {
         game::GamePosition new_position {position};

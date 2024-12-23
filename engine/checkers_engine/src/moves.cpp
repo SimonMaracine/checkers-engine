@@ -163,12 +163,12 @@ namespace moves {
         return sequence_jumps_ended;
     }
 
-    static void generate_piece_capture_moves(const game::Board& board, game::Player player, int square_index, bool king, Moves& moves) noexcept {
+    static void generate_piece_capture_moves(const game::Position& position, int square_index, bool king, Moves& moves) noexcept {
         JumpCtx ctx;
-        ctx.board = board;
+        ctx.board = position.board;
         ctx.source_index = square_index;
 
-        check_piece_jumps(ctx, square_index, player, king, moves);
+        check_piece_jumps(ctx, square_index, position.player, king, moves);
     }
 
     template<Direction Dir>
@@ -186,36 +186,36 @@ namespace moves {
         moves.emplace_back(square_index, target_index);
     }
 
-    static void generate_piece_normal_moves(const game::Board& board, game::Player player, int square_index, bool king, Moves& moves) noexcept {
+    static void generate_piece_normal_moves(const game::Position& position, int square_index, bool king, Moves& moves) noexcept {
         // Check the squares above or below in diagonal
-        switch (static_cast<std::underlying_type_t<game::Player>>(player) | static_cast<std::underlying_type_t<game::Player>>(king) << 2) {
+        switch (static_cast<std::underlying_type_t<game::Player>>(position.player) | static_cast<std::underlying_type_t<game::Player>>(king) << 2) {
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::None):
                 assert(false);
                 utils::unreachable();
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::Black):
-                check_square_normal_move<Direction::SouthEast>(board, square_index, moves);
-                check_square_normal_move<Direction::SouthWest>(board, square_index, moves);
+                check_square_normal_move<Direction::SouthEast>(position.board, square_index, moves);
+                check_square_normal_move<Direction::SouthWest>(position.board, square_index, moves);
                 break;
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::White):
-                check_square_normal_move<Direction::NorthEast>(board, square_index, moves);
-                check_square_normal_move<Direction::NorthWest>(board, square_index, moves);
+                check_square_normal_move<Direction::NorthEast>(position.board, square_index, moves);
+                check_square_normal_move<Direction::NorthWest>(position.board, square_index, moves);
                 break;
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::WhiteKing):
             case static_cast<std::underlying_type_t<game::Square>>(game::Square::BlackKing):
-                check_square_normal_move<Direction::NorthEast>(board, square_index, moves);
-                check_square_normal_move<Direction::NorthWest>(board, square_index, moves);
-                check_square_normal_move<Direction::SouthEast>(board, square_index, moves);
-                check_square_normal_move<Direction::SouthWest>(board, square_index, moves);
+                check_square_normal_move<Direction::NorthEast>(position.board, square_index, moves);
+                check_square_normal_move<Direction::NorthWest>(position.board, square_index, moves);
+                check_square_normal_move<Direction::SouthEast>(position.board, square_index, moves);
+                check_square_normal_move<Direction::SouthWest>(position.board, square_index, moves);
                 break;
         }
     }
 
-    Moves generate_moves(const game::Board& board, game::Player player) noexcept {
+    Moves generate_moves(const game::Position& position) noexcept {
         Moves moves;
 
         for (int i {0}; i < 32; i++) {
-            if (game::is_piece(board[i], player)) {
-                generate_piece_capture_moves(board, player, i, game::is_king_piece(board[i]), moves);
+            if (game::is_piece(position.board[i], position.player)) {
+                generate_piece_capture_moves(position, i, game::is_king_piece(position.board[i]), moves);
             }
         }
 
@@ -225,8 +225,8 @@ namespace moves {
         }
 
         for (int i {0}; i < 32; i++) {
-            if (game::is_piece(board[i], player)) {
-                generate_piece_normal_moves(board, player, i, game::is_king_piece(board[i]), moves);
+            if (game::is_piece(position.board[i], position.player)) {
+                generate_piece_normal_moves(position, i, game::is_king_piece(position.board[i]), moves);
             }
         }
 

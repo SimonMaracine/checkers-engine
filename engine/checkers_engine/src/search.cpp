@@ -129,7 +129,7 @@ namespace search {
 
         // Generate moves here, because we need to check game over condition on unavailable legal moves
         // At the same time, this also checks game over on unavailable material, 2 in 1
-        auto moves {moves::generate_moves(current_node.board, current_node.player)};
+        auto moves {moves::generate_moves(current_node)};
 
         if (moves.empty()) {  // Game over
             p_line.size = 0;

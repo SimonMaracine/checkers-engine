@@ -75,7 +75,7 @@ little higher.
 ## 11.1 black vs 12.0 white | match--Dec-11--14-06-34--2024.json
 
 The match results were dead equal. Engine 12.0, despite having a much better TT implementation, searched
-less deep on average, which is very contradictory.
+shallower on average, which is very contradictory.
 
 ## 11.1 black vs 12.1 white | match--Dec-11--17-43-22--2024.json
 
