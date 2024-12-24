@@ -84,7 +84,7 @@ namespace search {
                 m_nodes_evaluated,
                 m_transpositions,
                 depth,
-                evaluation * perspective(current_node),
+                evaluation * evaluation::perspective(current_node),
                 std::chrono::duration<double>(end - begin).count(),
                 line.moves,
                 line.size
@@ -157,7 +157,7 @@ namespace search {
         if (depth <= 0 && !game::is_move_capture(moves[0])) {
             p_line.size = 0;
             m_nodes_evaluated++;
-            return evaluation::static_evaluation(current_node, m_parameters) * game::perspective(current_node);
+            return evaluation::static_evaluation(current_node, m_parameters) * evaluation::perspective(current_node);
         }
 
         // We don't insert game over evaluations into the TT, as it may cause problems

@@ -20,5 +20,9 @@ namespace evaluation {
     // Null evaluation token used by TT
     inline constexpr Eval UNKNOWN {std::numeric_limits<Eval>::max()};
 
+    constexpr Eval perspective(const game::Position& position) noexcept {
+        return position.player == game::Player::Black ? -1 : 1;
+    }
+
     Eval static_evaluation(const game::SearchNode& node, const parameters::SearchParameters& parameters) noexcept;
 }

@@ -1,6 +1,7 @@
 #include "evaluation.hpp"
 
 #include <algorithm>
+#include <array>
 
 namespace evaluation {
     template<Eval M>

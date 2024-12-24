@@ -124,8 +124,8 @@ namespace game {
         current.previous = &previous;
     }
 
-    constexpr bool is_forty_move_rule(const SearchNode& node) noexcept {
-        return node.plies_without_advancement == 80;
+    constexpr bool is_forty_move_rule(const GamePosition& position) noexcept {
+        return position.plies_without_advancement == 80;
     }
 
     constexpr bool is_threefold_repetition_rule(const SearchNode& node) noexcept {
@@ -144,10 +144,6 @@ namespace game {
         }
 
         return false;
-    }
-
-    constexpr int perspective(const SearchNode& node) noexcept {  // FIXME
-        return node.player == Player::Black ? -1 : 1;
     }
 
     constexpr bool is_move_capture(Move move) noexcept {

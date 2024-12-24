@@ -29,7 +29,7 @@ namespace search {
 
         bool* get_should_stop() noexcept { return &m_should_stop; }
     private:
-        using TimePoint = decltype(std::chrono::steady_clock::now());
+        using TimePoint = std::chrono::steady_clock::time_point;
 
         // Return positive if the side to move is doing better and negative if the opposite side is doing better
         evaluation::Eval alpha_beta(
@@ -67,13 +67,13 @@ namespace search {
 
         parameters::SearchParameters m_parameters;
 
-        // The current and previous positions (for threefold repetition)
-        // node0, node1, node2, ..., nodeN (current)
-        array::Array<game::SearchNode, 81> m_nodes;
-
         // Used to check for max time
         double m_max_time {};
         TimePoint m_begin_search {};
+
+        // The current and previous positions (for threefold repetition)
+        // node0, node1, node2, ..., nodeN (current)
+        array::Array<game::SearchNode, 81> m_nodes;
 
         transposition_table::TranspositionTable& m_transposition_table;
     };
