@@ -174,7 +174,7 @@ namespace engine {
 
                 // Do the actual work now
                 // Search returns a valid result or nothing, if the game is over
-                const game::Move best_move {search_move()};
+                const game::Move best_move {search_move(lock)};
 
                 if (!m_search_options.dont_play_move && best_move != game::NULL_MOVE) {
                     m_previous_positions.push_back(m_position);
@@ -388,7 +388,7 @@ namespace engine {
         messages::board(m_position);
     }
 
-    game::Move Engine::search_move() noexcept {
+    game::Move Engine::search_move(std::unique_lock<std::mutex>& lock) noexcept {
         m_search_sequence++;
 
         search::Search instance {m_search_sequence, m_parameters, m_transposition_table};
@@ -397,7 +397,7 @@ namespace engine {
         m_instance_ready = true;
 
         // Notify now that the search instance is ready
-        m_mutex.unlock();
+        lock.unlock();  // May throw, but it shouldn't
         m_cv.notify_one();
 
         const game::Move best_move {instance.search(

@@ -29,7 +29,7 @@ namespace engine {
         void getname() const;
         void board() const;
     private:
-        game::Move search_move() noexcept;
+        game::Move search_move(std::unique_lock<std::mutex>& lock) noexcept;
         bool lookup_book();
         void reset_position(const std::string& position_string);
         void initialize_parameters();
