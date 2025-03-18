@@ -6,6 +6,9 @@
 #include <cstddef>
 #include <cassert>
 
+// We don't have C++26 yet :|
+// https://en.cppreference.com/w/cpp/container/inplace_vector
+
 namespace array {
     template<typename T, int Size>
     class Array {

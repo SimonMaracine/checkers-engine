@@ -366,8 +366,8 @@ class CheckersBoard:
 
         self._check_piece_crowning(move.normal().destination_index)
         self._check_forty_move_rule(advancement)
-        self._check_repetition(advancement)
         self._change_turn()
+        self._check_repetition(advancement)
         self._check_legal_moves()  # This sets game over and has the highest priority
 
         if self._on_piece_move is not None:
@@ -391,8 +391,8 @@ class CheckersBoard:
 
         self._check_piece_crowning(move.capture().destination_indices[-1])
         self._check_forty_move_rule(True)
-        self._check_repetition(True)
         self._change_turn()
+        self._check_repetition(True)
         self._check_legal_moves()  # This sets game over and has the highest priority
 
         if self._on_piece_move is not None:

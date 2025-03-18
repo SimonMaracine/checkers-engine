@@ -35,13 +35,13 @@ namespace messages {
     */
 
     void ready() {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "READY" << std::endl;
     }
 
     void bestmove(game::Move move) {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "BESTMOVE ";
 
@@ -55,7 +55,7 @@ namespace messages {
     }
 
     void parameters(const std::unordered_map<std::string, parameters::Parameter>& parameters) {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "PARAMETERS";
 
@@ -67,11 +67,11 @@ namespace messages {
     }
 
     void parameter(const std::string& name, const parameters::Parameter& value) {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "PARAMETER " << name;
 
-        switch (value.index()) {  // Too bad that I can't just use typeid
+        switch (value.index()) {  // Too bad that we can't just use typeid
             case 0:
                 std::cout << " int " << std::get<0>(value);
                 break;
@@ -101,7 +101,7 @@ namespace messages {
         const game::Move* pv_moves,
         int pv_size
     ) {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "INFO ";
         std::cout << "nodes " << nodes << ' ';
@@ -119,13 +119,13 @@ namespace messages {
     }
 
     void name() {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         std::cout << "NAME " << "chuck|18.0" << std::endl;
     }
 
     void board(const game::GamePosition& position) {
-        std::lock_guard<std::mutex> lock {g_mutex};
+        std::lock_guard lock {g_mutex};
 
         int pc {0};
         int k {0};

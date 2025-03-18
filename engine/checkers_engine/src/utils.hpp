@@ -2,14 +2,13 @@
 
 // https://en.cppreference.com/w/cpp/utility/unreachable
 
+// We don't have C++23 yet :|
+
 namespace utils {
     [[noreturn]] inline void unreachable() noexcept {
-        // Uses compiler specific extensions if possible.
-        // Even if no extension is used, undefined behavior is still raised by
-        // an empty function body and the noreturn attribute.
-#if defined(_MSC_VER) && !defined(__clang__)  // MSVC
+#if defined(_MSC_VER) && !defined(__clang__)
         __assume(false);
-#else  // GCC, Clang
+#else
         __builtin_unreachable();
 #endif
     }
