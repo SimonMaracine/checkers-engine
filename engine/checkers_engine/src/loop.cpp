@@ -68,6 +68,13 @@ namespace loop {
 
             result += buffer;
 
+            // Just go on
+            if (std::cin.eof()) {
+                std::cin.clear();
+                throw error::Fatal();
+                // continue;
+            }
+
             // An error occurred...
             if (std::cin.bad()) {
                 std::cin.clear();
@@ -80,19 +87,20 @@ namespace loop {
                 continue;
             }
 
-            // Just go on
-            if (std::cin.eof()) {
-                std::cin.clear();
-                return result;
-            }
-
             return result;
         }
     }
 
     int main_loop(engine::Engine& engine, std::string(*read_input)()) {
         while (true) {
-            const std::vector<std::string> tokens {tokenize_input(read_input())};
+            std::vector<std::string> tokens;
+
+            try {
+                tokens = tokenize_input(read_input());
+            } catch (error::Fatal) {
+                commands::quit(engine, tokens);
+                return 1;
+            }
 
             if (tokens.empty()) {
                 continue;
@@ -110,6 +118,7 @@ namespace loop {
             } catch (error::InvalidCommand) {
                 continue;
             } catch (error::Fatal) {
+                commands::quit(engine, tokens);
                 return 1;
             }
         }

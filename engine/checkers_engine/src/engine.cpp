@@ -165,7 +165,7 @@ namespace engine {
         m_thread = std::thread([this]() {
             while (true) {
                 // Wait for some work to do or to exit the loop
-                std::unique_lock<std::mutex> lock {m_mutex};
+                std::unique_lock lock {m_mutex};
                 m_cv.wait(lock, [this]() { return m_search || !m_running; });
 
                 if (!m_running) {
@@ -281,7 +281,7 @@ namespace engine {
 
         // Set the search flag; it's a signal for the cv
         {
-            std::lock_guard<std::mutex> lock {m_mutex};
+            std::lock_guard lock {m_mutex};
             m_search = true;
         }
         m_cv.notify_one();
@@ -289,7 +289,7 @@ namespace engine {
         // Wait only for m_should_stop pointer to become available
         // If we send then a STOP command, it will be processed and the search will stop at its will
         {
-            std::unique_lock<std::mutex> lock {m_mutex};
+            std::unique_lock lock {m_mutex};
             m_cv.wait(lock, [this]() { return m_instance_ready; });
         }
 
@@ -368,7 +368,7 @@ namespace engine {
 
         // Wake up the thread from sleeping, a signal for the cv
         {
-            std::lock_guard<std::mutex> lock {m_mutex};
+            std::lock_guard lock {m_mutex};
             m_running = false;
         }
         m_cv.notify_one();
