@@ -119,7 +119,15 @@ def setup_engine_board(engine: checkers_engine.CheckersEngine, position: str, co
         raise error.ComparatorError(f"Could not send NEWGAME to engine {color}: {err}")
 
 
-def play_engine_move(max_think_time: float, force_max_think_time: bool, engine_current: checkers_engine.CheckersEngine, engine_next: checkers_engine.CheckersEngine, local_board: board.CheckersBoard, color_current: Color, color_next: Color) -> tuple[Move | None, bool]:
+def play_engine_move(
+    max_think_time: float,
+    force_max_think_time: bool,
+    engine_current: checkers_engine.CheckersEngine,
+    engine_next: checkers_engine.CheckersEngine,
+    local_board: board.CheckersBoard,
+    color_current: Color,
+    color_next: Color
+) -> tuple[Move | None, bool]:
     # Return the played move and return true if the game is over
 
     try:

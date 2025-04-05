@@ -803,6 +803,9 @@ class MainWindow(base_main_window.BaseMainWindow):
                 self._enable_or_disable_gui_continue(self._var_player_white)
 
     @staticmethod
-    def _print_err_and_stop_engine(err: checkers_engine.CheckersEngineError | common.EngineWaitError | board.BoardError, engine: checkers_engine.CheckersEngine):
+    def _print_err_and_stop_engine(
+        err: checkers_engine.CheckersEngineError | common.EngineWaitError | board.BoardError,
+        engine: checkers_engine.CheckersEngine
+    ):
         print(err, file=sys.stderr)
         engine.stop(True)

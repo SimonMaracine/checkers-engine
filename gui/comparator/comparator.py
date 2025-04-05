@@ -2,7 +2,6 @@ import dataclasses
 import json
 import time
 import statistics
-import copy
 
 import jsonschema
 
