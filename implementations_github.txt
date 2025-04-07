@@ -15,9 +15,9 @@ https://github.com/hanli1/minimax-checkers                            Java, mini
 https://github.com/stillonearth/CheckersOnBevy                        Rust, machine learning, wrong rules
 https://github.com/Sherif-Abdou/Checkers                              Python, minimax
 https://github.com/shtsai/checker-game                                Python, minimax, depth 14-20 in 15 seconds?
-https://github.com/alobo/AI-Checkers                                  C#, ad-hoc, the method looks similar to a MCTS
+https://github.com/alobo/AI-Checkers                                  C#, ?, the method looks similar to a MCTS
 https://github.com/ptn/draughts                                       Ruby, machine learning, uses PDN
-https://github.com/ILS-Z399/06-Checkers-AI                            Python, ad-hoc
+https://github.com/ILS-Z399/06-Checkers-AI                            Python, ?
 https://github.com/Mchristos/checkers                                 Java, minimax
 https://github.com/araiyan/CheckersAI                                 Python, minimax/machine learning
 https://github.com/mkoryak/evolutionary-neural-net-ai                 Java, machine learning
@@ -25,7 +25,7 @@ https://github.com/nedeljkovignjevic/checkers-game                    Python, ma
 https://github.com/sramakrishnan247/Checkers-AI                       Java, minimax
 https://github.com/sijunhe/ChineseCheckersAI                          Python, minimax/machine learning
 https://github.com/mpcal/shashki-ai                                   C++, minimax, finally a serious project
-https://github.com/AndreaVidali/ChineseCheckersAI                     Python, minimax/ad-hoc
+https://github.com/AndreaVidali/ChineseCheckersAI                     Python, minimax/?
 https://github.com/aronallen/checkers                                 C, minimax
 
 most stars
