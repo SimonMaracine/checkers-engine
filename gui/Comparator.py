@@ -33,7 +33,11 @@ def main(args: list[str]) -> int:
         replay_parser.set_defaults(function=improve)
 
         arguments = parser.parse_args(args[1:])
-        return arguments.function(arguments)
+        try:
+            return arguments.function(arguments)
+        except AttributeError:
+            parser.print_help()
+            return 1
     except KeyboardInterrupt:
         return 1
 
